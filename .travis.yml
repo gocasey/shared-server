@@ -7,7 +7,7 @@ deploy:
   provider: heroku
   api_key:
     secure: aiagPEEtJVtuEdTRiaNdVQtKys/ctfG/1iuCMA8S9EZYHR19FlYad3KKQ8kRBS0M9NJuLfWuhMvL+wOv8QG7Es2ttRU6FrH5Xkf49GOMp/K33do9McoYIIwWru6qblS7xfO7/Xal51s+QjLdoCB+z/8umteL/yFtGg4NprhSALfm/jNuSAt/tqg87iWy7WSspKmpNCilk62njgHysMuD70IGD9liSfwIFLvQiEgKLt4OPIj4ecIQEBiC+E/+6QAb727yeebTI731aA673XjdXLh8P1wpuhHrxfj2hnxYD+Po61tpTw5ArBYvJ6IjIp5kB0g7hCM61AP8Jhn83pw1fkOtl6bxZZ0a1n8u7VFh/ZPl4p5IPgD+81EumhEZrcEKeVKT/tH7/ZF6M+BVfyx6e0+IFjaUdf2x7vTr6r2QCYItORYdYdfZ/KtNFUe4NVBXBieZsPCNpPJlqgeJbA89YcZAxLMajWMALqjRdlDP1lXtTrrTowBZ0YpRlocjnoB0PHhRvKJTQLqMVpc3CjWTwUt4gJ60ZnqUunGvsschSsN99mFPAPCiUPcmE2gVt1YOEudfvOyGar0505Xg9DxIRXOPG78Lb9Ss0fx5Lcu1rjmcnlizpfQfFW13/WzaCMDNyHsmwBUZk4w+ArNxWJIyUEjG7A8a6Fw1GVH0nMzGPzU=
-  app: shared-server
+  app: shared-server-stories
   on:
     repo: gocasey/shared-server
     branch: master
