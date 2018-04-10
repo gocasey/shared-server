@@ -2,6 +2,8 @@ const filesController = require('./controllers/files-controller.js');
 const serversController = require('./controllers/servers-controller.js');
 const usersController = require('./controllers/users-controller.js');
 const statusController = require('./controllers/status-controller.js');
+var ApplicationUserCredentialsSchemaValidator = require('../schema_validators/application_user_credentials_schema_validator.js');
+var BusinessUserCredentialsSchemaValidator = require('../schema_validators/business_user_credentials_schema_validator.js');
 
 module.exports = (router) => {
   // Files
@@ -21,7 +23,8 @@ module.exports = (router) => {
   router.delete('/servers/:serverId', serversController.deleteServer);
 
   // Users
-  router.post('/token', usersController.generateToken);
+  router.post('/token', 
+                        usersController.generateToken);
   router.post('/authorize', usersController.authorizeUser);
 
   // Status
