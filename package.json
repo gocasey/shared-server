@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint src test",
     "test": "mocha --recursive",
-    "coverage": "nyc --all --reporter=html --reporter=text npm test",
+    "coverage": "nyc --all --check-coverage --lines 75 --functions 75 --branches 75 --reporter=html --reporter=text npm test",
     "start": "node ./src/app.js",
     "debug": "NODE_ENV=development node --inspect-brk=34939 src/server.js"
   },
