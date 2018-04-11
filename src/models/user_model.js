@@ -4,7 +4,7 @@ function UserModel(logger, postgrePool){
     var _postgrePool = postgrePool;
 
     this.findByUsername = function(username, callback){
-        var query = 'SELECT username, password, token, expiration FROM users WHERE username = $1';
+        var query = 'SELECT username, password, token FROM users WHERE username = $1';
         var values = [username];
         executeQuery(query, values, function(err, rows){
            if (err) return callback(err);

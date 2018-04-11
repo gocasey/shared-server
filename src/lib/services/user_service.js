@@ -11,9 +11,14 @@ function UserService(logger, postgrePool){
         _userModel.findByUsername(username, function(err, user){
             if (err) return callback(err);
             else{
-                user.token = _tokenGenerationService.generateToken();
-                _userModel.save(user);
-                callback(null, user);
+                _tokenGenerationService.generateToken(username, function(err, token){
+                  if (err) callback (err);
+                  else {
+                    user.token = token;
+                    _userModel.save(user);
+                    callback(null, user);
+                  }
+                });
             }
         });
     };
