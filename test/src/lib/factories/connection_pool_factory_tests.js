@@ -3,39 +3,35 @@ const proxyquire = require('proxyquire');
 const sinon = require('sinon');
 const ConnectionPoolFactoryModule = '../../../../src/lib/factories/connection_pool_factory.js';
 
-var mockLogger = {
-  debug: sinon.stub()
+const mockLogger = {
+  debug: sinon.stub(),
 };
 
-function setupConnectionPoolFactory(){
-  var mockPool = sinon.stub();
-  var mocks = {
-    'pg' : {
-      Pool : function(){
+function setupConnectionPoolFactory() {
+  let mockPool = sinon.stub();
+  let mocks = {
+    'pg': {
+      Pool: function() {
         return mockPool;
-      }
-    }
+      },
+    },
   };
-  var ConnectionPoolFactory = proxyquire(ConnectionPoolFactoryModule, mocks);
+  let ConnectionPoolFactory = proxyquire(ConnectionPoolFactoryModule, mocks);
   return new ConnectionPoolFactory(mockLogger);
 }
 
-describe('ConnectionPoolFactory Tests', function(){
+describe('ConnectionPoolFactory Tests', function() {
+  let connectionPoolFactory;
 
-  var connectionPoolFactory;
-
-  before(function(){
+  before(function() {
     connectionPoolFactory = setupConnectionPoolFactory();
   });
 
-  describe('#createPool', function(){
-
-    it('returns pool', function(done){
-      var pool = connectionPoolFactory.createPool();
+  describe('#createPool', function() {
+    it('returns pool', function(done) {
+      let pool = connectionPoolFactory.createPool();
       expect(pool).to.be.ok();
       done();
     });
-
   });
-
 });

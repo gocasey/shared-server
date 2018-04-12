@@ -3,71 +3,67 @@ const expect = require('expect.js');
 const sinon = require('sinon');
 const PasswordAuthenticatorModule = '../../../../src/middlewares/authenticators/password_authenticator.js';
 
-var mockUserService = {
-  authenticateWithPassword : sinon.stub()
+const mockUserService = {
+  authenticateWithPassword: sinon.stub(),
 };
 
-function setupPasswordAuthenticator(){
-  var mocks = {
-    '../../lib/services/user_service.js' : function(){
+function setupPasswordAuthenticator() {
+  let mocks = {
+    '../../lib/services/user_service.js': function() {
       return mockUserService;
-    }
+    },
   };
-  var PasswordAuthenticator = proxyquire(PasswordAuthenticatorModule, mocks);
+  let PasswordAuthenticator = proxyquire(PasswordAuthenticatorModule, mocks);
   return new PasswordAuthenticator();
 }
 
-describe('PasswordAuthenticator Tests', function(){
+describe('PasswordAuthenticator Tests', function() {
+  let passwordAuthenticator;
 
-  var passwordAuthenticator;
-
-  before(function(){
+  before(function() {
     passwordAuthenticator = setupPasswordAuthenticator();
   });
 
-  describe('#authenticate', function(){
-
-    var request = {
+  describe('#authenticate', function() {
+    let request = {
       body: {
-        username : 'username',
-        password : 'password'
-      }
+        username: 'username',
+        password: 'password',
+      },
     };
 
-    var response = {
-      status: function(){
+    let response = {
+      status: function() {
         return {
-          json: sinon.stub()
-        }
-      }
+          json: sinon.stub(),
+        };
+      },
     };
 
-    describe('authentication success', function(){
-      before(function(){
+    describe('authentication success', function() {
+      before(function() {
         mockUserService.authenticateWithPassword.callsArgWith(2);
       });
 
-      it('does not return error', function(done){
-        passwordAuthenticator.authenticate(request, response, function(err){
+      it('does not return error', function(done) {
+        passwordAuthenticator.authenticate(request, response, function(err) {
           expect(err).to.be.null;
           done();
         });
       });
     });
 
-    describe('authentication failure', function(){
-      before(function(){
+    describe('authentication failure', function() {
+      before(function() {
         mockUserService.authenticateWithPassword.callsArgWith(2, 'authentication error');
       });
 
-      it('returns error', function(done){
-        passwordAuthenticator.authenticate(request, response, function(err){
+      it('returns error', function(done) {
+        passwordAuthenticator.authenticate(request, response, function(err) {
           expect(err).to.be.ok();
           done();
         });
       });
     });
-
   });
-
 });

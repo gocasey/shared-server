@@ -15,19 +15,21 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(morgan('dev', {
-  skip: function (req, res) {
-    return res.statusCode < 400
-  }, stream: function(msg){
+  skip: function(req, res) {
+    return res.statusCode < 400;
+  },
+  stream: function(msg) {
     logger.error(msg);
-  }
+  },
 }));
 
 app.use(morgan('dev', {
-  skip: function (req, res) {
-    return res.statusCode >= 400
-  }, stream: function(msg) {
+  skip: function(req, res) {
+    return res.statusCode >= 400;
+  },
+  stream: function(msg) {
     logger.info(msg);
-  }
+  },
 }));
 
 // Enable CORS for all routes
