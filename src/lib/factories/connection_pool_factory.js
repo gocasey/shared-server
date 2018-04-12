@@ -1,16 +1,19 @@
-var Pool = require('pg');
+const Pool = require('pg').Pool;
 
-function ConnectionPoolFactory() {
-    var _self = this;
+function ConnectionPoolFactory(logger) {
 
-    _self.createPool = function () {
-        var pool = new Pool({
-            user: 'postgres',
-            host: 'localhost',
-            database: 'users',
-            password: 'admin',
-            port: 5432,
-        });
+    var _logger = logger;
+
+    this.createPool = function () {
+        var connectionSettings = {
+          user: 'postgres',
+          host: 'localhost',
+          database: 'stories',
+          password: 'admin',
+          port: 5432
+        };
+        var pool = new Pool(connectionSettings);
+        _logger.debug('Database connection settings: %j', connectionSettings);
         return pool;
     };
 }

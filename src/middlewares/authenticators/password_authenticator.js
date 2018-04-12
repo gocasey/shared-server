@@ -1,8 +1,8 @@
-var UserService = require('../../lib/services/user_service.js');
+const UserService = require('../../lib/services/user_service.js');
+const BaseHttpError = require('../../errors/base_http_error.js');
 
 function PasswordAuthenticator(logger, postgrePool){
 
-    var _logger = logger;
     var _userService = new UserService(logger, postgrePool);
 
     this.authenticate = function(req, res, next) {

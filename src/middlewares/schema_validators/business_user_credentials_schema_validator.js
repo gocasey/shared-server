@@ -1,4 +1,5 @@
 var SchemaValidator = require('../../utils/schema_validator.js');
+var BaseHttpError = require('../../errors/base_http_error.js');
 
 function BusinessUserCredentialsSchemaValidator(logger){
 

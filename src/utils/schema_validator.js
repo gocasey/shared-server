@@ -11,12 +11,14 @@ function SchemaValidator(){
         var schemaFilePath = path.join(schemasDirectory, schemaFilename);
         fs.readFile(schemaFilePath, 'utf8', function (err, data) {
             if (err) callback(err);
-            var jsonSchema = JSON.parse(data);
-            if (! validator.validate(jsonToValidate, jsonSchema).valid){
-                callback("Schema validation failed");
-            }
-            else{
+            else {
+              var jsonSchema = JSON.parse(data);
+              if (!validator.validate(jsonToValidate, jsonSchema).valid) {
+                callback('Schema validation failed');
+              }
+              else {
                 callback();
+              }
             }
         });
     };

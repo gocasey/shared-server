@@ -7,18 +7,37 @@ function UserService(logger, postgrePool){
     var _userModel = new UserModel(logger, postgrePool);
     var _tokenGenerationService = new TokenGenerationService();
 
+    function generateNewTokenForUser(user, callback){
+      _tokenGenerationService.generateToken(user.username, function(err, token){
+        if (err) callback (err);
+        else {
+          user.token = token;
+          _userModel.save(user);
+          callback(null, user);
+        }
+      });
+    }
+
     this.generateToken = function(username, callback){
         _userModel.findByUsername(username, function(err, user){
             if (err) return callback(err);
             else{
-                _tokenGenerationService.generateToken(username, function(err, token){
-                  if (err) callback (err);
-                  else {
-                    user.token = token;
-                    _userModel.save(user);
-                    callback(null, user);
-                  }
-                });
+                if (user.token){
+                  _tokenGenerationService.validateToken(user.token, user.username, function(err){
+                    if (err){
+                      _logger.info('User: \'%s\' already has a token but it is not valid, generating new token', username);
+                      generateNewTokenForUser(user, callback);
+                    }
+                    else{
+                      _logger.info('User: \'%s\' already has a valid token, skipping token generation', username);
+                      callback();
+                    }
+                  })
+                }
+                else{
+                  _logger.info('User: \'%s\' does not have a token, generating one');
+                  generateNewTokenForUser(user, callback);
+                }
             }
         });
     };
