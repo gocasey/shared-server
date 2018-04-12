@@ -1,5 +1,6 @@
-var UserModel = require('../../models/user_model.js');
-var TokenGenerationService = require('./token_generation_service');
+const crypto = require('crypto');
+const UserModel = require('../../models/user_model.js');
+const TokenGenerationService = require('./token_generation_service');
 
 function UserService(logger, postgrePool){
 
@@ -12,7 +13,7 @@ function UserService(logger, postgrePool){
         if (err) callback (err);
         else {
           user.token = token;
-          _userModel.save(user);
+          _userModel.update(user);
           callback(null, user);
         }
       });
@@ -42,16 +43,21 @@ function UserService(logger, postgrePool){
         });
     };
 
+    function hash(s){
+      return crypto.createHmac('sha256','secret').update(s).digest('hex');
+    }
+
     this.authenticateWithPassword = function(username, password, callback){
         _userModel.findByUsername(username, function(err, user){
-            if (hash(password) == user.password){
-                _logger.info('Password validated succesfully for username: %s', username);
-                callback(null, user);
-            }
-            else{
-                _logger.error('Wrong password for username: %s', username);
-                callback('Password incorrect');
-            }
+          if (err) callback(err);
+          else if (hash(password) == user.password){
+            _logger.info('Password validated successfully for username: %s', username);
+            callback(null, user);
+          }
+          else{
+            _logger.error('Wrong password for username: %s', username);
+            callback('Password incorrect');
+          }
         });
     };
 
@@ -63,7 +69,7 @@ function UserService(logger, postgrePool){
                     callback('Token expired');
                 }
                 else {
-                    _logger.info('Token validated succesfully for username: %s', username);
+                    _logger.info('Token validated successfully for username: %s', username);
                     callback(null, user);
                 }
             }

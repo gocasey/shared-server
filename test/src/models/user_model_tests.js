@@ -22,6 +22,7 @@ describe('UserModel Tests', function(){
     mockLogger.error.resetHistory();
     mockLogger.warn.resetHistory();
     mockLogger.debug.resetHistory();
+    mockPool.query.resetHistory();
   });
 
   describe('#findByUsername', function(){
@@ -91,6 +92,93 @@ describe('UserModel Tests', function(){
           expect(mockLogger.error.calledOnce);
           expect(mockLogger.error.getCall(0).args[0]).to.be('Error looking for username:\'%s\' in the database');
           expect(mockLogger.error.getCall(0).args[1]).to.be('name');
+          done();
+        });
+      });
+    });
+
+  });
+
+  describe('#update', function(){
+
+    var mockUser = {
+      username: 'name',
+      password: 'pass',
+      token: {
+        token: 'token',
+        expiresAt: 123456789
+      }
+    };
+
+    describe('success', function(){
+      before(function(){
+        mockPool.query.callsArgWith(2, null, { rows: [ mockUser ]});
+      });
+
+      it('passes correct values to query', function(done){
+        userModel.update(mockUser, function(){
+          expect(mockPool.query.calledOnce);
+          expect(mockPool.query.getCall(0).args[1]).to.eql(['pass','token','name']);
+          done();
+        })
+      });
+
+      it('does not return error', function(done){
+        userModel.update(mockUser, function(err){
+          expect(err).to.be.null;
+          done();
+        });
+      });
+
+    });
+
+
+    describe('db error', function(){
+      before(function(){
+        mockPool.query.callsArgWith(2, 'DB error');
+      });
+
+      it('returns error', function(done){
+        userModel.update(mockUser, function(err){
+          expect(err).to.be.ok();
+          done();
+        });
+      });
+    });
+
+  });
+
+
+  describe('#create', function(){
+
+    var mockUser = {
+      username: 'name',
+      password: 'pass',
+    };
+
+    describe('success', function(){
+      before(function(){
+        mockPool.query.callsArgWith(2, null, { rows: [ mockUser ]});
+      });
+
+      it('does not return error', function(done){
+        userModel.create(mockUser, function(err){
+          expect(err).to.be.null;
+          done();
+        });
+      });
+
+    });
+
+
+    describe('db error', function(){
+      before(function(){
+        mockPool.query.callsArgWith(2, 'DB error');
+      });
+
+      it('returns error', function(done){
+        userModel.create(mockUser, function(err){
+          expect(err).to.be.ok();
           done();
         });
       });

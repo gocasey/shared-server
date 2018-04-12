@@ -1,14 +1,16 @@
+var pjson = require('../../../package.json');
+
 function TokenResponseBuilder(logger){
 
     var _logger = logger;
 
-    this.buildResponse = function(req, res, next){
+    this.buildResponse = function(req, res){
         var user = res.data;
 
         var response = getBasicResponse();
-        response.metadata.version = '1.0.0';
-        response.token.expiresAt = user.tokenExpirationDate;
-        response.token.token = user.token;
+        response.metadata.version = pjson.version;
+        response.token.expiresAt = user.token.expiresAt;
+        response.token.token = user.token.token;
 
         _logger.debug('Response: %j', response);
         res.json(response);

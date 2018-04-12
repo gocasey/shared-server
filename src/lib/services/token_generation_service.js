@@ -15,7 +15,8 @@ function TokenGenerationService(logger){
         }
         else{
           _logger.info('Token was created successfully for username %s', username);
-          callback(null, token);
+          var tokenData = jwt.decode(token);
+          callback(null, { token: token, expiresAt: tokenData.exp });
         }
       });
     };

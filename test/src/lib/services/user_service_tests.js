@@ -10,7 +10,7 @@ var mockLogger = {
 
 var mockUserModel = {
   findByUsername: sinon.stub(),
-  save: sinon.stub()
+  update: sinon.stub()
 };
 
 var mockTokenGenerationService = {
@@ -18,8 +18,23 @@ var mockTokenGenerationService = {
   validateToken: sinon.stub()
 };
 
+var mockDigest = sinon.stub();
+
+var mockCrypto = {
+  createHmac: function(){
+    return {
+      update: function() {
+        return {
+          digest: mockDigest
+        }
+      }
+    }
+  }
+};
+
 function setupUserService(){
   var mocks = {
+    'crypto': mockCrypto,
     '../../models/user_model.js' : function(){ return mockUserModel },
     './token_generation_service' : function(){ return mockTokenGenerationService }
   };
@@ -110,6 +125,53 @@ describe('UserService Tests', function(){
 
   describe('#authenticateWithPassword', function(){
 
+    describe('user found', function(){
+      before(function(){
+        mockUserModel.findByUsername.callsArgWith(1, null, { username: 'username', password: 'password'});
+      });
+
+      describe('valid password', function(){
+        before(function(){
+          mockDigest.returns('password');
+        });
+
+        it('does not return error', function(done){
+          userService.authenticateWithPassword('username', 'password', function(err){
+            expect(err).to.be.null;
+            done();
+          })
+        });
+
+      });
+
+      describe('invalid password', function(){
+
+        before(function(){
+          mockDigest.returns('another_hash');
+        });
+
+        it('returns error', function(done){
+          userService.authenticateWithPassword('username', 'password', function(err){
+            expect(err).to.be.ok();
+            done();
+          })
+        });
+      });
+    });
+
+    describe('user not found', function(){
+      before(function(){
+        mockUserModel.findByUsername.callsArgWith(1, 'user not found');
+      });
+
+      it('returns error', function(done){
+        userService.authenticateWithPassword('username', 'password', function(err){
+          expect(err).to.be.ok();
+          done();
+        })
+      });
+
+    });
   });
 
 });

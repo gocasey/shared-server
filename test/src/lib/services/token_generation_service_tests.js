@@ -13,7 +13,8 @@ describe('TokenGenerationService Tests', function(){
 
     var mockJwt = {
       sign: sinon.stub(),
-      verify: sinon.stub()
+      verify: sinon.stub(),
+      decode: sinon.stub()
     }
 
     var tokenGenerationService;
@@ -25,8 +26,12 @@ describe('TokenGenerationService Tests', function(){
       return new TokenGenerationService(mockLogger);
     }
 
-    beforeEach(function(){
+    before(function(){
+      mockJwt.decode.returns({ exp: '12345678' });
       tokenGenerationService = setupTokenGenerationService();
+    });
+
+    beforeEach(function(){
       mockLogger.info.resetHistory();
       mockLogger.error.resetHistory();
     });
