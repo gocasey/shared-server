@@ -21,7 +21,7 @@ jobs:
     - stage: test
       script: npm test
     - stage: coverage
-      script: npm run coverage
+      script: npm run coverage_dev
     - stage: deploy
       script: ignore
       deploy: &heroku
