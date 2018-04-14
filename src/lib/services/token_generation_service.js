@@ -27,7 +27,7 @@ function TokenGenerationService(logger) {
           callback(err);
         } else if ((decoded.data) && (decoded.data == username)) {
             _logger.info('Token was validated successfully for username %s', username);
-            callback();
+            callback(null, { token: token, expiresAt: decoded.exp });
         } else {
             _logger.error('Token could not be validated for username %s', username);
             callback('Token validation failed');

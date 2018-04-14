@@ -99,10 +99,8 @@ describe('UserModel Tests', function() {
     let mockUser = {
       username: 'name',
       password: 'pass',
-      token: {
-        token: 'token',
-        expiresAt: 123456789,
-      },
+      token: 'token',
+      tokenExpiration: '123456789',
     };
 
     describe('success', function() {

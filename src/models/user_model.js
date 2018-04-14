@@ -38,7 +38,7 @@ function UserModel(logger, postgrePool) {
 
     this.update = function(user, callback) {
       let query = 'UPDATE users SET password=$1, token=$2 WHERE username=$3;';
-      let values = [user.password, user.token.token, user.username];
+      let values = [user.password, user.token, user.username];
       executeQuery(query, values, function(err, rows) {
         if (err) {
           _logger.error('Error updating user with username:\'%s\' to database');

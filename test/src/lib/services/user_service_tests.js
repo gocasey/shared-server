@@ -55,48 +55,35 @@ describe('UserService Tests', function() {
   });
 
   describe('#generateToken', function() {
-    describe('user found', function() {
-      describe('user has token', function() {
+    describe('user has token', function() {
+
+      var mockUser = {
+        username: 'username',
+        password: 'password',
+        token: 'token',
+      };
+
+      describe('token valid', function() {
         before(function() {
-          mockUserModel.findByUsername.callsArgWith(1, null, { username: 'username', password: 'password', token: 'token' });
+          mockTokenGenerationService.validateToken.callsArgWith(2, null, {token: 'token', expiresAt: 123456789 });
         });
 
-        describe('token valid', function() {
-          before(function() {
-            mockTokenGenerationService.validateToken.callsArgWith(2);
-          });
-
-          it('does not return error', function(done) {
-            userService.generateToken('username', function(err) {
-              expect(err).to.be.null;
-              done();
-            });
-          });
-        });
-
-        describe('token invalid', function() {
-          before(function() {
-            mockTokenGenerationService.validateToken.callsArgWith(2, 'token invalid');
-            mockTokenGenerationService.generateToken.callsArgWith(1, 'token');
-          });
-
-          it('does not return error', function(done) {
-            userService.generateToken('username', function(err) {
-              expect(err).to.be.null;
-              done();
-            });
+        it('does not return error', function(done) {
+          userService.generateToken(mockUser, function(err) {
+            expect(err).to.be.null;
+            done();
           });
         });
       });
 
-      describe('user does not have token', function() {
+      describe('token invalid', function() {
         before(function() {
-          mockUserModel.findByUsername.callsArgWith(1, null, { username: 'username', password: 'password' });
+          mockTokenGenerationService.validateToken.callsArgWith(2, 'token invalid');
           mockTokenGenerationService.generateToken.callsArgWith(1, 'token');
         });
 
         it('does not return error', function(done) {
-          userService.generateToken('username', function(err) {
+          userService.generateToken(mockUser, function(err) {
             expect(err).to.be.null;
             done();
           });
@@ -104,14 +91,19 @@ describe('UserService Tests', function() {
       });
     });
 
-    describe('user not found', function() {
+    describe('user does not have token', function() {
+      var mockUser = {
+        username: 'username',
+        password: 'password',
+      };
+
       before(function() {
-        mockUserModel.findByUsername.callsArgWith(1, 'user not found');
+        mockTokenGenerationService.generateToken.callsArgWith(1, 'token');
       });
 
-      it('returns error', function(done) {
+      it('does not return error', function(done) {
         userService.generateToken('username', function(err) {
-          expect(err).to.be.ok();
+          expect(err).to.be.null;
           done();
         });
       });

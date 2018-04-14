@@ -8,8 +8,8 @@ function TokenResponseBuilder(logger) {
 
         let response = getBasicResponse();
         response.metadata.version = pjson.version;
-        response.token.expiresAt = user.token.expiresAt;
-        response.token.token = user.token.token;
+        response.token.expiresAt = user.tokenExpiration;
+        response.token.token = user.token;
 
         _logger.debug('Response: %j', response);
         res.json(response);

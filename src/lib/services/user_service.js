@@ -12,32 +12,27 @@ function UserService(logger, postgrePool) {
         if (err) callback(err);
         else {
           user.token = token;
-          _userModel.update(user);
-          callback(null, user);
+          _userModel.update(user, callback);
         }
       });
     }
 
-    this.generateToken = function(username, callback) {
-        _userModel.findByUsername(username, function(err, user) {
-            if (err) return callback(err);
-            else {
-                if (user.token) {
-                  _tokenGenerationService.validateToken(user.token, user.username, function(err) {
-                    if (err) {
-                      _logger.info('User: \'%s\' already has a token but it is not valid, generating new token', username);
-                      generateNewTokenForUser(user, callback);
-                    } else {
-                      _logger.info('User: \'%s\' already has a valid token, skipping token generation', username);
-                      callback();
-                    }
-                  });
-                } else {
-                  _logger.info('User: \'%s\' does not have a token, generating one');
-                  generateNewTokenForUser(user, callback);
-                }
-            }
+    this.generateToken = function(user, callback) {
+      if (user.token) {
+        _tokenGenerationService.validateToken(user.token, user.username, function(err, token) {
+          if (err) {
+            _logger.info('User: \'%s\' already has a token but it is not valid, generating new token', user.username);
+            generateNewTokenForUser(user, callback);
+          } else {
+            _logger.info('User: \'%s\' already has a valid token, skipping token generation', user.username);
+            user.tokenExpiration = token.expiresAt;
+            callback(null, user);
+          }
         });
+      } else {
+        _logger.info('User: \'%s\' does not have a token, generating one');
+        generateNewTokenForUser(user, callback);
+      }
     };
 
     function hash(s) {
