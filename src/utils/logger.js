@@ -1,4 +1,5 @@
 const winston = require('winston');
+const logFilename = 'all-logs.log';
 
 function Logger() {
     const level = process.env.LOG_LEVEL || 'debug';
@@ -7,7 +8,7 @@ function Logger() {
         transports: [
             new winston.transports.File({
                 level: level,
-                filename: './logs/all-logs.log',
+                filename: logFilename,
             }),
             new winston.transports.Console({
                 level: level,
