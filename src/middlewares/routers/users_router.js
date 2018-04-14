@@ -1,11 +1,11 @@
 const BusinessUserCredentialsSchemaValidator = require('../schema_validators/business_user_credentials_schema_validator.js');
-const PasswordAuthenticator = require('../../middleware/authenticators/password_authenticator.js');
+const PasswordAuthenticator = require('../authenticators/password_authenticator.js');
 const UserService = require('../../lib/services/user_service.js');
-const TokenResponseBuilder = require('../../middleware/response_builders/token_response_builder.js');
+const TokenResponseBuilder = require('../response_builders/token_response_builder.js');
 
 function UsersRouter(app, logger, postgrePool) {
     let _logger = logger;
-    let _businessUserCredentialsSchemaValidator = new BusinessUserCredentialsSchemaValidator();
+    let _businessUserCredentialsSchemaValidator = new BusinessUserCredentialsSchemaValidator(logger);
     let _passwordAuthenticator = new PasswordAuthenticator(logger, postgrePool);
     let _userService = new UserService(logger, postgrePool);
     let _tokenResponseBuilder = new TokenResponseBuilder(logger);

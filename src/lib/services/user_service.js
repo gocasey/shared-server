@@ -5,7 +5,7 @@ const TokenGenerationService = require('./token_generation_service');
 function UserService(logger, postgrePool) {
     let _logger = logger;
     let _userModel = new UserModel(logger, postgrePool);
-    let _tokenGenerationService = new TokenGenerationService();
+    let _tokenGenerationService = new TokenGenerationService(logger);
 
     function generateNewTokenForUser(user, callback) {
       _tokenGenerationService.generateToken(user.username, function(err, token) {
