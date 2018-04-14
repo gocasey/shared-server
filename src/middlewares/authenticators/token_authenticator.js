@@ -9,16 +9,16 @@ function TokenAuthenticator(logger, postgrePool) {
             _userService.authenticateWithToken(req.body.username, token, function(err) {
                 if (err) {
                     let error = new BaseHttpError('Unauthorized', 'Unauthorized', 401);
-                    res.status(401).json(error);
                     next(error);
+                }
+                else{
+                  next();
                 }
             });
         } else {
             let error = new BaseHttpError('Unauthorized', 'Unauthorized', 401);
-            res.status(401).json(error);
             next(error);
         }
-        next();
     };
 }
 

@@ -10,7 +10,6 @@ function ApplicationUserCredentialsSchemaValidator(logger) {
             if (err) {
                 _logger.error('The request is invalid');
                 let error = new BaseHttpError('The request is invalid', 'The request is invalid', 400);
-                res.status(400).json(error);
                 next(error);
             } else {
                 _logger.info('The request was validated successfully');

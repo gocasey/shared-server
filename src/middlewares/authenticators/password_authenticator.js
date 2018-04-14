@@ -9,12 +9,17 @@ function PasswordAuthenticator(logger, postgrePool) {
             _userService.authenticateWithPassword(req.body.username, req.body.password, function(err) {
                 if (err) {
                     let error = new BaseHttpError('Unauthorized', 'Unauthorized', 401);
-                    res.status(401).json(error);
                     next(error);
+                }
+                else{
+                  next();
                 }
             });
         }
-        next();
+        else{
+          let error = new BaseHttpError('Wrong request', 'Wrong request', 400);
+          next(error);
+        }
     };
 }
 

@@ -7,11 +7,9 @@
  * @param {Function} next - Next function to call the next middleware
  */
 function errorMiddleware(err, req, res, next) {
-  res.status(err.status || 500).json({
-    name: err.name,
-    status: err.status,
+  res.status(err.statusCode || 500).json({
+    code: err.statusCode,
     message: err.message,
-    details: err.details,
   });
 };
 
