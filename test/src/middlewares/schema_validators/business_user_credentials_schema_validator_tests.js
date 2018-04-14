@@ -21,8 +21,8 @@ describe('BusinessUserCredentialsSchemaValidator Tests', function() {
     describe('valid request', function() {
       let request = {
         body: {
-          "username": "username",
-          "password": "password",
+          'username': 'username',
+          'password': 'password',
         },
       };
 
@@ -37,9 +37,9 @@ describe('BusinessUserCredentialsSchemaValidator Tests', function() {
     describe('invalid request with password and token', function() {
       let request = {
         body: {
-          "username": "username",
-          "password": "password",
-          "token": "token",
+          'username': 'username',
+          'password': 'password',
+          'token': 'token',
         },
       };
 
@@ -54,8 +54,8 @@ describe('BusinessUserCredentialsSchemaValidator Tests', function() {
     describe('invalid request with token', function() {
       let request = {
         body: {
-          "username": "username",
-          "token": "token",
+          'username': 'username',
+          'token': 'token',
         },
       };
 
