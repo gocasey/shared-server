@@ -15,7 +15,6 @@
     "body-parser": "^1.18.2",
     "config": "^1.30.0",
     "cors": "^2.8.4",
-    "crypto": "^1.0.1",
     "express": "^4.16.3",
     "jsonschema": "^1.2.2",
     "jsonwebtoken": "^8.2.1",
