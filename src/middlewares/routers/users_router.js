@@ -19,7 +19,7 @@ function UsersRouter(app, logger, postgrePool) {
             _userService.generateToken(user, function(err, user) {
                 if (err) {
                     _logger.error('An error ocurred while generating the token for username: %s', user.username);
-                    var error = new BaseHttpError('Internal Server Error', 'Internal Server Error', 500);
+                    let error = new BaseHttpError('Internal Server Error', 'Internal Server Error', 500);
                     next(error);
                 } else {
                     res.data = user;

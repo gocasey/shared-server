@@ -10,14 +10,12 @@ function PasswordAuthenticator(logger, postgrePool) {
                 if (err) {
                     let error = new BaseHttpError('Unauthorized', 'Unauthorized', 401);
                     next(error);
-                }
-                else{
+                } else {
                   res.user = user;
                   next();
                 }
             });
-        }
-        else{
+        } else {
           let error = new BaseHttpError('Wrong request', 'Wrong request', 400);
           next(error);
         }

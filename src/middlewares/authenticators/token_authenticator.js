@@ -10,8 +10,7 @@ function TokenAuthenticator(logger, postgrePool) {
                 if (err) {
                     let error = new BaseHttpError('Unauthorized', 'Unauthorized', 401);
                     next(error);
-                }
-                else{
+                } else {
                   next();
                 }
             });

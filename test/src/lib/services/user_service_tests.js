@@ -56,8 +56,7 @@ describe('UserService Tests', function() {
 
   describe('#generateToken', function() {
     describe('user has token', function() {
-
-      var mockUser = {
+      let mockUser = {
         username: 'username',
         password: 'password',
         token: 'token',
@@ -65,7 +64,7 @@ describe('UserService Tests', function() {
 
       describe('token valid', function() {
         before(function() {
-          mockTokenGenerationService.validateToken.callsArgWith(2, null, {token: 'token', expiresAt: 123456789 });
+          mockTokenGenerationService.validateToken.callsArgWith(2, null, { token: 'token', expiresAt: 123456789 });
         });
 
         it('does not return error', function(done) {
@@ -92,11 +91,6 @@ describe('UserService Tests', function() {
     });
 
     describe('user does not have token', function() {
-      var mockUser = {
-        username: 'username',
-        password: 'password',
-      };
-
       before(function() {
         mockTokenGenerationService.generateToken.callsArgWith(1, 'token');
       });
