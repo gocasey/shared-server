@@ -52,7 +52,7 @@ describe('TokenGenerationService Tests', function() {
         it('logs success', function(done) {
           tokenGenerationService.generateToken('username', function() {
             expect(mockLogger.info.calledOnce);
-            expect(mockLogger.info.getCall(0).args[0]).to.be('Token was created successfully for username %s');
+            expect(mockLogger.info.getCall(0).args[0]).to.be('Token was created successfully for username: \'%s\'');
             expect(mockLogger.info.getCall(0).args[1]).to.be('username');
             done();
           });
@@ -89,7 +89,7 @@ describe('TokenGenerationService Tests', function() {
         it('logs failure', function(done) {
           tokenGenerationService.generateToken('username', function() {
             expect(mockLogger.error.calledOnce);
-            expect(mockLogger.error.getCall(0).args[0]).to.be('Token generation for username %s failed');
+            expect(mockLogger.error.getCall(0).args[0]).to.be('Token generation for username \'%s\' failed');
             expect(mockLogger.error.getCall(0).args[1]).to.be('username');
             done();
           });
@@ -121,7 +121,7 @@ describe('TokenGenerationService Tests', function() {
         it('logs success', function(done) {
           tokenGenerationService.validateToken(tokenToCheck, usernameToCheck, function() {
             expect(mockLogger.info.calledOnce);
-            expect(mockLogger.info.getCall(0).args[0]).to.be('Token was validated successfully for username %s');
+            expect(mockLogger.info.getCall(0).args[0]).to.be('Token was validated successfully for username: \'%s\'');
             expect(mockLogger.info.getCall(0).args[1]).to.be(usernameToCheck);
             done();
           });
@@ -160,7 +160,7 @@ describe('TokenGenerationService Tests', function() {
         it('logs failure', function(done) {
           tokenGenerationService.validateToken(tokenToCheck, usernameToCheck, function() {
             expect(mockLogger.error.calledOnce);
-            expect(mockLogger.error.getCall(0).args[0]).to.be('Token could not be validated for username %s');
+            expect(mockLogger.error.getCall(0).args[0]).to.be('Token could not be validated for username: \'%s\'');
             expect(mockLogger.error.getCall(0).args[1]).to.be(usernameToCheck);
             done();
           });

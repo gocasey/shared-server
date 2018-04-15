@@ -86,9 +86,11 @@ describe('UserModel Tests', function() {
 
       it('logs db failure', function(done) {
         userModel.findByUsername('name', function() {
-          expect(mockLogger.error.calledOnce);
-          expect(mockLogger.error.getCall(0).args[0]).to.be('Error looking for username:\'%s\' in the database');
-          expect(mockLogger.error.getCall(0).args[1]).to.be('name');
+          expect(mockLogger.error.calledTwice);
+          expect(mockLogger.error.getCall(0).args[0]).to.be('DB error: %j');
+          expect(mockLogger.error.getCall(0).args[1]).to.be('DB error');
+          expect(mockLogger.error.getCall(1).args[0]).to.be('Error looking for username:\'%s\' in the database');
+          expect(mockLogger.error.getCall(1).args[1]).to.be('name');
           done();
         });
       });

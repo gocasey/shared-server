@@ -9,7 +9,7 @@ function TokenGenerationService(logger) {
         data: username,
       }, 'secret', { expiresIn: '1h' }, function(err, token) {
         if (err) {
-          _logger.error('Token generation for username %s failed', username);
+          _logger.error('Token generation for username \'%s\' failed', username);
           callback(err);
         } else {
           _logger.info('Token was created successfully for username: \'%s\'', username);
@@ -26,10 +26,10 @@ function TokenGenerationService(logger) {
           _logger.error('Token could not be validated due to a failure: %s', err.message);
           callback(err);
         } else if ((decoded.data) && (decoded.data == username)) {
-            _logger.info('Token was validated successfully for username:\'%s\'', username);
+            _logger.info('Token was validated successfully for username: \'%s\'', username);
             callback(null, { token: token, expiresAt: decoded.exp });
         } else {
-            _logger.error('Token could not be validated for username:\'%s\'', username);
+            _logger.error('Token could not be validated for username: \'%s\'', username);
             callback('Token validation failed');
         }
       });
