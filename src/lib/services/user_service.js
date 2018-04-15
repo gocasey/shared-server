@@ -12,8 +12,8 @@ function UserService(logger, postgrePool) {
         if (err) callback(err);
         else {
           user.token = token.token;
-          _userModel.update(user, function(err){
-            if (err) callback (err);
+          _userModel.update(user, function(err) {
+            if (err) callback(err);
             else {
               user.tokenExpiration = token.expiredAt;
               callback(null, user);
