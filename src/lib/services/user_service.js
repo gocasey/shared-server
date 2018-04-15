@@ -11,8 +11,14 @@ function UserService(logger, postgrePool) {
       _tokenGenerationService.generateToken(user.username, function(err, token) {
         if (err) callback(err);
         else {
-          user.token = token;
-          _userModel.update(user, callback);
+          user.token = token.token;
+          _userModel.update(user, function(err){
+            if (err) callback (err);
+            else {
+              user.tokenExpiration = token.expiredAt;
+              callback(null, user);
+            }
+          });
         }
       });
     }
@@ -30,7 +36,7 @@ function UserService(logger, postgrePool) {
           }
         });
       } else {
-        _logger.info('User: \'%s\' does not have a token, generating one');
+        _logger.info('User: \'%s\' does not have a token, generating one', user.username);
         generateNewTokenForUser(user, callback);
       }
     };
@@ -43,10 +49,10 @@ function UserService(logger, postgrePool) {
         _userModel.findByUsername(username, function(err, user) {
           if (err) callback(err);
           else if (hash(password) == user.password) {
-            _logger.info('Password validated successfully for username: %s', username);
+            _logger.info('Password validated successfully for username: \'%s\'', username);
             callback(null, user);
           } else {
-            _logger.error('Wrong password for username: %s', username);
+            _logger.error('Wrong password for username: \'%s\'', username);
             callback('Password incorrect');
           }
         });
