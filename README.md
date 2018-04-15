@@ -1,6 +1,6 @@
 # Shared Server
 
-[![Build Status](https://travis-ci.com/taller2-2018-1-grupo2/shared-server.svg?branch=master)](https://travis-ci.com/gocasey/shared-server)
+[![Build Status](https://travis-ci.org/taller2-2018-1-grupo2/shared-server.svg?branch=master)](https://travis-ci.org/taller2-2018-1-grupo2/shared-server)
 
 ## Setup
 
