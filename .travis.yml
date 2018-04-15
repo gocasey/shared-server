@@ -1,33 +1,30 @@
 language: node_js
 node_js:
-  - "8"
-
+- '8'
 cache:
   directories:
-    - "node_modules"
-
+  - node_modules
 install: npm install
-
 stages:
-  - lint
-  - test
-  - coverage
-  - deploy
-
+- lint
+- test
+- coverage
+- deploy
 jobs:
   include:
-    - stage: lint
-      script: npm run lint
-    - stage: test
-      script: npm test
-    - stage: coverage
-      script: npm run coverage_dev
-    - stage: deploy
-      script: ignore
-      deploy: &heroku
-        on:
-          branch: master
-        provider: heroku
-        api_key:
-          secure: aiagPEEtJVtuEdTRiaNdVQtKys/ctfG/1iuCMA8S9EZYHR19FlYad3KKQ8kRBS0M9NJuLfWuhMvL+wOv8QG7Es2ttRU6FrH5Xkf49GOMp/K33do9McoYIIwWru6qblS7xfO7/Xal51s+QjLdoCB+z/8umteL/yFtGg4NprhSALfm/jNuSAt/tqg87iWy7WSspKmpNCilk62njgHysMuD70IGD9liSfwIFLvQiEgKLt4OPIj4ecIQEBiC+E/+6QAb727yeebTI731aA673XjdXLh8P1wpuhHrxfj2hnxYD+Po61tpTw5ArBYvJ6IjIp5kB0g7hCM61AP8Jhn83pw1fkOtl6bxZZ0a1n8u7VFh/ZPl4p5IPgD+81EumhEZrcEKeVKT/tH7/ZF6M+BVfyx6e0+IFjaUdf2x7vTr6r2QCYItORYdYdfZ/KtNFUe4NVBXBieZsPCNpPJlqgeJbA89YcZAxLMajWMALqjRdlDP1lXtTrrTowBZ0YpRlocjnoB0PHhRvKJTQLqMVpc3CjWTwUt4gJ60ZnqUunGvsschSsN99mFPAPCiUPcmE2gVt1YOEudfvOyGar0505Xg9DxIRXOPG78Lb9Ss0fx5Lcu1rjmcnlizpfQfFW13/WzaCMDNyHsmwBUZk4w+ArNxWJIyUEjG7A8a6Fw1GVH0nMzGPzU=
-        app: shared-server-stories
+  - stage: lint
+    script: npm run lint
+  - stage: test
+    script: npm test
+  - stage: coverage
+    script: npm run coverage_dev
+  - stage: deploy
+    script: ignore
+    deploy: &heroku
+      on:
+        branch: master
+      provider: heroku
+      app: stories-shared-server
+      api_key:
+        secure: XmHtrGGyiB4BtNJG8bmwx4O3/A5vJ0yEy0+zUAVdR1NM+2PR0nkRX6WMjJD0+Jv8yoEjnhPI2wbuciUvpexi0WmGQBs5aZLE8bH5cdbY8502OrdsbMY9PhLm7ijdYRLz7pQ8WV+TiCfmjKpntgzmXuBiorGPizhFnYed9qFLPWDCmDPJVdkeVC2xCelDZBw4Zuo/Az7WiiHQf7J/UFpnWgqc0e/cM8NPVt1V0SGIUmWjid55pRkUfLhKqZhrqISDk+b/JR6QeN54tU4VwrE2/IQY8qfNMuYTqKY2V8pVTmT2gEE7ZLJZ/pCOT8QBry0q1WQnfgDQD00iQGQ0wtBus22glHPWVcUz0IsLk94xS2SGG3Tel2s1Y4ED9zICcPwSYggsHKm8HOex4Ngx7hBgXtlufZAjfnUUCeXU0xtCsZUyoBbfsYHjIWYNUhBAKT4aM5C28MVLdTq9cc8bnJKA0piMsH4Q+pQaUhNzecrmUt3kFyG8zfLWeSmvQc2WE9ET56TgBz/+ghNWduymwzNvFH795FOhAarUtnX0V+LlXx1cZ9J+4Q7gdBZw2RSFUyMg907UpX3sc8aARqFRluqE5HAbH8W3HM7X3/rUmmXLaXrtxrYB70ui7mIFr13ZnY7YwIHmGwRb28h4ByaMTtfQU2zXQn2xI/uwtjaFsDhhlww=
+
