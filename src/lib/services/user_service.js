@@ -58,6 +58,29 @@ function UserService(logger, postgrePool) {
         });
     };
 
+    this.createUser = function(body, callback) {
+      let userData = {
+        username: body.username,
+        password: hash(body.password),
+        // ignoring applicationOwner for the moment
+      };
+      _userModel.create(userData, function(createErr, user) {
+        if (createErr) {
+          _userModel.findByUsername(userData.username, function(findErr) {
+            if (findErr) {
+              _logger.error('An error happened while creating the user: \'%s\'', userData.username);
+              callback('User creation error');
+            } else {
+              _logger.error('There is already a user with username: \'%s\'', userData.username);
+              callback('Username already in usage');
+            }
+          });
+        } else {
+          callback(null, user);
+        }
+      });
+    };
+
     this.authenticateWithToken = function(username, token, callback) {
         _userModel.findByUsername(username, function(err, user) {
             if (token == user.token) {

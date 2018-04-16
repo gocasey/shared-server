@@ -1,33 +1,29 @@
+const ApplicationUserRegistrationSchemaValidator = require('../schema_validators/application_user_registration_schema_validator.js');
 const BusinessUserCredentialsSchemaValidator = require('../schema_validators/business_user_credentials_schema_validator.js');
 const PasswordAuthenticator = require('../authenticators/password_authenticator.js');
-const UserService = require('../../lib/services/user_service.js');
+const UserController = require('../../controllers/user_controller.js');
 const TokenResponseBuilder = require('../response_builders/token_response_builder.js');
-const BaseHttpError = require('../../errors/base_http_error.js');
+const UserRegistrationResponseBuilder = require('../response_builders/user_registration_response_builder.js');
 
 function UsersRouter(app, logger, postgrePool) {
-    let _logger = logger;
     let _businessUserCredentialsSchemaValidator = new BusinessUserCredentialsSchemaValidator(logger);
+    let _applicationUserRegistrationSchemaValidator = new ApplicationUserRegistrationSchemaValidator(logger);
     let _passwordAuthenticator = new PasswordAuthenticator(logger, postgrePool);
-    let _userService = new UserService(logger, postgrePool);
+    let _userController = new UserController(logger, postgrePool);
     let _tokenResponseBuilder = new TokenResponseBuilder(logger);
+    let _userRegistrationResponseBuilder = new UserRegistrationResponseBuilder(logger);
 
     app.post('/api/token',
-        _businessUserCredentialsSchemaValidator.validateRequest,
-        _passwordAuthenticator.authenticate,
-        function(req, res, next) {
-            let user = res.user;
-            _userService.generateToken(user, function(err, user) {
-                if (err) {
-                    _logger.error('An error ocurred while generating the token for username: %s', user.username);
-                    let error = new BaseHttpError('Internal Server Error', 'Internal Server Error', 500);
-                    next(error);
-                } else {
-                    res.data = user;
-                    next();
-                }
-            });
-        },
-        _tokenResponseBuilder.buildResponse
+      _businessUserCredentialsSchemaValidator.validateRequest,
+      _passwordAuthenticator.authenticate,
+      _userController.generateToken,
+      _tokenResponseBuilder.buildResponse
+    );
+
+    app.post('/api/user',
+      _applicationUserRegistrationSchemaValidator.validateRequest,
+      _userController.createUser,
+      _userRegistrationResponseBuilder.buildResponse
     );
 }
 

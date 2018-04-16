@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties":{
+    "username": { "type": "string" },
+    "password": { "type": "string" },
+    "applicationOwner": { "type": "string" }
+  },
+  "required": ["username", "password", "applicationOwner"],
+  "minProperties": 3,
+  "maxProperties": 3
+}
