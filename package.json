@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "eslint src test",
     "test": "mocha --recursive",
+    "db_init": "node ./config/db_creation.js",
     "coverage_dev": "nyc --reporter=html --reporter=text npm test",
     "coverage_prod": "nyc --all --check-coverage --lines 75 --functions 75 --branches 75 --reporter=html --reporter=text npm test",
     "start": "node ./src/app.js",

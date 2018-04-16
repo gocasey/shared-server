@@ -10,6 +10,7 @@
 ## Available commands
 
 * `npm run lint`: executes [ESLint](https://eslint.org/) in the project, configured with the [eslint-config-google](https://github.com/google/eslint-config-google) rules.(https://www.npmjs.com/package/eslint-config-airbnb) rules.
+* `npm run db_init`: creates the needed tables for the first time on the postgres database.
 * `npm test`: executes tests written using [Mocha](https://mochajs.org/).
 * `npm run coverage`: executes tests and reports coverage, thanks to [nyc/Istambul](https://github.com/istanbuljs/nyc).
 * `npm start`: starts the service in the specified port (by default `8080`). See the [config file](./config/default.js) for more information.
