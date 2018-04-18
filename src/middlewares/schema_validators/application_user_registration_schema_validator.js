@@ -1,4 +1,5 @@
 const SchemaValidator = require('../../utils/schema_validator.js');
+const BaseHttpError = require('../../errors/base_http_error.js');
 
 function ApplicationUserRegistrationSchemaValidator(logger) {
     let _logger = logger;
