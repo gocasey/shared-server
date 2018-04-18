@@ -31,10 +31,10 @@ jobs:
     script: ignore
     deploy:
       on:
-        branch: master
-      provider: heroku
-      app: shared-server
-      api_key:
-        secure: SgQAk6JvA8KyfXhgjM3BMJZDGW0HvVksD870cY/GtaR1anlzyAOCvG9NPvU8oRcUXzWw4/+CXAXuz6Xt/Dl4ntzGzja7fHBPwVjm4h8okqybIGGrWnEiO0eLD27F9ufpT7RXk49ndYGCyQi8f4pPHYYPD2f8xXzQTrvsaBJe1vj78kvGMavSoCsXt0DiA2mGlV30YqIw/LGAJbrWNykDtjkOW/xJppDdis7JDGIoLsJQuUqInxIimjg36JzuilKOSCWZTV+2Rvt8bDacTOzCqQ73tAhdOwbg7veMihj0t2m2LND3Iw0/6S3Zq7oQRGWR4z4FU4gJ0iW5D4F18fwNtDCIrBAo9hw56ZQi/Ynmjn9d9iDBKyZHJn/FjI6sg4OszKtrOhXNxes+DV0jehBasP+q/CYwmihK5xC2SsdKvG27KT1onKanWcThpDLKpiPdu66sKz74TSG30jnPQBWukIVlE0DXv4m9TsCkVxBissXp5S18UHh3GxWoQoHhhQeUVL4Px4vOJnUjgHNHlOjBFati7ElyhlH7aAz/SaRgEPVfRviEIbKYkAEIto/YFdfIu29qfUBHj4No5gTM8vD0ApLWAk1Camu0nUQbO+rV1sFI4VEAQ9p1uzLFwkWQuySli8YNA+F1iVtegeRXbEu1K7bjI5S3z1ibgB/8v+KC7oA=
-      on:
+        branch: heroku
         repo: taller2-2018-1-grupo2/shared-server
+      provider: heroku
+      app: shared-server-stories
+      api_key:
+        secure: cBvXGnrwoOtZkvikhtbq4Y08w53IpbsaszkpLNnkX8Y+rH9DES+DEXYAoILiUfGjAOoVCJA0aFnsYLThzUJSuZbgs9vIsQF0cOQFu6ACa+lNiKeptBXzP2wupTqa2iai2SKI9+R3H6CnIr+zCJ2LSfTM4vP1rvuA7TyhmcWaKtrx4957yRqM5mv0VF3w7BErgpBGA25nwXhHAbOQv/AJWDSyn9PCl2LmzSCWoepzhFhni3ivu2o55/0BNyPoTSeIehOd/J3Dm5vbjw0smWHDXRob9eLkbC4+AlqAawahTqgqXP3LbhbvV3xEDknDaq5x48V+cekbeXOSesweJOwcJTSiPXoFqvb7OasH6ioIf4+k7n0vGyPoBfPVY/ebJ2e9u/I/Z0iR5fL9lJAIqRrr+XzyapJZwEJXICrrMkgrBL7QvxsOmXq9yYhldCeu8mcGVGNh6jC4XdGmackYOGRJ/83pUDhv4AKnhXANovPvuZyShtkkkF8joffhT8uL8kcVlve/8GkzjKLDY9cq95pEUs+ijniL8oZXQXzALJSMYYVkjKFPQrLC7y2vqWEYxxOJ2/DA2StTte53/6JXZNPC665Cf82fUxDU8VDd7/ygKZ4FNkEJtg/Jhb2TAS0Xs9spKzwu14/ivTIMafHvCarzNTFWB4DtXBjHdvlQ5kBO63c=
+
