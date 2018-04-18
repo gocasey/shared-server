@@ -92,18 +92,17 @@ describe('UserService Tests', function() {
     });
 
     describe('user does not have token', function() {
-
       let mockUser = {
         username: 'username',
         password: 'password',
       };
 
-      describe('token creation success', function(){
+      describe('token creation success', function() {
         before(function() {
-          mockTokenGenerationService.generateToken.callsArgWith(1, null, { token: 'token', expiresAt: 123456789});
+          mockTokenGenerationService.generateToken.callsArgWith(1, null, { token: 'token', expiresAt: 123456789 });
         });
 
-        describe('user update success', function(){
+        describe('user update success', function() {
           before(function() {
             mockUserModel.update.callsArgWith(1);
           });
@@ -116,7 +115,7 @@ describe('UserService Tests', function() {
           });
         });
 
-        describe('user update failure', function(){
+        describe('user update failure', function() {
           before(function() {
             mockUserModel.update.callsArgWith(1, 'update error');
           });
@@ -130,7 +129,7 @@ describe('UserService Tests', function() {
         });
       });
 
-      describe('token creation failure', function(){
+      describe('token creation failure', function() {
         before(function() {
           mockTokenGenerationService.generateToken.callsArgWith(1, 'token error');
         });
@@ -142,7 +141,6 @@ describe('UserService Tests', function() {
           });
         });
       });
-
     });
   });
 
@@ -193,8 +191,7 @@ describe('UserService Tests', function() {
     });
   });
 
-  describe('#createUser', function(){
-
+  describe('#createUser', function() {
     let mockBody = {
       username: 'username',
       password: 'pass',
@@ -213,7 +210,7 @@ describe('UserService Tests', function() {
       });
 
       it('returns user', function(done) {
-        userService.createUser(mockBody, function (err, user) {
+        userService.createUser(mockBody, function(err, user) {
           expect(user).to.be.ok();
           expect(user.user_id).to.be(1);
           expect(user.username).to.be('username');
@@ -232,8 +229,8 @@ describe('UserService Tests', function() {
           mockUserModel.findByUsername.callsArgWith(1, null, { username: 'username', password: 'password' });
         });
 
-        it('returns error', function(done){
-          userService.createUser(mockBody, function (err) {
+        it('returns error', function(done) {
+          userService.createUser(mockBody, function(err) {
             expect(err).to.be.ok();
             done();
           });
@@ -245,15 +242,13 @@ describe('UserService Tests', function() {
           mockUserModel.findByUsername.callsArgWith(1, 'user not found');
         });
 
-        it('returns error', function(done){
-          userService.createUser(mockBody, function (err) {
+        it('returns error', function(done) {
+          userService.createUser(mockBody, function(err) {
             expect(err).to.be.ok();
             done();
           });
         });
-
       });
     });
-
   });
 });
