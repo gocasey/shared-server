@@ -1,6 +1,7 @@
 # Shared Server
 
 [![Build Status](https://travis-ci.org/taller2-2018-1-grupo2/shared-server.svg?branch=master)](https://travis-ci.org/taller2-2018-1-grupo2/shared-server)
+[![Coverage Status](https://coveralls.io/repos/github/taller2-2018-1-grupo2/shared-server/badge.svg?branch=master)](https://coveralls.io/github/taller2-2018-1-grupo2/shared-server?branch=master)
 
 ## Setup
 
