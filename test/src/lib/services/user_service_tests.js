@@ -11,6 +11,7 @@ const mockLogger = {
 const mockUserModel = {
   findByUsername: sinon.stub(),
   update: sinon.stub(),
+  create: sinon.stub(),
 };
 
 const mockTokenGenerationService = {
@@ -91,14 +92,53 @@ describe('UserService Tests', function() {
     });
 
     describe('user does not have token', function() {
-      before(function() {
-        mockTokenGenerationService.generateToken.callsArgWith(1, 'token');
+      let mockUser = {
+        username: 'username',
+        password: 'password',
+      };
+
+      describe('token creation success', function() {
+        before(function() {
+          mockTokenGenerationService.generateToken.callsArgWith(1, null, { token: 'token', expiresAt: 123456789 });
+        });
+
+        describe('user update success', function() {
+          before(function() {
+            mockUserModel.update.callsArgWith(1);
+          });
+
+          it('does not return error', function(done) {
+            userService.generateToken(mockUser, function(err) {
+              expect(err).to.be.null;
+              done();
+            });
+          });
+        });
+
+        describe('user update failure', function() {
+          before(function() {
+            mockUserModel.update.callsArgWith(1, 'update error');
+          });
+
+          it('returns error', function(done) {
+            userService.generateToken(mockUser, function(err) {
+              expect(err).to.be.ok();
+              done();
+            });
+          });
+        });
       });
 
-      it('does not return error', function(done) {
-        userService.generateToken('username', function(err) {
-          expect(err).to.be.null;
-          done();
+      describe('token creation failure', function() {
+        before(function() {
+          mockTokenGenerationService.generateToken.callsArgWith(1, 'token error');
+        });
+
+        it('returns error', function(done) {
+          userService.generateToken(mockUser, function(err) {
+            expect(err).to.be.ok();
+            done();
+          });
         });
       });
     });
@@ -146,6 +186,67 @@ describe('UserService Tests', function() {
         userService.authenticateWithPassword('username', 'password', function(err) {
           expect(err).to.be.ok();
           done();
+        });
+      });
+    });
+  });
+
+  describe('#createUser', function() {
+    let mockBody = {
+      username: 'username',
+      password: 'pass',
+    };
+
+    describe('create success', function() {
+      before(function() {
+        mockUserModel.create.callsArgWith(1, null, { user_id: 1, username: 'username' });
+      });
+
+      it('does not return error', function(done) {
+        userService.createUser(mockBody, function(err) {
+          expect(err).to.be.null;
+          done();
+        });
+      });
+
+      it('returns user', function(done) {
+        userService.createUser(mockBody, function(err, user) {
+          expect(user).to.be.ok();
+          expect(user.user_id).to.be(1);
+          expect(user.username).to.be('username');
+          done();
+        });
+      });
+    });
+
+    describe('create failure', function() {
+      before(function() {
+        mockUserModel.create.callsArgWith(1, 'Creation error');
+      });
+
+      describe('user found', function() {
+        before(function() {
+          mockUserModel.findByUsername.callsArgWith(1, null, { username: 'username', password: 'password' });
+        });
+
+        it('returns error', function(done) {
+          userService.createUser(mockBody, function(err) {
+            expect(err).to.be.ok();
+            done();
+          });
+        });
+      });
+
+      describe('user not found', function() {
+        before(function() {
+          mockUserModel.findByUsername.callsArgWith(1, 'user not found');
+        });
+
+        it('returns error', function(done) {
+          userService.createUser(mockBody, function(err) {
+            expect(err).to.be.ok();
+            done();
+          });
         });
       });
     });

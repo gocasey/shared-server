@@ -80,23 +80,6 @@ function UserService(logger, postgrePool) {
         }
       });
     };
-
-    this.authenticateWithToken = function(username, token, callback) {
-        _userModel.findByUsername(username, function(err, user) {
-            if (token == user.token) {
-                if (user.tokenExpiration < DateTime.now()) {
-                    _logger.error('Token expired for username: %s', username);
-                    callback('Token expired');
-                } else {
-                    _logger.info('Token validated successfully for username: %s', username);
-                    callback(null, user);
-                }
-            } else {
-                _logger.error('Wrong token for username: %s', username);
-                callback('Token incorrect');
-            }
-        });
-    };
 }
 
 module.exports = UserService;

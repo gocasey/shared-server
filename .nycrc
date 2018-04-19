@@ -1,0 +1,21 @@
+{
+  "check-coverage": true,
+  "lines": 75,
+  "statements": 75,
+  "functions": 75,
+  "branches": 75,
+  "exclude": [
+    "config",
+    "coverage",
+    "src/middlewares/authenticators/facebook_authenticator.js",
+    "src/middlewares/authenticators/token_authenticator.js",
+    "src/middlewares/routers/files_router.js",
+    "src/middlewares/routers/servers_router.js",
+    "test"
+  ],
+  "reporter": [
+    "text",
+    "text-summary"
+  ],
+  "all": true
+}

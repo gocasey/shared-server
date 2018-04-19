@@ -6,8 +6,6 @@ function UserRegistrationResponseBuilder(logger) {
   this.buildResponse = function(req, res) {
     let user = res.data;
 
-    console.log('User at response: %j', user);
-
     let response = getBasicResponse();
     response.metadata.version = pjson.version;
     response.user.id = user.user_id;
