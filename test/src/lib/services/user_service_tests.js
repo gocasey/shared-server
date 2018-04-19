@@ -74,6 +74,16 @@ describe('UserService Tests', function() {
             done();
           });
         });
+
+        it('returns user', function(done) {
+          userService.generateToken(mockUser, function(err, user) {
+            expect(user).to.be.ok();
+            expect(user.username).to.be('username');
+            expect(user.token).to.be('token');
+            expect(user.tokenExpiration).to.be(123456789);
+            done();
+          });
+        });
       });
 
       describe('token invalid', function() {
@@ -110,6 +120,16 @@ describe('UserService Tests', function() {
           it('does not return error', function(done) {
             userService.generateToken(mockUser, function(err) {
               expect(err).to.be.null;
+              done();
+            });
+          });
+
+          it('returns user', function(done) {
+            userService.generateToken(mockUser, function(err, user) {
+              expect(user).to.be.ok();
+              expect(user.username).to.be('username');
+              expect(user.token).to.be('token');
+              expect(user.tokenExpiration).to.be(123456789);
               done();
             });
           });
