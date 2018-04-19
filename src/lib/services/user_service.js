@@ -15,7 +15,7 @@ function UserService(logger, postgrePool) {
           _userModel.update(user, function(err) {
             if (err) callback(err);
             else {
-              user.tokenExpiration = token.expiredAt;
+              user.tokenExpiration = token.expiresAt;
               callback(null, user);
             }
           });
