@@ -1,8 +1,7 @@
 const expect = require('expect.js');
 const errorMiddleware = require('../../../src/middlewares/error-middleware.js');
 
-describe('ErrorMiddleware Tests', function(){
-
+describe('ErrorMiddleware Tests', function() {
   let passedErrorCode;
   let passedError;
 
@@ -14,11 +13,11 @@ describe('ErrorMiddleware Tests', function(){
         json: function(error) {
           passedError = error;
         },
-      }
-    }
+      };
+    },
   };
 
-  describe('error with status code', function(){
+  describe('error with status code', function() {
     let mockError = {
       statusCode: 400,
       message: 'Error message',
@@ -37,7 +36,7 @@ describe('ErrorMiddleware Tests', function(){
     });
   });
 
-  describe('error without status code', function(){
+  describe('error without status code', function() {
     let mockError = {
       message: 'Error message',
     };
