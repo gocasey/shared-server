@@ -27,7 +27,7 @@ describe('UserModel Tests', function() {
   describe('#findByUsername', function() {
     describe('user found', function() {
       before(function() {
-        mockPool.query.callsArgWith(2, null, { rows: [{ username: 'name', password: 'pass', token: 'token' }] });
+        mockPool.query.callsArgWith(2, null, { rows: [{ username: 'name', password: 'pass' }] });
       });
 
       it('returns user', function(done) {
@@ -35,7 +35,6 @@ describe('UserModel Tests', function() {
           expect(user).to.be.ok();
           expect(user.username).to.be('name');
           expect(user.password).to.be('pass');
-          expect(user.token).to.be('token');
           done();
         });
       });
@@ -101,8 +100,6 @@ describe('UserModel Tests', function() {
     let mockUser = {
       username: 'name',
       password: 'pass',
-      token: 'token',
-      tokenExpiration: '123456789',
     };
 
     describe('success', function() {
@@ -113,7 +110,7 @@ describe('UserModel Tests', function() {
       it('passes correct values to query', function(done) {
         userModel.update(mockUser, function() {
           expect(mockPool.query.calledOnce);
-          expect(mockPool.query.getCall(0).args[1]).to.eql(['pass', 'token', 'name']);
+          expect(mockPool.query.getCall(0).args[1]).to.eql(['pass', 'name']);
           done();
         });
       });

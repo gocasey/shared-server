@@ -1,45 +1,9 @@
 const crypto = require('crypto');
 const UserModel = require('../../models/user_model.js');
-const TokenGenerationService = require('./token_generation_service');
 
 function UserService(logger, postgrePool) {
     let _logger = logger;
     let _userModel = new UserModel(logger, postgrePool);
-    let _tokenGenerationService = new TokenGenerationService(logger);
-
-    function generateNewTokenForUser(user, callback) {
-      _tokenGenerationService.generateToken(user.username, function(err, token) {
-        if (err) callback(err);
-        else {
-          user.token = token.token;
-          _userModel.update(user, function(err) {
-            if (err) callback(err);
-            else {
-              user.tokenExpiration = token.expiresAt;
-              callback(null, user);
-            }
-          });
-        }
-      });
-    }
-
-    this.generateToken = function(user, callback) {
-      if (user.token) {
-        _tokenGenerationService.validateToken(user.token, user.username, function(err, token) {
-          if (err) {
-            _logger.info('User: \'%s\' already has a token but it is not valid, generating new token', user.username);
-            generateNewTokenForUser(user, callback);
-          } else {
-            _logger.info('User: \'%s\' already has a valid token, skipping token generation', user.username);
-            user.tokenExpiration = token.expiresAt;
-            callback(null, user);
-          }
-        });
-      } else {
-        _logger.info('User: \'%s\' does not have a token, generating one', user.username);
-        generateNewTokenForUser(user, callback);
-      }
-    };
 
     function hash(s) {
       return crypto.createHmac('sha256', 'secret').update(s).digest('hex');
