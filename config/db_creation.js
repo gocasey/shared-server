@@ -18,7 +18,7 @@ const usersTableCreationQuery = `CREATE TABLE users (
 const tokensTableCreationQuery = `CREATE TABLE users_tokens (
   token_id serial PRIMARY KEY,
   token varchar(500),
-  user_id integer REFERENCES users
+  user_id integer UNIQUE REFERENCES users
 );`
 
 client.connect();
