@@ -35,6 +35,10 @@ describe('TokenGenerationService Tests', function() {
       mockLogger.error.resetHistory();
     });
 
+    let mockOwner = {
+      id: 'id',
+      name: 'name',
+    };
 
     describe('#generateToken', function() {
       describe('jwt sign success', function() {
@@ -43,30 +47,30 @@ describe('TokenGenerationService Tests', function() {
         });
 
         it('returns token', function(done) {
-          tokenGenerationService.generateToken('username', function(err, token) {
+          tokenGenerationService.generateToken(mockOwner, function(err, token) {
             expect(token).to.be.ok();
             done();
           });
         });
 
         it('logs success', function(done) {
-          tokenGenerationService.generateToken('username', function() {
+          tokenGenerationService.generateToken(mockOwner, function() {
             expect(mockLogger.info.calledOnce);
-            expect(mockLogger.info.getCall(0).args[0]).to.be('Token was created successfully for username: \'%s\'');
-            expect(mockLogger.info.getCall(0).args[1]).to.be('username');
+            expect(mockLogger.info.getCall(0).args[0]).to.be('Token was created successfully for owner name: \'%s\'');
+            expect(mockLogger.info.getCall(0).args[1]).to.be('name');
             done();
           });
         });
 
         it('does not return error', function(done) {
-          tokenGenerationService.generateToken('username', function(err) {
+          tokenGenerationService.generateToken(mockOwner, function(err) {
             expect(err).to.be.null;
             done();
           });
         });
 
         it('does not log error', function(done) {
-          tokenGenerationService.generateToken('username', function() {
+          tokenGenerationService.generateToken(mockOwner, function() {
             expect(mockLogger.error.notCalled);
             done();
           });
@@ -80,23 +84,23 @@ describe('TokenGenerationService Tests', function() {
         });
 
         it('does not return token', function(done) {
-          tokenGenerationService.generateToken('username', function(err, token) {
+          tokenGenerationService.generateToken(mockOwner, function(err, token) {
             expect(token).to.be.null;
             done();
           });
         });
 
         it('logs failure', function(done) {
-          tokenGenerationService.generateToken('username', function() {
+          tokenGenerationService.generateToken(mockOwner, function() {
             expect(mockLogger.error.calledOnce);
-            expect(mockLogger.error.getCall(0).args[0]).to.be('Token generation for username \'%s\' failed');
-            expect(mockLogger.error.getCall(0).args[1]).to.be('username');
+            expect(mockLogger.error.getCall(0).args[0]).to.be('Token generation for owner name \'%s\' failed');
+            expect(mockLogger.error.getCall(0).args[1]).to.be('name');
             done();
           });
         });
 
         it('returns error', function(done) {
-          tokenGenerationService.generateToken('username', function(err) {
+          tokenGenerationService.generateToken(mockOwner, function(err) {
             expect(err).to.be.ok();
             done();
           });
@@ -106,62 +110,59 @@ describe('TokenGenerationService Tests', function() {
 
   describe('#validateToken', function() {
     describe('jwt verify success', function() {
-      let usernameToCheck;
-      let usernameDecoded;
-      let tokenToCheck;
+      let idDecoded;
+      let nameDecoded;
 
-      describe('correct username', function() {
+      describe('correct data', function() {
         before(function() {
-          usernameToCheck = 'username';
-          usernameDecoded = 'username';
-          tokenToCheck = 'token';
-          mockJwt.verify.callsArgWith(2, null, { data: usernameDecoded });
+          idDecoded = 'id';
+          nameDecoded = 'name';
+          mockJwt.verify.callsArgWith(2, null, { data: { id: idDecoded, name: nameDecoded } });
         });
 
         it('logs success', function(done) {
-          tokenGenerationService.validateToken(tokenToCheck, usernameToCheck, function() {
+          tokenGenerationService.validateToken('token', mockOwner, function() {
             expect(mockLogger.info.calledOnce);
-            expect(mockLogger.info.getCall(0).args[0]).to.be('Token was validated successfully for username: \'%s\'');
-            expect(mockLogger.info.getCall(0).args[1]).to.be(usernameToCheck);
+            expect(mockLogger.info.getCall(0).args[0]).to.be('Token was validated successfully for owner name: \'%s\'');
+            expect(mockLogger.info.getCall(0).args[1]).to.be(mockOwner.name);
             done();
           });
         });
 
         it('does not log error', function(done) {
-          tokenGenerationService.validateToken(tokenToCheck, usernameToCheck, function() {
+          tokenGenerationService.validateToken('token', mockOwner, function() {
             expect(mockLogger.error.notCalled);
             done();
           });
         });
 
         it('does not return error', function(done) {
-          tokenGenerationService.validateToken(tokenToCheck, usernameToCheck, function(err) {
+          tokenGenerationService.validateToken('token', mockOwner, function(err) {
             expect(err).to.be.null;
             done();
           });
         });
       });
 
-      describe('wrong username', function() {
+      describe('wrong data', function() {
         before(function() {
-          usernameToCheck = 'username';
-          usernameDecoded = 'another_username';
-          tokenToCheck = 'token';
-          mockJwt.verify.callsArgWith(2, null, { data: usernameDecoded });
+          idDecoded = 'id';
+          nameDecoded = 'another_name';
+          mockJwt.verify.callsArgWith(2, null, { data: { id: idDecoded, name: nameDecoded } });
         });
 
         it('returns error', function(done) {
-          tokenGenerationService.validateToken(tokenToCheck, usernameToCheck, function(err) {
+          tokenGenerationService.validateToken('token', mockOwner, function(err) {
             expect(err).to.be.ok();
             done();
           });
         });
 
         it('logs failure', function(done) {
-          tokenGenerationService.validateToken(tokenToCheck, usernameToCheck, function() {
+          tokenGenerationService.validateToken('token', mockOwner, function() {
             expect(mockLogger.error.calledOnce);
-            expect(mockLogger.error.getCall(0).args[0]).to.be('Token could not be validated for username: \'%s\'');
-            expect(mockLogger.error.getCall(0).args[1]).to.be(usernameToCheck);
+            expect(mockLogger.error.getCall(0).args[0]).to.be('Token could not be validated for owner name: \'%s\'');
+            expect(mockLogger.error.getCall(0).args[1]).to.be('name');
             done();
           });
         });
@@ -174,14 +175,14 @@ describe('TokenGenerationService Tests', function() {
       });
 
       it('returns error', function(done) {
-        tokenGenerationService.validateToken('token', 'username', function(err) {
+        tokenGenerationService.validateToken('token', mockOwner, function(err) {
           expect(err).to.be.ok();
           done();
         });
       });
 
       it('logs failure', function(done) {
-        tokenGenerationService.validateToken('token', 'username', function() {
+        tokenGenerationService.validateToken('token', mockOwner, function() {
           expect(mockLogger.error.calledOnce);
           expect(mockLogger.error.getCall(0).args[0]).to.be('Token could not be validated due to a failure: %s');
           expect(mockLogger.error.getCall(0).args[1]).to.be('jwt expired');
@@ -196,14 +197,14 @@ describe('TokenGenerationService Tests', function() {
       });
 
       it('returns error', function(done) {
-        tokenGenerationService.validateToken('token', 'username', function(err) {
+        tokenGenerationService.validateToken('token', mockOwner, function(err) {
           expect(err).to.be.ok();
           done();
         });
       });
 
       it('logs failure', function(done) {
-        tokenGenerationService.validateToken('token', 'username', function() {
+        tokenGenerationService.validateToken('token', mockOwner, function() {
           expect(mockLogger.error.calledOnce);
           expect(mockLogger.error.getCall(0).args[0]).to.be('Token could not be validated due to a failure: %s');
           expect(mockLogger.error.getCall(0).args[1]).to.be('jwt malformed');

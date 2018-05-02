@@ -3,7 +3,7 @@ function UserModel(logger, postgrePool) {
     let _postgrePool = postgrePool;
 
     this.findByUsername = function(username, callback) {
-        let query = 'SELECT username, password, token FROM users WHERE username = $1;';
+        let query = 'SELECT user_id, username, password FROM users WHERE username = $1;';
         let values = [username];
         executeQuery(query, values, function(err, res) {
            if (err) {
@@ -37,8 +37,8 @@ function UserModel(logger, postgrePool) {
     };
 
     this.update = function(user, callback) {
-      let query = 'UPDATE users SET password=$1, token=$2 WHERE username=$3 RETURNING user_id, username, token;';
-      let values = [user.password, user.token, user.username];
+      let query = 'UPDATE users SET password=$1 WHERE username=$2 RETURNING user_id, username;';
+      let values = [user.password, user.username];
       executeQuery(query, values, function(err, res) {
         if (err) {
           _logger.error('Error updating user with username:\'%s\' to database');

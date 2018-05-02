@@ -14,11 +14,6 @@ const mockUserModel = {
   create: sinon.stub(),
 };
 
-const mockTokenGenerationService = {
-  generateToken: sinon.stub(),
-  validateToken: sinon.stub(),
-};
-
 const mockDigest = sinon.stub();
 
 const mockCrypto = {
@@ -39,9 +34,6 @@ function setupUserService() {
     '../../models/user_model.js': function() {
  return mockUserModel;
 },
-    './token_generation_service': function() {
- return mockTokenGenerationService;
-},
   };
   let UserService = proxyquire(UserServiceModule, mocks);
   return new UserService(mockLogger);
@@ -53,115 +45,6 @@ describe('UserService Tests', function() {
 
   before(function() {
     userService = setupUserService();
-  });
-
-  describe('#generateToken', function() {
-    describe('user has token', function() {
-      let mockUser = {
-        username: 'username',
-        password: 'password',
-        token: 'token',
-      };
-
-      describe('token valid', function() {
-        before(function() {
-          mockTokenGenerationService.validateToken.callsArgWith(2, null, { token: 'token', expiresAt: 123456789 });
-        });
-
-        it('does not return error', function(done) {
-          userService.generateToken(mockUser, function(err) {
-            expect(err).to.be.null;
-            done();
-          });
-        });
-
-        it('returns user', function(done) {
-          userService.generateToken(mockUser, function(err, user) {
-            expect(user).to.be.ok();
-            expect(user.username).to.be('username');
-            expect(user.token).to.be('token');
-            expect(user.tokenExpiration).to.be(123456789);
-            done();
-          });
-        });
-      });
-
-      describe('token invalid', function() {
-        before(function() {
-          mockTokenGenerationService.validateToken.callsArgWith(2, 'token invalid');
-          mockTokenGenerationService.generateToken.callsArgWith(1, 'token');
-        });
-
-        it('does not return error', function(done) {
-          userService.generateToken(mockUser, function(err) {
-            expect(err).to.be.null;
-            done();
-          });
-        });
-      });
-    });
-
-    describe('user does not have token', function() {
-      let mockUser = {
-        username: 'username',
-        password: 'password',
-      };
-
-      describe('token creation success', function() {
-        before(function() {
-          mockTokenGenerationService.generateToken.callsArgWith(1, null, { token: 'token', expiresAt: 123456789 });
-        });
-
-        describe('user update success', function() {
-          before(function() {
-            mockUserModel.update.callsArgWith(1);
-          });
-
-          it('does not return error', function(done) {
-            userService.generateToken(mockUser, function(err) {
-              expect(err).to.be.null;
-              done();
-            });
-          });
-
-          it('returns user', function(done) {
-            userService.generateToken(mockUser, function(err, user) {
-              expect(user).to.be.ok();
-              expect(user.username).to.be('username');
-              expect(user.token).to.be('token');
-              expect(user.tokenExpiration).to.be(123456789);
-              done();
-            });
-          });
-        });
-
-        describe('user update failure', function() {
-          before(function() {
-            mockUserModel.update.callsArgWith(1, 'update error');
-          });
-
-          it('returns error', function(done) {
-            userService.generateToken(mockUser, function(err) {
-              expect(err).to.be.ok();
-              done();
-            });
-          });
-        });
-      });
-
-      describe('token creation failure', function() {
-        before(function() {
-          mockTokenGenerationService.generateToken.callsArgWith(1, 'token error');
-        });
-
-        it('returns error', function(done) {
-          userService.generateToken(mockUser, function(err) {
-            expect(err).to.be.ok();
-            done();
-          });
-        });
-      });
-    });
   });
 
   describe('#authenticateWithPassword', function() {
