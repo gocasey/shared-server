@@ -1,9 +1,20 @@
+const IntegrityValidator = require('../../src/utils/integrity_validator.js');
+
 function UserModel(logger, postgrePool) {
     let _logger = logger;
     let _postgrePool = postgrePool;
+    let integrityValidator = new IntegrityValidator(logger);
+
+    function getBusinessUser(dbUser) {
+      return {
+        user_id: dbUser.user_id,
+        username: dbUser.username,
+        _rev: dbUser._rev,
+      };
+    };
 
     this.findByUsername = function(username, callback) {
-        let query = 'SELECT user_id, username, password FROM users WHERE username = $1;';
+        let query = 'SELECT user_id, username, password, _rev FROM users WHERE username = $1;';
         let values = [username];
         executeQuery(query, values, function(err, res) {
            if (err) {
@@ -21,8 +32,23 @@ function UserModel(logger, postgrePool) {
         });
     };
 
+    function updateUserRev(username, rev, callback) {
+      let query = 'UPDATE users SET _rev=$1 WHERE username=$2 RETURNING user_id, username, _rev;';
+      let values = [rev, username];
+      executeQuery(query, values, function(err, res) {
+        if (err) {
+          _logger.error('Error updating rev for username:\'%s\'');
+          callback(err);
+        } else {
+          _logger.info('Hash for user: \'%s\' updated successfully', username);
+          callback(null, getBusinessUser(res.rows[0]));
+        }
+      });
+    };
+
+
     this.create = function(user, callback) {
-      let query = 'INSERT INTO users(username, password) VALUES ($1, $2) RETURNING user_id, username;';
+      let query = 'INSERT INTO users(username, password) VALUES ($1, $2) RETURNING user_id, username, password;';
       let values = [user.username, user.password];
       executeQuery(query, values, function(err, res) {
         if (err) {
@@ -31,14 +57,17 @@ function UserModel(logger, postgrePool) {
         } else {
           _logger.info('User: \'%s\' created successfully', user.username);
           _logger.debug('User created in db: %j', res.rows[0]);
-          callback(null, res.rows[0]);
+          // integrity hash is created here since we now know the user_id
+          let rev = integrityValidator.createHash(user);
+          updateUserRev(user.username, rev, callback);
         }
       });
     };
 
-    this.update = function(user, callback) {
-      let query = 'UPDATE users SET password=$1 WHERE username=$2 RETURNING user_id, username;';
-      let values = [user.password, user.username];
+    function executeUpdate(user, callback) {
+      let currentRev = integrityValidator.createHash(user);
+      let query = 'UPDATE users SET password=$1, _rev=$2 WHERE username=$3 RETURNING user_id, username;';
+      let values = [user.password, currentRev, user.username];
       executeQuery(query, values, function(err, res) {
         if (err) {
           _logger.error('Error updating user with username:\'%s\' to database');
@@ -46,7 +75,22 @@ function UserModel(logger, postgrePool) {
         } else {
           _logger.info('User: \'%s\' updated successfully', user.username);
           _logger.debug('User updated in db: %j', res.rows[0]);
-          callback();
+          callback(null, getBusinessUser(res.rows[0]));
+        }
+      });
+    };
+
+    this.update = function(user, callback) {
+      this.findByUsername(user.username, function(err, dbUser) {
+        if (err) callback(err);
+        else {
+          if (dbUser._rev === user._rev) {
+            _logger.info('The integrity check for user: \'%s\' was successful. Proceeding with update.', user.username);
+            executeUpdate(user, callback);
+          } else {
+            _logger.error('The integrity check for user: \'%s\' failed. Aborting update.', user.username);
+            callback('Error updating');
+          }
         }
       });
     };

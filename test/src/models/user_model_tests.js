@@ -1,6 +1,7 @@
 const expect = require('expect.js');
+const proxyquire = require('proxyquire');
 const sinon = require('sinon');
-const UserModel = require('../../../src/models/user_model.js');
+const UserModelModule = '../../../src/models/user_model.js';
 
 const mockLogger = {
   info: sinon.stub(),
@@ -13,7 +14,20 @@ const mockPool = {
   query: sinon.stub(),
 };
 
-const userModel = new UserModel(mockLogger, mockPool);
+const mockIntegrityValidator = {
+  createHash: sinon.stub(),
+};
+
+function createUserModel() {
+  mockIntegrityValidator.createHash.returns('newRev');
+  let mocks = { '../../src/utils/integrity_validator.js': function() {
+ return mockIntegrityValidator;
+} };
+  let UserModel = proxyquire(UserModelModule, mocks);
+  return new UserModel(mockLogger, mockPool);
+}
+
+const userModel = createUserModel();
 
 describe('UserModel Tests', function() {
   beforeEach(function() {
@@ -27,14 +41,16 @@ describe('UserModel Tests', function() {
   describe('#findByUsername', function() {
     describe('user found', function() {
       before(function() {
-        mockPool.query.callsArgWith(2, null, { rows: [{ username: 'name', password: 'pass' }] });
+        mockPool.query.callsArgWith(2, null, { rows: [{ user_id: 123, username: 'name', password: 'pass', _rev: 'rev' }] });
       });
 
       it('returns user', function(done) {
         userModel.findByUsername('name', function(err, user) {
           expect(user).to.be.ok();
+          expect(user.user_id).to.be(123);
           expect(user.username).to.be('name');
           expect(user.password).to.be('pass');
+          expect(user._rev).to.be('rev');
           done();
         });
       });
@@ -99,39 +115,184 @@ describe('UserModel Tests', function() {
   describe('#update', function() {
     let mockUser = {
       username: 'name',
-      password: 'pass',
+      password: 'newPass',
+      _rev: 'oldRev',
     };
 
-    describe('success', function() {
-      before(function() {
-        mockPool.query.callsArgWith(2, null, { rows: [mockUser] });
-      });
+    let dbUserFound = {
+      user_id: 123,
+      username: 'name',
+      password: 'oldPass',
+      _rev: 'oldRev',
+    };
 
-      it('passes correct values to query', function(done) {
-        userModel.update(mockUser, function() {
-          expect(mockPool.query.calledOnce);
-          expect(mockPool.query.getCall(0).args[1]).to.eql(['pass', 'name']);
-          done();
+    let dbUserFoundModified = {
+      user_id: 123,
+      username: 'name',
+      password: 'oldPass',
+      _rev: 'anotherRev',
+    };
+
+    let dbUserUpdated = {
+      user_id: 123,
+      username: 'name',
+      password: 'newPass',
+      _rev: 'newRev',
+    };
+
+    describe('user found', function() {
+      describe('user not modified', function() {
+        before(function() {
+          mockPool.query.onFirstCall().callsArgWith(2, null, { rows: [dbUserFound] });
+        });
+
+        it('passes correct values to find query', function(done) {
+          userModel.update(mockUser, function() {
+            expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+            done();
+          });
+        });
+
+        describe('update success', function() {
+          before(function() {
+            mockPool.query.onSecondCall().callsArgWith(2, null, { rows: [dbUserUpdated] });
+          });
+
+          it('passes correct values to update query', function(done) {
+            userModel.update(mockUser, function() {
+              expect(mockPool.query.calledTwice);
+              expect(mockPool.query.getCall(1).args[1]).to.eql(['newPass', 'newRev', 'name']);
+              done();
+            });
+          });
+
+          it('does not return error', function(done) {
+            userModel.update(mockUser, function(err) {
+              expect(err).to.be.null;
+              done();
+            });
+          });
+
+          it('returns updated user', function(done) {
+            userModel.update(mockUser, function(err, user) {
+              expect(user.user_id).to.be(123);
+              expect(user.username).to.be('name');
+              expect(user._rev).to.be('newRev');
+              done();
+            });
+          });
+        });
+
+
+        describe('db error on update', function() {
+          before(function() {
+            mockPool.query.onSecondCall().callsArgWith(2, 'DB error on update');
+          });
+
+          it('passes correct values to update query', function(done) {
+            userModel.update(mockUser, function() {
+              expect(mockPool.query.calledTwice);
+              expect(mockPool.query.getCall(1).args[1]).to.eql(['newPass', 'newRev', 'name']);
+              done();
+            });
+          });
+
+          it('returns error', function(done) {
+            userModel.update(mockUser, function(err) {
+              expect(err).to.be.ok();
+              done();
+            });
+          });
+
+          it('does not return user', function(done) {
+            userModel.update(mockUser, function(err, user) {
+              expect(user).to.be.null;
+              done();
+            });
+          });
         });
       });
 
-      it('does not return error', function(done) {
-        userModel.update(mockUser, function(err) {
-          expect(err).to.be.null;
-          done();
+      describe('user modified', function() {
+        before(function() {
+          mockPool.query.onFirstCall().callsArgWith(2, null, { rows: [dbUserFoundModified] });
+        });
+
+        it('passes correct values to find query', function(done) {
+          userModel.update(mockUser, function() {
+            expect(mockPool.query.calledOnce);
+            expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+            done();
+          });
+        });
+
+        it('returns error', function(done) {
+          userModel.update(mockUser, function(err) {
+            expect(err).to.be.ok();
+            done();
+          });
+        });
+
+        it('does not return user', function(done) {
+          userModel.update(mockUser, function(err, user) {
+            expect(user).to.be.null;
+            done();
+          });
         });
       });
     });
 
-
-    describe('db error', function() {
+    describe('user not found', function() {
       before(function() {
-        mockPool.query.callsArgWith(2, 'DB error');
+        mockPool.query.onFirstCall().callsArgWith(2, null, { rows: [] });
+      });
+
+      it('passes correct values to find query', function(done) {
+        userModel.update(mockUser, function() {
+          expect(mockPool.query.calledOnce);
+          expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+          done();
+        });
       });
 
       it('returns error', function(done) {
         userModel.update(mockUser, function(err) {
           expect(err).to.be.ok();
+          done();
+        });
+      });
+
+      it('does not return user', function(done) {
+        userModel.update(mockUser, function(err, user) {
+          expect(user).to.be.null;
+          done();
+        });
+      });
+    });
+
+    describe('db failure on find', function() {
+      before(function() {
+        mockPool.query.onFirstCall().callsArgWith(2, 'db failure on find');
+      });
+
+      it('passes correct values to find query', function(done) {
+        userModel.update(mockUser, function() {
+          expect(mockPool.query.calledOnce);
+          expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+          done();
+        });
+      });
+
+      it('returns error', function(done) {
+        userModel.update(mockUser, function(err) {
+          expect(err).to.be.ok();
+          done();
+        });
+      });
+
+      it('does not return user', function(done) {
+        userModel.update(mockUser, function(err, user) {
+          expect(user).to.be.null;
           done();
         });
       });
@@ -145,28 +306,113 @@ describe('UserModel Tests', function() {
       password: 'pass',
     };
 
-    describe('success', function() {
+    let mockDbUser = {
+      username: 'name',
+      password: 'pass',
+      user_id: 123,
+    };
+
+    let mockDbUserUpdated = {
+      username: 'name',
+      password: 'pass',
+      user_id: 123,
+      _rev: 'newRev',
+    };
+
+    describe('insert success', function() {
       before(function() {
-        mockPool.query.callsArgWith(2, null, { rows: [mockUser] });
+        mockPool.query.onFirstCall().callsArgWith(2, null, { rows: [mockDbUser] });
       });
 
-      it('does not return error', function(done) {
-        userModel.create(mockUser, function(err) {
-          expect(err).to.be.null;
+      it('passes correct values to insert query', function(done) {
+        userModel.create(mockUser, function() {
+          expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'pass']);
           done();
+        });
+      });
+
+      describe('update success', function() {
+        before(function() {
+          mockPool.query.onSecondCall().callsArgWith(2, null, { rows: [mockDbUserUpdated] });
+        });
+
+        it('passes correct values to update query', function(done) {
+          userModel.create(mockUser, function() {
+            expect(mockPool.query.calledTwice);
+            expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name']);
+            done();
+          });
+        });
+
+        it('does not return error', function(done) {
+          userModel.create(mockUser, function(err) {
+            expect(err).to.be.null;
+            done();
+          });
+        });
+
+        it('returns updated user', function(done) {
+          userModel.create(mockUser, function(err, user) {
+            expect(user.user_id).to.be(123);
+            expect(user.username).to.be('name');
+            expect(user._rev).to.be('newRev');
+            done();
+          });
+        });
+      });
+
+      describe('db error on update', function() {
+        before(function() {
+          mockPool.query.onSecondCall().callsArgWith(2, 'DB error');
+        });
+
+        it('passes correct values to update query', function(done) {
+          userModel.create(mockUser, function() {
+            expect(mockPool.query.calledTwice);
+            expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name']);
+            done();
+          });
+        });
+
+        it('returns error', function(done) {
+          userModel.create(mockUser, function(err) {
+            expect(err).to.be.ok();
+            done();
+          });
+        });
+
+        it('does not return user', function(done) {
+          userModel.create(mockUser, function(err, user) {
+            expect(user).to.be.null;
+            done();
+          });
         });
       });
     });
 
-
-    describe('db error', function() {
+    describe('insert failure', function() {
       before(function() {
-        mockPool.query.callsArgWith(2, 'DB error');
+        mockPool.query.onFirstCall().callsArgWith(2, 'db error on insert');
+      });
+
+      it('passes correct values to insert query', function(done) {
+        userModel.create(mockUser, function() {
+          expect(mockPool.query.calledOnce);
+          expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'pass']);
+          done();
+        });
       });
 
       it('returns error', function(done) {
         userModel.create(mockUser, function(err) {
           expect(err).to.be.ok();
+          done();
+        });
+      });
+
+      it('does not return user', function(done) {
+        userModel.create(mockUser, function(err, user) {
+          expect(user).to.be.null;
           done();
         });
       });

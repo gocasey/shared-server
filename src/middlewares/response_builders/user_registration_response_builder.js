@@ -9,7 +9,7 @@ function UserRegistrationResponseBuilder(logger) {
     let response = getBasicResponse();
     response.metadata.version = pjson.version;
     response.user.id = user.user_id;
-    response.user._rev = 'mockRev';
+    response.user._rev = user._rev;
     response.user.username = user.username;
     response.user.applicationOwner = 'mockAppOwner';
     _logger.debug('Response: %j', response);
