@@ -10,13 +10,13 @@ const integrityValidator = new IntegrityValidator(mockLogger);
 
 describe('IntegrityValidator Tests', function() {
   describe('user integrity check', function() {
-    let mockUser = { id: 1, username: 'john', password: 'pass', applicationOwner: 'app1', rev: 'defg' };
-    let mockSameUserDifferentOrder = { rev: 'abcd', username: 'john', applicationOwner: 'app1', id: 1, password: 'pass' };
-    let mockDifferentUser = { rev: 'abcd', username: 'tony', applicationOwner: 'app1', id: 1, password: 'pass' };
+    let mockUser = { id: 1, username: 'john', password: 'pass', applicationOwner: 'app1', _rev: 'defg' };
+    let mockSameUserDifferentOrder = { _rev: 'abcd', username: 'john', applicationOwner: 'app1', id: 1, password: 'pass' };
+    let mockDifferentUser = { _rev: 'abcd', username: 'tony', applicationOwner: 'app1', id: 1, password: 'pass' };
 
-    beforeEach(function(){
+    beforeEach(function() {
       mockLogger.debug.resetHistory();
-    })
+    });
 
     it('returns hash', function() {
       let hash = integrityValidator.createHash(mockUser);
@@ -32,16 +32,14 @@ describe('IntegrityValidator Tests', function() {
     });
 
 
-    describe('same user', function(){
-
+    describe('same user', function() {
       it('validates hash with user', function() {
         let hash = integrityValidator.createHash(mockUser);
         expect(integrityValidator.validateHash(mockUser, hash));
       });
-
     });
 
-    describe('same user different param order', function(){
+    describe('same user different param order', function() {
       it('returns same hash', function() {
         let hash1 = integrityValidator.createHash(mockUser);
         let hash2 = integrityValidator.createHash(mockSameUserDifferentOrder);
@@ -58,7 +56,7 @@ describe('IntegrityValidator Tests', function() {
         expect(integrityValidator.validateHash(mockUser, hash));
       });
 
-      it('logs validation success', function(){
+      it('logs validation success', function() {
         let hash = integrityValidator.createHash(mockUser);
         integrityValidator.validateHash(mockSameUserDifferentOrder, hash);
         expect(mockLogger.debug.lastCall.args[0]).to.be('Integrity hash check succeeded for hash: %s and object: %j');
@@ -67,14 +65,14 @@ describe('IntegrityValidator Tests', function() {
       });
     });
 
-    describe('different user', function(){
+    describe('different user', function() {
       it('returns different hashes', function() {
         let hash1 = integrityValidator.createHash(mockUser);
         let hash2 = integrityValidator.createHash(mockDifferentUser);
         expect(hash1 !== hash2);
       });
 
-      it('logs validation failure', function(){
+      it('logs validation failure', function() {
         let hash = integrityValidator.createHash(mockUser);
         let hashExpected = integrityValidator.createHash(mockDifferentUser);
         integrityValidator.validateHash(mockDifferentUser, hash);
@@ -83,8 +81,6 @@ describe('IntegrityValidator Tests', function() {
         expect(mockLogger.debug.lastCall.args[2]).to.be.eql(mockDifferentUser);
         expect(mockLogger.debug.lastCall.args[3]).to.be(hashExpected);
       });
-
     });
-
   });
 });

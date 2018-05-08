@@ -12,7 +12,8 @@ const usersTableCleanupQuery = `DROP TABLE IF EXISTS users;`;
 const usersTableCreationQuery = `CREATE TABLE users (
   user_id serial PRIMARY KEY,
   username varchar (100) UNIQUE NOT NULL,
-  password varchar (100) NOT NULL
+  password varchar (100) NOT NULL,
+  _rev varchar(500)
 );`
 
 const tokensTableCreationQuery = `CREATE TABLE users_tokens (
