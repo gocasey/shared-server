@@ -41,8 +41,7 @@ function UserModel(logger, postgrePool) {
         else {
           if (dbUser) {
             callback(null, getBusinessUser(dbUser));
-          }
-          else {
+          } else {
             callback();
           }
         }
@@ -109,8 +108,7 @@ function UserModel(logger, postgrePool) {
               _logger.error('The integrity check for user: \'%s\' failed. Aborting update.', user.username);
               callback('Error updating');
             }
-          }
-          else {
+          } else {
             callback('User not found');
           }
         }

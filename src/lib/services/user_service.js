@@ -20,8 +20,7 @@ function UserService(logger, postgrePool) {
             _logger.error('Wrong password for username: \'%s\'', username);
             callback('Password incorrect');
           }
-        }
-        else callback('User not found');
+        } else callback('User not found');
       });
     };
 
