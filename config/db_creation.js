@@ -6,26 +6,41 @@ const client = new pg.Client({
   connectionString: connectionString,
 });
 
-const tokensTableCleanupQuery = `DROP TABLE IF EXISTS users_tokens;`;
+const serversTokensTableCleanupQuery = `DROP TABLE IF EXISTS servers_tokens;`;
+const usersTokensTableCleanupQuery = `DROP TABLE IF EXISTS users_tokens;`;
 const usersTableCleanupQuery = `DROP TABLE IF EXISTS users;`;
+const serversTableCleanupQuery = `DROP TABLE IF EXISTS servers;`;
 
-const usersTableCreationQuery = `CREATE TABLE users (
-  user_id serial PRIMARY KEY,
-  username varchar (100) UNIQUE NOT NULL,
-  password varchar (100) NOT NULL,
+const serversTableCreationQuery = `CREATE TABLE servers (
+  server_id serial PRIMARY KEY,
+  server_name varchar(100) UNIQUE NOT NULL,
   _rev varchar(500)
 );`
 
-const tokensTableCreationQuery = `CREATE TABLE users_tokens (
+const usersTableCreationQuery = `CREATE TABLE users (
+  user_id serial PRIMARY KEY,
+  username varchar(100) UNIQUE NOT NULL,
+  password varchar(100) NOT NULL,
+  _rev varchar(500),
+  app_owner varchar(100) REFERENCES servers(server_name)
+);`
+
+const usersTokensTableCreationQuery = `CREATE TABLE users_tokens (
   token_id serial PRIMARY KEY,
   token varchar(500),
   user_id integer UNIQUE REFERENCES users
 );`
 
+const serversTokensTableCreationQuery = `CREATE TABLE servers_tokens (
+  token_id serial PRIMARY KEY,
+  token varchar(500),
+  server_id integer UNIQUE REFERENCES servers
+);`
+
 client.connect();
 
-const cleanupQueries = [tokensTableCleanupQuery, usersTableCleanupQuery ];
-const creationQueries = [usersTableCreationQuery, tokensTableCreationQuery];
+const cleanupQueries = [serversTokensTableCleanupQuery, usersTokensTableCleanupQuery, usersTableCleanupQuery, serversTableCleanupQuery];
+const creationQueries = [serversTableCreationQuery, usersTableCreationQuery, usersTokensTableCreationQuery, serversTokensTableCreationQuery];
 const queriesToRun = cleanupQueries.concat(creationQueries);
 
 async.eachSeries(queriesToRun,
@@ -43,3 +58,4 @@ async.eachSeries(queriesToRun,
   }, function(){
     client.end();
 });
+

@@ -1,32 +1,15 @@
-const express = require('express');
+const ServerController = require('../../controllers/server_controller.js');
+const ServerResponseBuilder = require('../../middlewares/response_builders/server_response_builder.js');
 
-function ServersRouter(app) {
-    let router = new express.Router();
-    app.use('/api/servers', router);
+function ServersRouter(app, logger, postgrePool) {
+  let _serverController = new ServerController(logger, postgrePool);
+  let _serverResponseBuilder = new ServerResponseBuilder(logger);
 
-    router.get('/', function(req, res, next) {
-        res.end('Hit GET servers');
-    });
-
-    router.post('/', function(req, res, next) {
-        res.end('Hit POST servers');
-    });
-
-    router.get('/:serverId', function(req, res, next) {
-        res.end('Hit GET servers/' + req.params.serverId);
-    });
-
-    router.post('/:serverId', function(req, res, next) {
-        res.end('Hit POST servers/' + req.params.serverId);
-    });
-
-    router.put('/:serverId', function(req, res, next) {
-        res.end('Hit PUT servers/' + req.params.serverId);
-    });
-
-    router.delete('/:serverId', function(req, res, next) {
-        res.end('Hit POST servers/' + req.params.serverId);
-    });
+  app.post('/api/servers',
+    _serverController.createServer,
+    _serverController.generateToken,
+    _serverResponseBuilder.buildResponse
+  );
 }
 
 

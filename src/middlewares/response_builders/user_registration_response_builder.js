@@ -11,7 +11,7 @@ function UserRegistrationResponseBuilder(logger) {
     response.user.id = user.user_id;
     response.user._rev = user._rev;
     response.user.username = user.username;
-    response.user.applicationOwner = 'mockAppOwner';
+    response.user.applicationOwner = user.applicationOwner;
     _logger.debug('Response: %j', response);
     res.json(response);
   };
