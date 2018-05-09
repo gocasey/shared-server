@@ -22,7 +22,7 @@ app.use(cors());
 
 // Add router to the API
 filesRouter(app);
-serversRouter(app);
+serversRouter(app, logger, postgrePool);
 usersRouter(app, logger, postgrePool);
 
 // Add basic error middleware to handle all errors

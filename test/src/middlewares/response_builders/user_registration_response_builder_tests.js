@@ -15,6 +15,7 @@ describe('UserRegistrationResponseBuilder Tests', function() {
       data: {
         user_id: 123456789,
         username: 'username',
+        applicationOwner: 'appOwner',
         _rev: 'rev',
       },
       json: sinon.stub(),
@@ -27,14 +28,14 @@ describe('UserRegistrationResponseBuilder Tests', function() {
 
     it('passes response', function() {
       expect(mockResponse.json.calledWith(sinon.match({ metadata: { version: '1.0.0' },
-        user: { id: 123456789, _rev: 'rev', applicationOwner: 'mockAppOwner', username: 'username' } })));
+        user: { id: 123456789, _rev: 'rev', applicationOwner: 'appOwner', username: 'username' } })));
     });
 
     it('logs response', function() {
       expect(mockLogger.debug.calledOnce);
       expect(mockLogger.debug.getCall(0).args[0]).to.be('Response: %j');
       expect(mockLogger.debug.getCall(0).args[1]).to.be.eql( { metadata: { version: '1.0.0' },
-        user: { id: 123456789, _rev: 'rev', applicationOwner: 'mockAppOwner', username: 'username' } } );
+        user: { id: 123456789, _rev: 'rev', applicationOwner: 'appOwner', username: 'username' } } );
     });
   });
 });
