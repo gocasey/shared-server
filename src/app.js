@@ -20,8 +20,8 @@ app.use(bodyParser.json());
 // Enable CORS for all routes
 app.use(cors());
 
-// Add router to the API
-filesRouter(app);
+// Add routers to the API
+filesRouter(app, logger, postgrePool);
 serversRouter(app, logger, postgrePool);
 usersRouter(app, logger, postgrePool);
 
