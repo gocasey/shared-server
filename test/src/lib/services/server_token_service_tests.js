@@ -111,8 +111,7 @@ describe('ServerTokenService Tests', function() {
             let err;
             try {
               await serverTokenService.generateToken(mockServer);
-            }
-            catch(ex) {
+            } catch (ex) {
               err = ex;
             }
             expect(err).to.be.ok();
@@ -130,8 +129,7 @@ describe('ServerTokenService Tests', function() {
           let err;
           try {
             await serverTokenService.generateToken(mockServer);
-          }
-          catch(ex) {
+          } catch (ex) {
             err = ex;
           }
           expect(err).to.be.ok();

@@ -74,8 +74,7 @@ describe('UserService Tests', () => {
           let err;
           try {
             await userService.authenticateWithPassword('username', 'password');
-          }
-          catch(ex) {
+          } catch (ex) {
             err = ex;
           }
           expect(err).to.be.ok();
@@ -93,8 +92,7 @@ describe('UserService Tests', () => {
         let err;
         try {
           await userService.authenticateWithPassword('username', 'password');
-        }
-        catch(ex) {
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.ok();
@@ -139,8 +137,7 @@ describe('UserService Tests', () => {
           let err;
           try {
             await userService.createUser(mockBody);
-          }
-          catch(ex) {
+          } catch (ex) {
             err = ex;
           }
           expect(err).to.be.ok();
@@ -157,8 +154,7 @@ describe('UserService Tests', () => {
           let err;
           try {
             await userService.createUser(mockBody);
-          }
-          catch(ex) {
+          } catch (ex) {
             err = ex;
           }
           expect(err).to.be.ok();

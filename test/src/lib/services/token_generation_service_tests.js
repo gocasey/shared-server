@@ -76,8 +76,7 @@ describe('TokenGenerationService Tests', function() {
         let err;
         try {
           await tokenGenerationService.generateToken(mockOwner);
-        }
-        catch(ex) {
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.ok();
@@ -131,8 +130,7 @@ describe('TokenGenerationService Tests', function() {
           let err;
           try {
             await tokenGenerationService.validateToken('token', mockOwner);
-          }
-          catch(ex) {
+          } catch (ex) {
             err = ex;
           }
           expect(err).to.be.ok();

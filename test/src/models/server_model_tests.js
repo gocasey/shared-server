@@ -65,10 +65,10 @@ describe('ServerModel Tests', () => {
         mockPool.query.resolves({ rows: [] });
       });
 
-      it('returns null', async() => {
+      it('returns null', async () => {
         let server = await serverModel.findByServerName('name');
         expect(server).to.be.null;
-      })
+      });
 
       it('logs server not found', async () => {
         await serverModel.findByServerName('name');
@@ -87,8 +87,7 @@ describe('ServerModel Tests', () => {
         let err;
         try {
           await serverModel.findByServerName('name');
-        }
-        catch(ex) {
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.ok();
@@ -179,8 +178,7 @@ describe('ServerModel Tests', () => {
             let err;
             try {
               await serverModel.update(mockServer);
-            }
-            catch(ex) {
+            } catch (ex) {
               err = ex;
             }
             expect(err).to.be.ok();
@@ -206,8 +204,7 @@ describe('ServerModel Tests', () => {
           let err;
           try {
             await serverModel.update(mockServer);
-          }
-          catch(ex) {
+          } catch (ex) {
             err = ex;
           }
           expect(err).to.be.ok();
@@ -233,8 +230,7 @@ describe('ServerModel Tests', () => {
         let err;
         try {
           await serverModel.update(mockServer);
-        }
-        catch(ex) {
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.ok();
@@ -259,8 +255,7 @@ describe('ServerModel Tests', () => {
         let err;
         try {
           await serverModel.update(mockServer);
-        }
-        catch(ex) {
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.ok();
@@ -331,8 +326,7 @@ describe('ServerModel Tests', () => {
           let err;
           try {
             await serverModel.create(mockServer);
-          }
-          catch(ex) {
+          } catch (ex) {
             err = ex;
           }
           expect(err).to.be.ok();
@@ -347,7 +341,7 @@ describe('ServerModel Tests', () => {
       });
 
       it('passes correct values to insert query', async () => {
-        try{
+        try {
           await serverModel.create(mockServer);
         } catch (err) {}
         expect(mockPool.query.calledOnce);
@@ -358,8 +352,7 @@ describe('ServerModel Tests', () => {
         let err;
         try {
           await serverModel.create(mockServer);
-        }
-        catch(ex) {
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.ok();

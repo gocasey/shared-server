@@ -109,8 +109,7 @@ describe('UserTokenService Tests', () => {
             let err;
             try {
               await userTokenService.generateToken(mockUser);
-            }
-            catch(ex) {
+            } catch (ex) {
               err = ex;
             }
             expect(err).to.be.ok();
@@ -128,8 +127,7 @@ describe('UserTokenService Tests', () => {
           let err;
           try {
             await userTokenService.generateToken(mockUser);
-          }
-          catch(ex) {
+          } catch (ex) {
             err = ex;
           }
           expect(err).to.be.ok();

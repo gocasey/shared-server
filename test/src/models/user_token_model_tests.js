@@ -84,8 +84,7 @@ describe('UserTokenModel Tests', () => {
         let err;
         try {
           await userTokenModel.findByUser(mockUser);
-        }
-        catch(ex) {
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.ok();
@@ -93,7 +92,7 @@ describe('UserTokenModel Tests', () => {
       });
 
       it('logs db failure', async () => {
-        try{
+        try {
           await userTokenModel.findByUser(mockUser);
         } catch (err) {}
         expect(mockLogger.error.calledTwice);
@@ -130,8 +129,7 @@ describe('UserTokenModel Tests', () => {
         let err;
         try {
           await userTokenModel.createOrUpdate(mockUser, mockToken);
-        }
-        catch(ex) {
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.ok();

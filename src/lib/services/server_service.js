@@ -16,8 +16,7 @@ function ServerService(logger, postgrePool) {
         if (server) {
           _logger.error('There is already a server with name: \'%s\'', serverData.name);
           throw new Error('Server name already in usage');
-        }
-        else throw createErr;
+        } else throw createErr;
       } catch (findErr) {
         _logger.error('An error happened while creating the server with name: \'%s\'', serverData.name);
         throw new Error('Server creation error');

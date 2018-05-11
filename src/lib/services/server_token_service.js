@@ -28,7 +28,7 @@ function ServerTokenService(logger, postgrePool) {
     let token = await _serverTokenModel.findByServer(server);
     if (token) {
       let owner = getOwnerFromServer(server);
-      try{
+      try {
         let validatedToken = await _tokenGenerationService.validateToken(token.token, owner);
         _logger.info('Server with name: \'%s\' already has a valid token, skipping token generation', server.name);
         let serverToken = {

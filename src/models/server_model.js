@@ -53,7 +53,7 @@ function ServerModel(logger, postgrePool) {
   };
 
 
-  this.create = async(server) => {
+  this.create = async (server) => {
     let query = 'INSERT INTO servers(server_name) VALUES ($1) RETURNING server_id, server_name;';
     let values = [server.name];
     try {
@@ -63,8 +63,7 @@ function ServerModel(logger, postgrePool) {
       // integrity hash is created here since we now know the user_id
       let rev = integrityValidator.createHash(server);
       return await updateServerRev(server.name, rev);
-    }
-    catch(err){
+    } catch (err) {
       logger.error('Error creating server with name:\'%s\' to database', server.name);
       throw err;
     }
@@ -95,8 +94,7 @@ function ServerModel(logger, postgrePool) {
         _logger.error('The integrity check for server with name: \'%s\' failed. Aborting update.', server.name);
         throw new Error('Error updating');
       }
-    }
-    else {
+    } else {
       _logger.error('Update cannot be completed, server with name: \'%s\' does not exist', server.name);
       throw new Error('Server does not exist');
     }

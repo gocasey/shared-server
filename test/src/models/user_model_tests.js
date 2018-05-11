@@ -20,7 +20,7 @@ const mockIntegrityValidator = {
 
 function createUserModel() {
   mockIntegrityValidator.createHash.returns('newRev');
-  let mocks = { '../../src/utils/integrity_validator.js': function(){
+  let mocks = { '../../src/utils/integrity_validator.js': function() {
  return mockIntegrityValidator;
 } };
   let UserModel = proxyquire(UserModelModule, mocks);
@@ -88,7 +88,7 @@ describe('UserModel Tests', () => {
 
       it('returns error', async () => {
         let functionSpy = sinon.spy(userModel.findByUsername);
-        try{
+        try {
           await functionSpy('name');
           throw new Error('Exception was not thrown');
         } catch (err) { }
@@ -190,8 +190,7 @@ describe('UserModel Tests', () => {
             let err;
             try {
               await userModel.update(mockUser);
-            }
-            catch(ex) {
+            } catch (ex) {
               err = ex;
             }
             expect(err).to.be.ok();
@@ -217,8 +216,7 @@ describe('UserModel Tests', () => {
           let err;
           try {
             await userModel.update(mockUser);
-          }
-          catch(ex) {
+          } catch (ex) {
             err = ex;
           }
           expect(err).to.be.ok();
@@ -244,8 +242,7 @@ describe('UserModel Tests', () => {
         let err;
         try {
           await userModel.update(mockUser);
-        }
-        catch(ex) {
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.ok();
@@ -270,8 +267,7 @@ describe('UserModel Tests', () => {
         let err;
         try {
           await userModel.update(mockUser);
-        }
-        catch(ex) {
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.ok();
@@ -351,8 +347,7 @@ describe('UserModel Tests', () => {
           let err;
           try {
             await userModel.create(mockUser);
-          }
-          catch(ex) {
+          } catch (ex) {
             err = ex;
           }
           expect(err).to.be.ok();
@@ -378,8 +373,7 @@ describe('UserModel Tests', () => {
         let err;
         try {
           await userModel.create(mockUser);
-        }
-        catch(ex) {
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.ok();
