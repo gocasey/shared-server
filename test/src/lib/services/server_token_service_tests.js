@@ -48,102 +48,94 @@ describe('ServerTokenService Tests', function() {
   describe('#generateToken', function() {
     describe('server has token', function() {
       before(function() {
-        mockServerTokenModel.findByServer.callsArgWith(1, null, { token_id: 6789, server_id: 12345, token: 'token' });
+        mockServerTokenModel.findByServer.resolves({ token_id: 6789, server_id: 12345, token: 'token' });
       });
 
       describe('token valid', function() {
         before(function() {
-          mockTokenGenerationService.validateToken.callsArgWith(2, null, { token: 'token', expiresAt: 123456789 });
+          mockTokenGenerationService.validateToken.resolves({ token: 'token', expiresAt: 123456789 });
         });
 
-        it('does not return error', function(done) {
-          serverTokenService.generateToken(mockServer, function(err) {
-            expect(err).to.be.null;
-            done();
+        it('returns token', async function() {
+          let token = await serverTokenService.generateToken(mockServer);
+          expect(token).to.be.ok();
+          expect(token.token).to.be('token');
+          expect(token.tokenExpiration).to.be(123456789);
           });
         });
-
-        it('returns token', function(done) {
-          serverTokenService.generateToken(mockServer, function(err, token) {
-            expect(token).to.be.ok();
-            expect(token.token).to.be('token');
-            expect(token.tokenExpiration).to.be(123456789);
-            done();
-          });
-        });
-      });
 
       describe('token invalid', function() {
         before(function() {
-          mockTokenGenerationService.validateToken.callsArgWith(2, 'token invalid');
-          mockTokenGenerationService.generateToken.callsArgWith(1, 'token');
+          mockTokenGenerationService.validateToken.rejects(new Error('token invalid'));
+          mockTokenGenerationService.generateToken.resolves({ token: 'new token', expiresAt: 123456789 });
         });
 
-        it('does not return error', function(done) {
-          serverTokenService.generateToken(mockServer, function(err) {
-            expect(err).to.be.null;
-            done();
-          });
+        it('returns new token', async () => {
+          let token = await serverTokenService.generateToken(mockServer);
+          expect(token).to.be.ok();
+          expect(token.token).to.be('new token');
+          expect(token.tokenExpiration).to.be(123456789);
         });
       });
     });
 
     describe('server does not have token', function() {
       before(function() {
-        mockServerTokenModel.findByServer.callsArgWith(1);
+        mockServerTokenModel.findByServer.resolves();
       });
 
       describe('token creation success', function() {
         before(function() {
-          mockTokenGenerationService.generateToken.callsArgWith(1, null, { token: 'token', expiresAt: 123456789 });
+          mockTokenGenerationService.generateToken.resolves({ token: 'token', expiresAt: 123456789 });
         });
 
         describe('token update success', function() {
           before(function() {
-            mockServerTokenModel.createOrUpdate.callsArgWith(2);
+            mockServerTokenModel.createOrUpdate.resolves();
           });
 
-          it('does not return error', function(done) {
-            serverTokenService.generateToken(mockServer, function(err) {
-              expect(err).to.be.null;
-              done();
-            });
-          });
-
-          it('returns token', function(done) {
-            serverTokenService.generateToken(mockServer, function(err, token) {
-              expect(token).to.be.ok();
-              expect(token.token).to.be('token');
-              expect(token.tokenExpiration).to.be(123456789);
-              done();
-            });
+          it('returns token', async function() {
+            let token = await serverTokenService.generateToken(mockServer);
+            expect(token).to.be.ok();
+            expect(token.token).to.be('token');
+            expect(token.tokenExpiration).to.be(123456789);
           });
         });
 
         describe('token update failure', function() {
           before(function() {
-            mockServerTokenModel.createOrUpdate.callsArgWith(2, 'update error');
+            mockServerTokenModel.createOrUpdate.rejects(new Error('update error'));
           });
 
-          it('returns error', function(done) {
-            serverTokenService.generateToken(mockServer, function(err) {
-              expect(err).to.be.ok();
-              done();
-            });
+          it('returns error', async function() {
+            let err;
+            try {
+              await serverTokenService.generateToken(mockServer);
+            }
+            catch(ex) {
+              err = ex;
+            }
+            expect(err).to.be.ok();
+            expect(err.message).to.be('update error');
           });
         });
       });
 
       describe('token creation failure', function() {
         before(function() {
-          mockTokenGenerationService.generateToken.callsArgWith(1, 'token error');
+          mockTokenGenerationService.generateToken.rejects(new Error('token error'));
         });
 
-        it('returns error', function(done) {
-          serverTokenService.generateToken(mockServer, function(err) {
-            expect(err).to.be.ok();
-            done();
-          });
+        it('returns error', async function() {
+          let err;
+          try {
+            await serverTokenService.generateToken(mockServer);
+          }
+          catch(ex) {
+            err = ex;
+          }
+          expect(err).to.be.ok();
+          expect(err.message).to.be('token error');
         });
       });
     });

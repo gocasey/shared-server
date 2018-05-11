@@ -7,31 +7,29 @@ function UserController(logger, postgrePool) {
   let _userService = new UserService(logger, postgrePool);
   let _userTokenService = new UserTokenService(logger, postgrePool);
 
-  this.generateToken = function(req, res, next) {
+  this.generateToken = async (req, res, next) => {
     let user = res.user;
-    _userTokenService.generateToken(user, function(err, token) {
-      if (err) {
-        _logger.error('An error ocurred while generating the token for username: %s', user.username);
-        let error = new BaseHttpError('Internal Server Error', 'Internal Server Error', 500);
-        next(error);
-      } else {
-        res.data = token;
-        next();
-      }
-    });
+    try {
+      let token = await _userTokenService.generateToken(user);
+      res.data = token;
+      next();
+    } catch (err) {
+      _logger.error('An error ocurred while generating the token for username: %s', user.username);
+      let error = new BaseHttpError('Internal Server Error', 'Internal Server Error', 500);
+      next(error);
+    }
   };
 
-  this.createUser = function(req, res, next) {
-    _userService.createUser(req.body, function(err, user) {
-      if (err) {
-        _logger.error('An error ocurred while creating user with username: %s', req.body.username);
-        let error = new BaseHttpError('Internal Server Error', 'Internal Server Error', 500);
-        next(error);
-      } else {
-        res.data = user;
-        next();
-      }
-    });
+  this.createUser = async (req, res, next) => {
+    try {
+      let user = await _userService.createUser(req.body);
+      res.data = user;
+      next();
+    } catch (err) {
+      _logger.error('An error ocurred while creating user with username: %s', req.body.username);
+      let error = new BaseHttpError('Internal Server Error', 'Internal Server Error', 500);
+      next(error);
+    }
   };
 }
 

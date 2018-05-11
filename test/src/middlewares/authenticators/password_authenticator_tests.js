@@ -42,7 +42,7 @@ describe('PasswordAuthenticator Tests', function() {
 
     describe('authentication success', function() {
       before(function() {
-        mockUserService.authenticateWithPassword.callsArgWith(2);
+        mockUserService.authenticateWithPassword.resolves({ user_id: 1, username: 'username', password: 'pass', applicationOwner: 'appOwner' });
       });
 
       it('does not return error', function(done) {
@@ -51,16 +51,28 @@ describe('PasswordAuthenticator Tests', function() {
           done();
         });
       });
+
+      it('saves user in response', function(done) {
+        passwordAuthenticator.authenticate(request, response, function() {
+          expect(response.user).to.be.ok();
+          expect(response.user.user_id).to.be(1);
+          expect(response.user.username).to.be('username');
+          expect(response.user.password).to.be('pass');
+          expect(response.user.applicationOwner).to.be('appOwner');
+          done();
+        });
+      });
     });
 
     describe('authentication failure', function() {
       before(function() {
-        mockUserService.authenticateWithPassword.callsArgWith(2, 'authentication error');
+        mockUserService.authenticateWithPassword.rejects(new Error('authentication error'));
       });
 
       it('returns error', function(done) {
         passwordAuthenticator.authenticate(request, response, function(err) {
           expect(err).to.be.ok();
+          expect(err.message).to.be('Unauthorized');
           done();
         });
       });

@@ -13,51 +13,37 @@ function ServerTokenService(logger, postgrePool) {
     };
   }
 
-  function generateNewTokenForServer(server, callback) {
+  async function generateNewTokenForServer(server) {
     let owner = getOwnerFromServer(server);
-    _tokenGenerationService.generateToken(owner, function(err, token) {
-      if (err) callback(err);
-      else {
-        _serverTokenModel.createOrUpdate(server, token, function(err) {
-          if (err) callback(err);
-          else {
-            let serverToken = {
-              token: token.token,
-              tokenExpiration: token.expiresAt,
-            };
-            callback(null, serverToken);
-          }
-        });
-      }
-    });
+    let token = await _tokenGenerationService.generateToken(owner);
+    await _serverTokenModel.createOrUpdate(server, token);
+    let serverToken = {
+      token: token.token,
+      tokenExpiration: token.expiresAt,
+    };
+    return serverToken;
   }
 
-  this.generateToken = function(server, callback) {
-    _serverTokenModel.findByServer(server, function(err, token) {
-      if (err) {
-        callback(err);
-      } else {
-        if (token) {
-          let owner = getOwnerFromServer(server);
-          _tokenGenerationService.validateToken(token.token, owner, function(err, token) {
-            if (err) {
-              _logger.info('Server with name: \'%s\' already has a token but it is not valid, generating new token', server.name);
-              generateNewTokenForServer(server, callback);
-            } else {
-              _logger.info('Server with name: \'%s\' already has a valid token, skipping token generation', server.name);
-              let serverToken = {
-                token: token.token,
-                tokenExpiration: token.expiresAt,
-              };
-              callback(null, serverToken);
-            }
-          });
-        } else {
-          _logger.info('Server with name: \'%s\' does not have a token, generating one', server.name);
-          generateNewTokenForServer(server, callback);
-        }
+  this.generateToken = async (server) => {
+    let token = await _serverTokenModel.findByServer(server);
+    if (token) {
+      let owner = getOwnerFromServer(server);
+      try{
+        let validatedToken = await _tokenGenerationService.validateToken(token.token, owner);
+        _logger.info('Server with name: \'%s\' already has a valid token, skipping token generation', server.name);
+        let serverToken = {
+          token: validatedToken.token,
+          tokenExpiration: validatedToken.expiresAt,
+        };
+        return serverToken;
+      } catch (err) {
+        _logger.info('Server with name: \'%s\' already has a token but it is not valid, generating new token', server.name);
+        return await generateNewTokenForServer(server);
       }
-    });
+    } else {
+      _logger.info('Server with name: \'%s\' does not have a token, generating one', server.name);
+      return await generateNewTokenForServer(server);
+    }
   };
 }
 

@@ -39,73 +39,69 @@ describe('ServerTokenModel Tests', function() {
   describe('#findByServer', function() {
     describe('token found', function() {
       before(function() {
-        mockPool.query.callsArgWith(2, null, { rows: [mockToken] });
+        mockPool.query.resolves({ rows: [mockToken] });
       });
 
-      it('returns token', function(done) {
-        serverTokenModel.findByServer(mockServer, function(err, token) {
-          expect(token).to.be.ok();
-          expect(token.server_id).to.be(12345);
-          expect(token.token_id).to.be(6789);
-          expect(token.token).to.be('token');
-          done();
-        });
+      it('returns token', async function() {
+        let token = await serverTokenModel.findByServer(mockServer);
+        expect(token).to.be.ok();
+        expect(token.server_id).to.be(12345);
+        expect(token.token_id).to.be(6789);
+        expect(token.token).to.be('token');
       });
 
-      it('logs success', function(done) {
-        serverTokenModel.findByServer(mockServer, function() {
-          expect(mockLogger.info.calledOnce);
-          expect(mockLogger.info.getCall(0).args[0]).to.be('Token for server name:\'%s\' found');
-          expect(mockLogger.info.getCall(0).args[1]).to.be('name');
-          done();
-        });
+      it('logs success', async function() {
+        await serverTokenModel.findByServer(mockServer);
+        expect(mockLogger.info.calledOnce);
+        expect(mockLogger.info.getCall(0).args[0]).to.be('Token for server name:\'%s\' found');
+        expect(mockLogger.info.getCall(0).args[1]).to.be('name');
       });
     });
 
     describe('token not found', function() {
       before(function() {
-        mockPool.query.callsArgWith(2, null, { rows: [] } );
+        mockPool.query.resolves({ rows: [] } );
       });
 
-      it('does not return error', function(done) {
-        serverTokenModel.findByServer(mockServer, function(err, token) {
-          expect(err).to.be.null;
-          expect(token).to.be.null;
-          done();
-        });
+      it('returns null', async function() {
+        let token = await serverTokenModel.findByServer(mockServer);
+        expect(token).to.be.null;
       });
 
-      it('logs token not found', function(done) {
-        serverTokenModel.findByServer(mockServer, function() {
-          expect(mockLogger.info.calledOnce);
-          expect(mockLogger.info.getCall(0).args[0]).to.be('Token for server name:\'%s\' not found');
-          expect(mockLogger.info.getCall(0).args[1]).to.be('name');
-          done();
-        });
+      it('logs token not found', async function() {
+        await serverTokenModel.findByServer(mockServer);
+        expect(mockLogger.info.calledOnce);
+        expect(mockLogger.info.getCall(0).args[0]).to.be('Token for server name:\'%s\' not found');
+        expect(mockLogger.info.getCall(0).args[1]).to.be('name');
       });
     });
 
     describe('db error', function() {
       before(function() {
-        mockPool.query.callsArgWith(2, 'DB error');
+        mockPool.query.rejects(new Error('DB error'));
       });
 
-      it('returns error', function(done) {
-        serverTokenModel.findByServer(mockServer, function(err) {
-          expect(err).to.be.ok();
-          done();
-        });
+      it('returns error', async function() {
+        let err;
+        try {
+          await serverTokenModel.findByServer(mockServer);
+        }
+        catch(ex) {
+          err = ex;
+        }
+        expect(err).to.be.ok();
+        expect(err.message).to.be('DB error');
       });
 
-      it('logs db failure', function(done) {
-        serverTokenModel.findByServer(mockServer, function() {
-          expect(mockLogger.error.calledTwice);
-          expect(mockLogger.error.getCall(0).args[0]).to.be('DB error: %j');
-          expect(mockLogger.error.getCall(0).args[1]).to.be('DB error');
-          expect(mockLogger.error.getCall(1).args[0]).to.be('Error looking for token for server name:\'%s\' in the database');
-          expect(mockLogger.error.getCall(1).args[1]).to.be('name');
-          done();
-        });
+      it('logs db failure', async function() {
+        try {
+          await serverTokenModel.findByServer(mockServer);
+        } catch (err) { }
+        expect(mockLogger.error.calledTwice);
+        expect(mockLogger.error.getCall(0).args[0]).to.be('DB error: %j');
+        expect(mockLogger.error.getCall(0).args[1]).to.be('DB error');
+        expect(mockLogger.error.getCall(1).args[0]).to.be('Error looking for token for server name:\'%s\' in the database');
+        expect(mockLogger.error.getCall(1).args[1]).to.be('name');
       });
     });
   });
@@ -113,28 +109,34 @@ describe('ServerTokenModel Tests', function() {
   describe('#createOrUpdate', function() {
     describe('success', function() {
       before(function() {
-        mockPool.query.callsArgWith(2, null, { rows: [mockToken] });
+        mockPool.query.resolves({ rows: [mockToken] });
       });
 
-      it('does not return error', function(done) {
-        serverTokenModel.createOrUpdate(mockServer, mockToken, function(err) {
-          expect(err).to.be.null;
-          done();
-        });
+      it('returns token', async () => {
+        let token = await serverTokenModel.createOrUpdate(mockServer, mockToken);
+        expect(token).to.be.ok();
+        expect(token.server_id).to.be(12345);
+        expect(token.token_id).to.be(6789);
+        expect(token.token).to.be('token');
       });
     });
 
 
     describe('db error', function() {
       before(function() {
-        mockPool.query.callsArgWith(2, 'DB error');
+        mockPool.query.rejects(new Error('DB error'));
       });
 
-      it('returns error', function(done) {
-        serverTokenModel.createOrUpdate(mockServer, mockToken, function(err) {
-          expect(err).to.be.ok();
-          done();
-        });
+      it('returns error', async function() {
+        let err;
+        try {
+          await serverTokenModel.createOrUpdate(mockServer, mockToken);
+        }
+        catch(ex) {
+          err = ex;
+        }
+        expect(err).to.be.ok();
+        expect(err.message).to.be('DB error');
       });
     });
   });

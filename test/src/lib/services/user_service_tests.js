@@ -40,116 +40,129 @@ function setupUserService() {
 }
 
 
-describe('UserService Tests', function() {
+describe('UserService Tests', () => {
   let userService;
 
-  before(function() {
+  before(() => {
     userService = setupUserService();
   });
 
-  describe('#authenticateWithPassword', function() {
-    describe('user found', function() {
-      before(function() {
-        mockUserModel.findByUsername.callsArgWith(1, null, { username: 'username', password: 'password' });
+  describe('#authenticateWithPassword', () => {
+    describe('user found', () => {
+      before(() => {
+        mockUserModel.findByUsername.resolves({ username: 'username', password: 'password' });
       });
 
-      describe('valid password', function() {
-        before(function() {
+      describe('valid password', () => {
+        before(() => {
           mockDigest.returns('password');
         });
 
-        it('does not return error', function(done) {
-          userService.authenticateWithPassword('username', 'password', function(err) {
-            expect(err).to.be.null;
-            done();
-          });
+        it('returns user', async () => {
+          let user = await userService.authenticateWithPassword('username', 'password');
+          expect(user.username).to.be('username');
+          expect(user.password).to.be('password');
         });
       });
 
-      describe('invalid password', function() {
-        before(function() {
+      describe('invalid password', () => {
+        before(() => {
           mockDigest.returns('another_hash');
         });
 
-        it('returns error', function(done) {
-          userService.authenticateWithPassword('username', 'password', function(err) {
-            expect(err).to.be.ok();
-            done();
-          });
+        it('returns error', async () => {
+          let err;
+          try {
+            await userService.authenticateWithPassword('username', 'password');
+          }
+          catch(ex) {
+            err = ex;
+          }
+          expect(err).to.be.ok();
+          expect(err.message).to.be('Password incorrect');
         });
       });
     });
 
-    describe('user not found', function() {
-      before(function() {
-        mockUserModel.findByUsername.callsArgWith(1, 'user not found');
+    describe('user not found', () => {
+      before(() => {
+        mockUserModel.findByUsername.rejects(new Error('user not found'));
       });
 
-      it('returns error', function(done) {
-        userService.authenticateWithPassword('username', 'password', function(err) {
-          expect(err).to.be.ok();
-          done();
-        });
+      it('returns error', async () => {
+        let err;
+        try {
+          await userService.authenticateWithPassword('username', 'password');
+        }
+        catch(ex) {
+          err = ex;
+        }
+        expect(err).to.be.ok();
+        expect(err.message).to.be('user not found');
       });
     });
   });
 
-  describe('#createUser', function() {
+  describe('#createUser', () => {
     let mockBody = {
       username: 'username',
       password: 'pass',
+      applicationOwner: 'appOwner',
     };
 
-    describe('create success', function() {
-      before(function() {
-        mockUserModel.create.callsArgWith(1, null, { user_id: 1, username: 'username' });
+    describe('create success', () => {
+      before(() => {
+        mockUserModel.create.resolves({ user_id: 1, username: 'username', password: 'pass', applicationOwner: 'appOwner' });
       });
 
-      it('does not return error', function(done) {
-        userService.createUser(mockBody, function(err) {
-          expect(err).to.be.null;
-          done();
-        });
-      });
-
-      it('returns user', function(done) {
-        userService.createUser(mockBody, function(err, user) {
-          expect(user).to.be.ok();
-          expect(user.user_id).to.be(1);
-          expect(user.username).to.be('username');
-          done();
-        });
+      it('returns user', async () => {
+        let user = await userService.createUser(mockBody);
+        expect(user).to.be.ok();
+        expect(user.user_id).to.be(1);
+        expect(user.username).to.be('username');
+        expect(user.password).to.be('pass');
+        expect(user.applicationOwner).to.be('appOwner');
       });
     });
 
-    describe('create failure', function() {
-      before(function() {
-        mockUserModel.create.callsArgWith(1, 'Creation error');
+    describe('create failure', () => {
+      before(() => {
+        mockUserModel.create.rejects(new Error('Creation error'));
       });
 
-      describe('user found', function() {
-        before(function() {
-          mockUserModel.findByUsername.callsArgWith(1, null, { username: 'username', password: 'password' });
+      describe('user found', () => {
+        before(() => {
+          mockUserModel.findByUsername.resolves({ username: 'username', password: 'password' });
         });
 
-        it('returns error', function(done) {
-          userService.createUser(mockBody, function(err) {
-            expect(err).to.be.ok();
-            done();
-          });
+        it('returns error', async () => {
+          let err;
+          try {
+            await userService.createUser(mockBody);
+          }
+          catch(ex) {
+            err = ex;
+          }
+          expect(err).to.be.ok();
+          expect(err.message).to.be('User creation error');
         });
       });
 
-      describe('user not found', function() {
-        before(function() {
-          mockUserModel.findByUsername.callsArgWith(1, 'user not found');
+      describe('user not found', () => {
+        before(() => {
+          mockUserModel.findByUsername.rejects(new Error('user not found'));
         });
 
-        it('returns error', function(done) {
-          userService.createUser(mockBody, function(err) {
-            expect(err).to.be.ok();
-            done();
-          });
+        it('returns error', async () => {
+          let err;
+          try {
+            await userService.createUser(mockBody);
+          }
+          catch(ex) {
+            err = ex;
+          }
+          expect(err).to.be.ok();
+          expect(err.message).to.be('User creation error');
         });
       });
     });
