@@ -46,8 +46,8 @@ describe('PasswordAuthenticator Tests', function() {
         mockUserService.authenticateWithPassword.resolves({ user_id: 1, username: 'username', password: 'pass', applicationOwner: 'appOwner' });
       });
 
-      it('saves user in response', async() => {
-        await passwordAuthenticator.authenticate(request, response, function(err){
+      it('saves user in response', async () => {
+        await passwordAuthenticator.authenticate(request, response, function(err) {
           expect(err).to.be.null;
           expect(response.user).to.be.ok();
           expect(response.user.user_id).to.be(1);
@@ -64,7 +64,7 @@ describe('PasswordAuthenticator Tests', function() {
       });
 
       it('returns error', async () => {
-        await passwordAuthenticator.authenticate(request, response, function (err){
+        await passwordAuthenticator.authenticate(request, response, function(err) {
           expect(err).to.be.a(BaseHttpError);
           expect(err.statusCode).to.be(401);
           expect(err.message).to.be('Wrong password.');

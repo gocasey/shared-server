@@ -9,17 +9,6 @@ const mockLogger = {
 describe('ServerResponseBuilder Tests', function() {
   let serverResponseBuilder = new ServerResponseBuilder(mockLogger);
 
-  let mockResponse = {
-    status: function(errorCode) {
-      passedErrorCode = errorCode;
-      return {
-        json: function(error) {
-          passedError = error;
-        },
-      };
-    },
-  };
-
   describe('#buildResponse', function() {
     let mockRequest = {};
     let passedStatusCode;
