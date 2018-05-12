@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const UserModel = require('../../models/user_model.js');
+const BaseHttpError = require('../../errors/base_http_error.js');
 
 function UserService(logger, postgrePool) {
   let _logger = logger;
@@ -28,23 +29,27 @@ function UserService(logger, postgrePool) {
       password: hash(body.password),
       applicationOwner: body.applicationOwner,
     };
-
+    let err;
     try {
-      let userCreate = await _userModel.create(userData);
-      return userCreate;
+      return await _userModel.create(userData);
     } catch (createErr) {
+      err = createErr;
+    }
+    if (err) {
+      let userFind;
       try {
-        let userFind = await _userModel.findByUsername(userData.username);
-        if (userFind) {
-          _logger.error('There is already a user with username: \'%s\'', userData.username);
-          throw new Error('Username already in usage');
-        } else {
-          _logger.error('Application owner: \'%s\' does not exist', userData.applicationOwner);
-          throw new Error('Application owner does not exist');
-        }
+        userFind = await _userModel.findByUsername(userData.username);
       } catch (findErr) {
         _logger.error('An error happened while creating the user: \'%s\'', userData.username);
-        throw new Error('User creation error');
+        throw new BaseHttpError('User creation error', 500);
+      }
+      if (userFind) {
+        _logger.error('There is already a user with username: \'%s\'', userData.username);
+        throw new BaseHttpError('Username already exists', 400);
+      } else {
+        //check that applicationOwner does not actually exist
+        _logger.error('Application owner: \'%s\' does not exist', userData.applicationOwner);
+        throw new BaseHttpError('Application owner does not exist', 400);
       }
     }
   };

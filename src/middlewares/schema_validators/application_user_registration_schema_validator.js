@@ -10,7 +10,7 @@ function ApplicationUserRegistrationSchemaValidator(logger) {
         validator.validateJson(req.body, 'application_user_registration_request.json', function(err) {
             if (err) {
                 _logger.error('The request is invalid');
-                let error = new BaseHttpError('The request is invalid', 'The request is invalid', 400);
+                let error = new BaseHttpError('The request is invalid', 400);
                 next(error);
             } else {
                 _logger.info('The request was validated successfully');

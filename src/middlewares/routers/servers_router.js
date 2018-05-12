@@ -12,5 +12,4 @@ function ServersRouter(app, logger, postgrePool) {
   );
 }
 
-
 module.exports = ServersRouter;

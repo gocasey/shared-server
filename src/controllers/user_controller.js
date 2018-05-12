@@ -15,7 +15,7 @@ function UserController(logger, postgrePool) {
       next();
     } catch (err) {
       _logger.error('An error ocurred while generating the token for username: %s', user.username);
-      let error = new BaseHttpError('Internal Server Error', 'Internal Server Error', 500);
+      let error = new BaseHttpError('Internal Server Error', 500);
       next(error);
     }
   };
@@ -27,7 +27,7 @@ function UserController(logger, postgrePool) {
       next();
     } catch (err) {
       _logger.error('An error ocurred while creating user with username: %s', req.body.username);
-      let error = new BaseHttpError('Internal Server Error', 'Internal Server Error', 500);
+      let error = new BaseHttpError('Internal Server Error', 500);
       next(error);
     }
   };

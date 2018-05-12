@@ -10,7 +10,7 @@ function PasswordAuthenticator(logger, postgrePool) {
         res.user = user;
         next();
       } catch (err) {
-        let error = new BaseHttpError('Unauthorized', 'Unauthorized', 401);
+        let error = new BaseHttpError('Unauthorized', 401);
         next(error);
       }
     };

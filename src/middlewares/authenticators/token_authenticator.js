@@ -1,4 +1,5 @@
 const UserService = require('../../lib/services/user_service.js');
+const BaseHttpError = require('../../errors/base_http_error.js');
 
 function TokenAuthenticator(logger, postgrePool) {
     let _userService = new UserService(logger, postgrePool);
@@ -8,14 +9,14 @@ function TokenAuthenticator(logger, postgrePool) {
         if (token) {
             _userService.authenticateWithToken(req.body.username, token, function(err) {
                 if (err) {
-                    let error = new BaseHttpError('Unauthorized', 'Unauthorized', 401);
+                    let error = new BaseHttpError('Unauthorized', 401);
                     next(error);
                 } else {
                   next();
                 }
             });
         } else {
-            let error = new BaseHttpError('Unauthorized', 'Unauthorized', 401);
+            let error = new BaseHttpError('Unauthorized', 401);
             next(error);
         }
     };
