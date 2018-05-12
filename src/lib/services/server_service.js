@@ -12,8 +12,7 @@ function ServerService(logger, postgrePool) {
     let err;
     try {
       return await _serverModel.create(serverData);
-    }
-    catch(createErr){
+    } catch (createErr) {
       err = createErr;
     }
     if (err) {
