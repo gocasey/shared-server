@@ -1,5 +1,5 @@
 const expect = require('expect.js');
-const errorMiddleware = require('../../../src/middlewares/error-middleware.js');
+const errorMiddleware = require('../../../src/middlewares/error_middleware.js');
 
 describe('ErrorMiddleware Tests', function() {
   let passedErrorCode;
