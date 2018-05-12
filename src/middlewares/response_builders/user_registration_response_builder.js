@@ -13,7 +13,7 @@ function UserRegistrationResponseBuilder(logger) {
     response.user.username = user.username;
     response.user.applicationOwner = user.applicationOwner;
     _logger.debug('Response: %j', response);
-    res.json(response);
+    res.status(200).json(response);
   };
 
   function getBasicResponse() {

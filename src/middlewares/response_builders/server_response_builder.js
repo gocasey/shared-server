@@ -16,7 +16,7 @@ function ServerResponseBuilder(logger) {
     response.server.token.token = serverToken.token;
 
     _logger.debug('Response: %j', response);
-    res.json(response);
+    res.status(201).json(response);
   };
 
   function getBasicResponse() {
