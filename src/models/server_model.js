@@ -56,17 +56,18 @@ function ServerModel(logger, postgrePool) {
   this.create = async (server) => {
     let query = 'INSERT INTO servers(server_name) VALUES ($1) RETURNING server_id, server_name;';
     let values = [server.name];
+    let response;
     try {
-      let res = await executeQuery(query, values);
-      _logger.info('Server with name: \'%s\' created successfully', server.name);
-      _logger.debug('Server created in db: %j', res.rows[0]);
-      // integrity hash is created here since we now know the user_id
-      let rev = integrityValidator.createHash(server);
-      return await updateServerRev(server.name, rev);
+      response = await executeQuery(query, values);
     } catch (err) {
       logger.error('Error creating server with name:\'%s\' to database', server.name);
       throw err;
     }
+    _logger.info('Server with name: \'%s\' created successfully', server.name);
+    _logger.debug('Server created in db: %j', response.rows[0]);
+    // integrity hash is created here since we now know the user_id
+    let rev = integrityValidator.createHash(response.rows[0]);
+    return await updateServerRev(server.name, rev);
   };
 
   async function executeUpdate(server) {
