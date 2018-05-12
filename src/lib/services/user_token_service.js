@@ -1,5 +1,5 @@
 const UserTokenModel = require('../../models/user_token_model.js');
-const TokenGenerationService = require('./token_generation_service');
+const TokenGenerationService = require('./token_generation_service.js');
 
 function UserTokenService(logger, postgrePool) {
   let _logger = logger;
@@ -13,51 +13,37 @@ function UserTokenService(logger, postgrePool) {
     };
   }
 
-  function generateNewTokenForUser(user, callback) {
+  async function generateNewTokenForUser(user) {
     let owner = getOwnerFromUser(user);
-    _tokenGenerationService.generateToken(owner, function(err, token) {
-      if (err) callback(err);
-      else {
-        _userTokenModel.createOrUpdate(user, token, function(err) {
-          if (err) callback(err);
-          else {
-            let userToken = {
-              token: token.token,
-              tokenExpiration: token.expiresAt,
-            };
-            callback(null, userToken);
-          }
-        });
-      }
-    });
+    let token = await _tokenGenerationService.generateToken(owner);
+    await _userTokenModel.createOrUpdate(user, token);
+    let userToken = {
+      token: token.token,
+      tokenExpiration: token.expiresAt,
+    };
+    return userToken;
   }
 
-  this.generateToken = function(user, callback) {
-    _userTokenModel.findByUser(user, function(err, token) {
-      if (err) {
-        callback(err);
-      } else {
-        if (token) {
-          let owner = getOwnerFromUser(user);
-          _tokenGenerationService.validateToken(token.token, owner, function(err, token) {
-            if (err) {
-              _logger.info('User: \'%s\' already has a token but it is not valid, generating new token', user.username);
-              generateNewTokenForUser(user, callback);
-            } else {
-              _logger.info('User: \'%s\' already has a valid token, skipping token generation', user.username);
-              let userToken = {
-                token: token.token,
-                tokenExpiration: token.expiresAt,
-              };
-              callback(null, userToken);
-            }
-          });
-        } else {
-          _logger.info('User: \'%s\' does not have a token, generating one', user.username);
-          generateNewTokenForUser(user, callback);
-        }
+  this.generateToken = async (user) => {
+    let userToken = await _userTokenModel.findByUser(user);
+    if (userToken) {
+      let owner = getOwnerFromUser(user);
+      try {
+        let validatedToken = await _tokenGenerationService.validateToken(userToken.token, owner);
+        _logger.info('User: \'%s\' already has a valid token, skipping token generation', user.username);
+        let businessToken = {
+          token: validatedToken.token,
+          tokenExpiration: validatedToken.expiresAt,
+        };
+        return businessToken;
+      } catch (err) {
+        _logger.info('User: \'%s\' already has a token but it is not valid, generating new token', user.username);
+        return await generateNewTokenForUser(user);
       }
-    });
+    } else {
+      _logger.info('User: \'%s\' does not have a token, generating one', user.username);
+      return await generateNewTokenForUser(user);
+    }
   };
 }
 

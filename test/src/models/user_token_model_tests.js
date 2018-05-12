@@ -15,8 +15,8 @@ const mockPool = {
 
 const userTokenModel = new UserTokenModel(mockLogger, mockPool);
 
-describe('UserTokenModel Tests', function() {
-  beforeEach(function() {
+describe('UserTokenModel Tests', () => {
+  beforeEach(() => {
     mockLogger.info.resetHistory();
     mockLogger.error.resetHistory();
     mockLogger.warn.resetHistory();
@@ -35,105 +35,105 @@ describe('UserTokenModel Tests', function() {
     token: 'token',
   };
 
-  describe('#findByUser', function() {
-    describe('token found', function() {
-      before(function() {
-        mockPool.query.callsArgWith(2, null, { rows: [mockToken] });
+  describe('#findByUser', () => {
+    describe('token found', () => {
+      before(() => {
+        mockPool.query.resolves({ rows: [mockToken] });
       });
 
-      it('returns token', function(done) {
-        userTokenModel.findByUser(mockUser, function(err, token) {
-          expect(token).to.be.ok();
-          expect(token.user_id).to.be(12345);
-          expect(token.token_id).to.be(6789);
-          expect(token.token).to.be('token');
-          done();
-        });
+      it('returns token', async () => {
+        let token = await userTokenModel.findByUser(mockUser);
+        expect(token).to.be.ok();
+        expect(token.user_id).to.be(12345);
+        expect(token.token_id).to.be(6789);
+        expect(token.token).to.be('token');
       });
 
-      it('logs success', function(done) {
-        userTokenModel.findByUser(mockUser, function() {
-          expect(mockLogger.info.calledOnce);
-          expect(mockLogger.info.getCall(0).args[0]).to.be('Token for username:\'%s\' found');
-          expect(mockLogger.info.getCall(0).args[1]).to.be('username');
-          done();
-        });
+      it('logs success', async () => {
+        await userTokenModel.findByUser(mockUser);
+        expect(mockLogger.info.calledOnce);
+        expect(mockLogger.info.getCall(0).args[0]).to.be('Token for username:\'%s\' found');
+        expect(mockLogger.info.getCall(0).args[1]).to.be('username');
       });
     });
 
-    describe('token not found', function() {
-      before(function() {
-        mockPool.query.callsArgWith(2, null, { rows: [] } );
+    describe('token not found', () => {
+      before(() => {
+        mockPool.query.resolves({ rows: [] });
       });
 
-      it('does not return error', function(done) {
-        userTokenModel.findByUser(mockUser, function(err, token) {
-          expect(err).to.be.null;
-          expect(token).to.be.null;
-          done();
-        });
+      it('does not return token', async () => {
+        let token = await userTokenModel.findByUser(mockUser);
+        expect(token).to.be.null;
       });
 
-      it('logs token not found', function(done) {
-        userTokenModel.findByUser(mockUser, function() {
-          expect(mockLogger.info.calledOnce);
-          expect(mockLogger.info.getCall(0).args[0]).to.be('Token for username:\'%s\' not found');
-          expect(mockLogger.info.getCall(0).args[1]).to.be('username');
-          done();
-        });
+      it('logs token not found', async () => {
+        await userTokenModel.findByUser(mockUser);
+        expect(mockLogger.info.calledOnce);
+        expect(mockLogger.info.getCall(0).args[0]).to.be('Token for username:\'%s\' not found');
+        expect(mockLogger.info.getCall(0).args[1]).to.be('username');
       });
     });
 
-    describe('db error', function() {
-      before(function() {
-        mockPool.query.callsArgWith(2, 'DB error');
+    describe('db error', () => {
+      before(() => {
+        mockPool.query.rejects(new Error('DB error'));
       });
 
-      it('returns error', function(done) {
-        userTokenModel.findByUser(mockUser, function(err) {
-          expect(err).to.be.ok();
-          done();
-        });
+      it('returns error', async () => {
+        let err;
+        try {
+          await userTokenModel.findByUser(mockUser);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.ok();
+        expect(err.message).to.be('DB error');
       });
 
-      it('logs db failure', function(done) {
-        userTokenModel.findByUser(mockUser, function() {
-          expect(mockLogger.error.calledTwice);
-          expect(mockLogger.error.getCall(0).args[0]).to.be('DB error: %j');
-          expect(mockLogger.error.getCall(0).args[1]).to.be('DB error');
-          expect(mockLogger.error.getCall(1).args[0]).to.be('Error looking for token for username:\'%s\' in the database');
-          expect(mockLogger.error.getCall(1).args[1]).to.be('username');
-          done();
-        });
+      it('logs db failure', async () => {
+        try {
+          await userTokenModel.findByUser(mockUser);
+        } catch (err) {}
+        expect(mockLogger.error.calledTwice);
+        expect(mockLogger.error.getCall(0).args[0]).to.be('DB error: %j');
+        expect(mockLogger.error.getCall(0).args[1]).to.be('DB error');
+        expect(mockLogger.error.getCall(1).args[0]).to.be('Error looking for token for username:\'%s\' in the database');
+        expect(mockLogger.error.getCall(1).args[1]).to.be('username');
       });
     });
   });
 
-  describe('#createOrUpdate', function() {
-    describe('success', function() {
-      before(function() {
-        mockPool.query.callsArgWith(2, null, { rows: [mockToken] });
+  describe('#createOrUpdate', () => {
+    describe('success', () => {
+      before(() => {
+        mockPool.query.resolves({ rows: [mockToken] });
       });
 
-      it('does not return error', function(done) {
-        userTokenModel.createOrUpdate(mockUser, mockToken, function(err) {
-          expect(err).to.be.null;
-          done();
-        });
+      it('returns token', async () => {
+        let token = await userTokenModel.createOrUpdate(mockUser, mockToken);
+        expect(token).to.be.ok();
+        expect(token.user_id).to.be(12345);
+        expect(token.token_id).to.be(6789);
+        expect(token.token).to.be('token');
       });
     });
 
 
-    describe('db error', function() {
-      before(function() {
-        mockPool.query.callsArgWith(2, 'DB error');
+    describe('db error', () => {
+      before(() => {
+        mockPool.query.rejects(new Error('DB error'));
       });
 
-      it('returns error', function(done) {
-        userTokenModel.createOrUpdate(mockUser, mockToken, function(err) {
-          expect(err).to.be.ok();
-          done();
-        });
+      it('returns error', async () => {
+        let err;
+        try {
+          await userTokenModel.createOrUpdate(mockUser, mockToken);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.ok();
+        expect(err.message).to.be('DB error');
       });
     });
   });

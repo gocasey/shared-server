@@ -24,69 +24,68 @@ function setupServerService() {
   return new ServerService(mockLogger);
 }
 
-describe('ServerService Tests', function() {
+describe('ServerService Tests', () => {
   let serverService;
 
-  before(function() {
+  before(() => {
     serverService = setupServerService();
   });
 
-  describe('#createServer', function() {
+  describe('#createServer', () => {
     let mockBody = {
       name: 'name',
     };
 
-    describe('create success', function() {
-      before(function() {
-        mockServerModel.create.callsArgWith(1, null, { id: 1, name: 'name', _rev: 'rev' });
+    describe('create success', () => {
+      before(() => {
+        mockServerModel.create.resolves({ id: 1, name: 'name', _rev: 'rev' });
       });
 
-      it('does not return error', function(done) {
-        serverService.createServer(mockBody, function(err) {
-          expect(err).to.be.null;
-          done();
-        });
-      });
-
-      it('returns server', function(done) {
-        serverService.createServer(mockBody, function(err, server) {
-          expect(server).to.be.ok();
-          expect(server.id).to.be(1);
-          expect(server.name).to.be('name');
-          expect(server._rev).to.be('rev');
-          done();
-        });
+      it('returns server', async () => {
+        let server = await serverService.createServer(mockBody);
+        expect(server).to.be.ok();
+        expect(server.id).to.be(1);
+        expect(server.name).to.be('name');
+        expect(server._rev).to.be('rev');
       });
     });
 
-    describe('create failure', function() {
-      before(function() {
-        mockServerModel.create.callsArgWith(1, 'Creation error');
+    describe('create failure', () => {
+      before(() => {
+        mockServerModel.create.rejects(new Error('Creation error'));
       });
 
-      describe('server found', function() {
-        before(function() {
-          mockServerModel.findByServerName.callsArgWith(1, null, { id: 1, name: 'name', _rev: 'rev' });
+      describe('server found', () => {
+        before(() => {
+          mockServerModel.findByServerName.resolves({ id: 1, name: 'name', _rev: 'rev' });
         });
 
-        it('returns error', function(done) {
-          serverService.createServer(mockBody, function(err) {
-            expect(err).to.be.ok();
-            done();
-          });
+        it('returns error', async () => {
+          let err;
+          try {
+            await serverService.createServer(mockBody);
+          } catch (ex) {
+            err = ex;
+          }
+          expect(err).to.be.ok();
+          expect(err.message).to.be('Server creation error');
         });
       });
 
-      describe('server not found', function() {
-        before(function() {
-          mockServerModel.findByServerName.callsArgWith(1, 'server not found');
+      describe('server not found', () => {
+        before(() => {
+          mockServerModel.findByServerName.rejects(new Error('server not found'));
         });
 
-        it('returns error', function(done) {
-          serverService.createServer(mockBody, function(err) {
-            expect(err).to.be.ok();
-            done();
-          });
+        it('returns error', async () => {
+          let err;
+          try {
+            await serverService.createServer(mockBody);
+          } catch (ex) {
+            err = ex;
+          }
+          expect(err).to.be.ok();
+          expect(err.message).to.be('Server creation error');
         });
       });
     });
