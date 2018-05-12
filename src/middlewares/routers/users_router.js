@@ -6,25 +6,25 @@ const TokenResponseBuilder = require('../response_builders/token_response_builde
 const UserRegistrationResponseBuilder = require('../response_builders/user_registration_response_builder.js');
 
 function UsersRouter(app, logger, postgrePool) {
-    let _businessUserCredentialsSchemaValidator = new BusinessUserCredentialsSchemaValidator(logger);
-    let _applicationUserRegistrationSchemaValidator = new ApplicationUserRegistrationSchemaValidator(logger);
-    let _passwordAuthenticator = new PasswordAuthenticator(logger, postgrePool);
-    let _userController = new UserController(logger, postgrePool);
-    let _tokenResponseBuilder = new TokenResponseBuilder(logger);
-    let _userRegistrationResponseBuilder = new UserRegistrationResponseBuilder(logger);
+  let _businessUserCredentialsSchemaValidator = new BusinessUserCredentialsSchemaValidator(logger);
+  let _applicationUserRegistrationSchemaValidator = new ApplicationUserRegistrationSchemaValidator(logger);
+  let _passwordAuthenticator = new PasswordAuthenticator(logger, postgrePool);
+  let _userController = new UserController(logger, postgrePool);
+  let _tokenResponseBuilder = new TokenResponseBuilder(logger);
+  let _userRegistrationResponseBuilder = new UserRegistrationResponseBuilder(logger);
 
-    app.post('/api/token',
-      _businessUserCredentialsSchemaValidator.validateRequest,
-      _passwordAuthenticator.authenticate,
-      _userController.generateToken,
-      _tokenResponseBuilder.buildResponse
-    );
+  app.post('/api/token',
+    _businessUserCredentialsSchemaValidator.validateRequest,
+    _passwordAuthenticator.authenticate,
+    _userController.generateToken,
+    _tokenResponseBuilder.buildResponse
+  );
 
-    app.post('/api/user',
-      _applicationUserRegistrationSchemaValidator.validateRequest,
-      _userController.createUser,
-      _userRegistrationResponseBuilder.buildResponse
-    );
+  app.post('/api/user',
+    _applicationUserRegistrationSchemaValidator.validateRequest,
+    _userController.createUser,
+    _userRegistrationResponseBuilder.buildResponse
+  );
 }
 
 

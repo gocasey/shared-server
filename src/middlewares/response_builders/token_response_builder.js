@@ -3,7 +3,7 @@ const pjson = require('../../../package.json');
 function TokenResponseBuilder(logger) {
   let _logger = logger;
 
-  this.buildResponse = function (req, res) {
+  this.buildResponse = function(req, res) {
     let token = res.data;
 
     let response = getBasicResponse();
