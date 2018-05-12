@@ -1,6 +1,7 @@
 const expect = require('expect.js');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
+const BaseHttpError = require('../../../../src/errors/base_http_error.js');
 const ServerServiceModule = '../../../../src/lib/services/server_service.js';
 
 const mockLogger = {
@@ -67,8 +68,9 @@ describe('ServerService Tests', () => {
           } catch (ex) {
             err = ex;
           }
-          expect(err).to.be.ok();
-          expect(err.message).to.be('Server creation error');
+          expect(err).to.be.a(BaseHttpError);
+          expect(err.statusCode).to.be(400);
+          expect(err.message).to.be('Server name already exists');
         });
       });
 
@@ -84,7 +86,8 @@ describe('ServerService Tests', () => {
           } catch (ex) {
             err = ex;
           }
-          expect(err).to.be.ok();
+          expect(err).to.be.a(BaseHttpError);
+          expect(err.statusCode).to.be(500);
           expect(err.message).to.be('Server creation error');
         });
       });

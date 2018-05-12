@@ -1,6 +1,7 @@
 const proxyquire = require('proxyquire');
 const expect = require('expect.js');
 const sinon = require('sinon');
+const BaseHttpError = require('../../../../src/errors/base_http_error.js');
 const PasswordAuthenticatorModule = '../../../../src/middlewares/authenticators/password_authenticator.js';
 
 const mockUserService = {
@@ -45,21 +46,14 @@ describe('PasswordAuthenticator Tests', function() {
         mockUserService.authenticateWithPassword.resolves({ user_id: 1, username: 'username', password: 'pass', applicationOwner: 'appOwner' });
       });
 
-      it('does not return error', function(done) {
-        passwordAuthenticator.authenticate(request, response, function(err) {
+      it('saves user in response', async () => {
+        await passwordAuthenticator.authenticate(request, response, function(err) {
           expect(err).to.be.null;
-          done();
-        });
-      });
-
-      it('saves user in response', function(done) {
-        passwordAuthenticator.authenticate(request, response, function() {
           expect(response.user).to.be.ok();
           expect(response.user.user_id).to.be(1);
           expect(response.user.username).to.be('username');
           expect(response.user.password).to.be('pass');
           expect(response.user.applicationOwner).to.be('appOwner');
-          done();
         });
       });
     });
@@ -69,11 +63,11 @@ describe('PasswordAuthenticator Tests', function() {
         mockUserService.authenticateWithPassword.rejects(new Error('authentication error'));
       });
 
-      it('returns error', function(done) {
-        passwordAuthenticator.authenticate(request, response, function(err) {
-          expect(err).to.be.ok();
-          expect(err.message).to.be('Unauthorized');
-          done();
+      it('returns error', async () => {
+        await passwordAuthenticator.authenticate(request, response, function(err) {
+          expect(err).to.be.a(BaseHttpError);
+          expect(err.statusCode).to.be(401);
+          expect(err.message).to.be('Wrong password.');
         });
       });
     });

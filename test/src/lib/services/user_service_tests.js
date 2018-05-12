@@ -1,6 +1,7 @@
 const expect = require('expect.js');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
+const BaseHttpError = require('../../../../src/errors/base_http_error.js');
 const UserServiceModule = '../../../../src/lib/services/user_service.js';
 
 const mockLogger = {
@@ -140,8 +141,9 @@ describe('UserService Tests', () => {
           } catch (ex) {
             err = ex;
           }
-          expect(err).to.be.ok();
-          expect(err.message).to.be('User creation error');
+          expect(err).to.be.a(BaseHttpError);
+          expect(err.statusCode).to.be(400);
+          expect(err.message).to.be('Username already exists');
         });
       });
 
@@ -158,6 +160,8 @@ describe('UserService Tests', () => {
             err = ex;
           }
           expect(err).to.be.ok();
+          expect(err).to.be.a(BaseHttpError);
+          expect(err.statusCode).to.be(500);
           expect(err.message).to.be('User creation error');
         });
       });

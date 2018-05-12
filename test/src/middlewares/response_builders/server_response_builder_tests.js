@@ -11,6 +11,8 @@ describe('ServerResponseBuilder Tests', function() {
 
   describe('#buildResponse', function() {
     let mockRequest = {};
+    let passedStatusCode;
+    let returnedResponse;
     let mockResponse = {
       server: {
         id: '123',
@@ -21,7 +23,14 @@ describe('ServerResponseBuilder Tests', function() {
         token: 'token',
         tokenExpiration: 123456789,
       },
-      json: sinon.stub(),
+      status: function(statusCode) {
+        passedStatusCode = statusCode;
+        return {
+          json: function(responseBody) {
+            returnedResponse = responseBody;
+          },
+        };
+      },
     };
 
     beforeEach(function() {
@@ -29,9 +38,10 @@ describe('ServerResponseBuilder Tests', function() {
       serverResponseBuilder.buildResponse(mockRequest, mockResponse);
     });
 
-    it('passes response', function() {
-      expect(mockResponse.json.calledWith(sinon.match({ metadata: { version: '1.0.0' },
-        server: { server: { id: '123', name: 'name', _rev: 'rev' }, token: { expiresAt: 123456789, token: 'token' } } })));
+    it('returns status and response', function() {
+      expect(passedStatusCode).to.be(201);
+      expect(returnedResponse).to.be.eql({ metadata: { version: '1.0.0' },
+        server: { server: { id: '123', name: 'name', _rev: 'rev' }, token: { expiresAt: 123456789, token: 'token' } } });
     });
 
     it('logs response', function() {

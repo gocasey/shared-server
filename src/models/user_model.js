@@ -57,17 +57,18 @@ function UserModel(logger, postgrePool) {
   this.create = async (user) => {
     let query = 'INSERT INTO users(username, password, app_owner) VALUES ($1, $2, $3) RETURNING user_id, username, password, app_owner;';
     let values = [user.username, user.password, user.applicationOwner];
+    let response;
     try {
-      let response = await executeQuery(query, values);
-      _logger.info('User: \'%s\' created successfully', user.username);
-      _logger.debug('User created in db: %j', response.rows[0]);
-      // integrity hash is created here since we now know the user_id
-      let rev = integrityValidator.createHash(user);
-      return await updateUserRev(user.username, rev);
+      response = await executeQuery(query, values);
     } catch (err) {
       _logger.error('Error creating user with username:\'%s\' to database', user.username);
       throw err;
     }
+    _logger.info('User: \'%s\' created successfully', user.username);
+    _logger.debug('User created in db: %j', response.rows[0]);
+    // integrity hash is created here since we now know the user_id
+    let rev = integrityValidator.createHash(response.rows[0]);
+    return await updateUserRev(user.username, rev);
   };
 
   async function executeUpdate(user) {
