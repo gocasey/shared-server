@@ -10,7 +10,6 @@
     "src/middlewares/authenticators/facebook_authenticator.js",
     "src/middlewares/authenticators/token_authenticator.js",
     "src/middlewares/routers/files_router.js",
-    "src/middlewares/routers/servers_router.js",
     "test"
   ],
   "reporter": [
