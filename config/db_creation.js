@@ -1,4 +1,3 @@
-const async = require('async');
 const pg = require('pg');
 const connectionString = process.env.DATABASE_URL || 'postgres://pqjyeqaijafusn:e98fa09f1a4e049674037a98dc4c1f3a956702400f306f9395a280923f38d7c0' +
   '@ec2-54-163-240-54.compute-1.amazonaws.com:5432/dbhchlmki72u4a?ssl=true';
@@ -22,7 +21,7 @@ const usersTableCreationQuery = `CREATE TABLE users (
   username varchar(100) UNIQUE NOT NULL,
   password varchar(100) NOT NULL,
   _rev varchar(500),
-  app_owner varchar(100) REFERENCES servers(server_name)
+  app_owner varchar(100) REFERENCES servers(server_name) ON UPDATE CASCADE
 );`
 
 const usersTokensTableCreationQuery = `CREATE TABLE users_tokens (
@@ -43,19 +42,17 @@ const cleanupQueries = [serversTokensTableCleanupQuery, usersTokensTableCleanupQ
 const creationQueries = [serversTableCreationQuery, usersTableCreationQuery, usersTokensTableCreationQuery, serversTokensTableCreationQuery];
 const queriesToRun = cleanupQueries.concat(creationQueries);
 
-async.eachSeries(queriesToRun,
-  function(query, callback) {
-    client.query(query, function (err, res) {
-      if (err) {
-        console.log('Error executing query: %j', err);
-        callback(err);
-      }
-      else {
-        console.log('Query executed successfully: %j', res);
-        callback();
-      }
-    });
-  }, function(){
-    client.end();
-});
+runQueries();
 
+async function runQueries(){
+  for (let index = 0; index < queriesToRun.length; index++) {
+    try {
+      let res = await client.query(queriesToRun[index]);
+      console.log('Query executed successfully: %j', res);
+    }
+    catch (err) {
+      console.log('Error executing query: %j', err);
+    }
+  }
+  client.end();
+}
