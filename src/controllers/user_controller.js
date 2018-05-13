@@ -1,6 +1,5 @@
 const UserService = require('../lib/services/user_service.js');
 const UserTokenService = require('../lib/services/user_token_service.js');
-const BaseHttpError = require('../errors/base_http_error.js');
 
 function UserController(logger, postgrePool) {
   let _logger = logger;
@@ -12,11 +11,10 @@ function UserController(logger, postgrePool) {
     try {
       let token = await _userTokenService.generateToken(user);
       res.data = token;
-      next();
+      return next();
     } catch (err) {
       _logger.error('An error ocurred while generating the token for username: %s', user.username);
-      let error = new BaseHttpError('Internal Server Error', 500);
-      next(error);
+      return next(err);
     }
   };
 
@@ -24,11 +22,10 @@ function UserController(logger, postgrePool) {
     try {
       let user = await _userService.createUser(req.body);
       res.data = user;
-      next();
+      return next();
     } catch (err) {
       _logger.error('An error ocurred while creating user with username: %s', req.body.username);
-      let error = new BaseHttpError('Internal Server Error', 500);
-      next(error);
+      return next(err);
     }
   };
 }
