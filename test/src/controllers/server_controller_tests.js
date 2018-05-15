@@ -122,17 +122,17 @@ describe('ServerController Tests', () => {
       });
 
       it('calls server token service', async () => {
-        await serverController.generateToken(mockRequest, mockServerResponse, function() {});
+        await serverController.generateTokenForApplicationUser(mockRequest, mockServerResponse, function() {});
         expect(mockServerTokenService.generateToken.calledOnce);
       });
 
       it('passes correct params to server token service', async () => {
-        await serverController.generateToken(mockRequest, mockServerResponse, function() {});
+        await serverController.generateTokenForApplicationUser(mockRequest, mockServerResponse, function() {});
         expect(mockServerTokenService.generateToken.getCall(0).args[0]).to.be.eql(mockServerResponse.server);
       });
 
       it('saves token in response', async () => {
-        await serverController.generateToken(mockRequest, mockServerResponse, function() {});
+        await serverController.generateTokenForApplicationUser(mockRequest, mockServerResponse, function() {});
         expect(mockServerResponse.serverToken).to.be.ok();
         expect(mockServerResponse.serverToken.token_id).to.be(456);
         expect(mockServerResponse.serverToken.server_id).to.be(123);
@@ -141,7 +141,7 @@ describe('ServerController Tests', () => {
 
       it('calls next with no error', async () => {
         let mockNext = sinon.stub();
-        await serverController.generateToken(mockRequest, mockServerResponse, mockNext);
+        await serverController.generateTokenForApplicationUser(mockRequest, mockServerResponse, mockNext);
         expect(mockNext.calledOnce);
         expect(mockNext.calledWith(undefined));
       });
@@ -154,18 +154,18 @@ describe('ServerController Tests', () => {
       });
 
       it('calls server token service', async () => {
-        await serverController.generateToken(mockRequest, mockServerResponse, function() {});
+        await serverController.generateTokenForApplicationUser(mockRequest, mockServerResponse, function() {});
         expect(mockServerTokenService.generateToken.calledOnce);
       });
 
       it('passes correct params to server token service', async () => {
-        await serverController.generateToken(mockRequest, mockServerResponse, function() {});
+        await serverController.generateTokenForApplicationUser(mockRequest, mockServerResponse, function() {});
         expect(mockServerTokenService.generateToken.getCall(0).args[0]).to.be.eql(mockServerResponse.server);
       });
 
       it('calls next with error', async () => {
         let mockNext = sinon.stub();
-        await serverController.generateToken(mockRequest, mockServerResponse, mockNext);
+        await serverController.generateTokenForApplicationUser(mockRequest, mockServerResponse, mockNext);
         expect(mockNext.calledOnce);
         expect(mockNext.calledWith(new Error('token creation error')));
       });

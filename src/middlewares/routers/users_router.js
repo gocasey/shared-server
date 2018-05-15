@@ -16,7 +16,7 @@ function UsersRouter(app, logger, postgrePool) {
   app.post('/api/token',
     _businessUserCredentialsSchemaValidator.validateRequest,
     _passwordAuthenticator.authenticate,
-    _userController.generateToken,
+    _userController.generateTokenForApplicationUser,
     _tokenResponseBuilder.buildResponse
   );
 
@@ -24,6 +24,12 @@ function UsersRouter(app, logger, postgrePool) {
     _applicationUserRegistrationSchemaValidator.validateRequest,
     _userController.createUser,
     _userRegistrationResponseBuilder.buildResponse
+  );
+
+  app.post('/api/admin-user',
+    _userController.createUser,
+    _userController.generateTokenForAdminUser(),
+    //_userRegistrationResponseBuilder.buildResponse
   );
 }
 

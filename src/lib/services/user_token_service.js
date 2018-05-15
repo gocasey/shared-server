@@ -1,10 +1,9 @@
 const UserTokenModel = require('../../models/user_token_model.js');
-const TokenGenerationService = require('./token_generation_service.js');
 
-function UserTokenService(logger, postgrePool) {
+function UserTokenService(logger, postgrePool, tokenGenerationService) {
   let _logger = logger;
   let _userTokenModel = new UserTokenModel(logger, postgrePool);
-  let _tokenGenerationService = new TokenGenerationService(logger);
+  let _tokenGenerationService = tokenGenerationService;
 
   function getOwnerFromUser(user) {
     return {
@@ -45,6 +44,10 @@ function UserTokenService(logger, postgrePool) {
       return await generateNewTokenForUser(user);
     }
   };
+
+  this.validateToken = async (token) => {
+    let userToken = await _userTokenModel.findByUserId(user);
+  }
 }
 
 module.exports = UserTokenService;

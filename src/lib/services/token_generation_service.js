@@ -3,42 +3,42 @@ const jwt = require('jsonwebtoken');
 function TokenGenerationService(logger) {
   let _logger = logger;
 
-  this.generateToken = async (owner) => {
+  this.generateToken = async (data, expiration) => {
     // replace hardcoded secret with private key
     try {
-      let token = await jwt.sign({
-        data: {
-          id: owner.id,
-          name: owner.name,
-        },
-      }, 'secret', { expiresIn: '1h' } );
-      _logger.info('Token was created successfully for owner name: \'%s\'', owner.name);
+      let token = await jwt.sign({ data: data }, 'secret', { expiresIn: expiration } );
+      _logger.info('Token created successfully');
       let tokenData = jwt.decode(token);
       return { token: token, expiresAt: tokenData.exp };
     } catch (err) {
-      _logger.error('Token generation for owner name \'%s\' failed', owner.name);
+      _logger.error('Token generation failed');
       throw err;
     }
   };
 
-  function isValidOwner(data, owner) {
-    return data && (data.id == owner.id) && (data.name == owner.name);
-  }
-
-  this.validateToken = async (token, owner) => {
+  async function decodeToken(token){
     // replace hardcoded secret with private key
-    let decoded;
     try {
-      decoded = await jwt.verify(token, 'secret');
+      let decoded = await jwt.verify(token, 'secret');
+      return decoded;
     } catch (err) {
       _logger.error('Token could not be validated due to a failure: %s', err.message);
       throw err;
     }
-    if (isValidOwner(decoded.data, owner)) {
-      _logger.info('Token was validated successfully for owner name: \'%s\'', owner.name);
+  }
+
+  this.decodeTokenData = async (token) => {
+    let decoded = await decodeToken(token);
+    return decoded.data;
+  };
+
+  this.validateToken = async (token, validateFunction) => {
+    let decoded = await decodeToken(token);
+    if (validateFunction(decoded.data)) {
+      _logger.info('Token was validated successfully');
       return { token: token, expiresAt: decoded.exp };
     } else {
-      _logger.error('Token could not be validated for owner name: \'%s\'', owner.name);
+      _logger.error('Token could not be validated');
       throw new Error('Token validation failed');
     }
   };

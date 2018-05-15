@@ -123,17 +123,17 @@ describe('UserController Tests', () => {
       });
 
       it('calls user token service', async () => {
-        await userController.generateToken(mockRequest, mockUserResponse, function() {});
+        await userController.generateTokenForApplicationUser(mockRequest, mockUserResponse, function() {});
         expect(mockUserTokenService.generateToken.calledOnce);
       });
 
       it('passes correct params to user token service', async () => {
-        await userController.generateToken(mockRequest, mockUserResponse, function() {});
+        await userController.generateTokenForApplicationUser(mockRequest, mockUserResponse, function() {});
         expect(mockUserTokenService.generateToken.getCall(0).args[0]).to.be.eql(mockUserResponse.user);
       });
 
       it('saves token in response', async () => {
-        await userController.generateToken(mockRequest, mockUserResponse, function() {});
+        await userController.generateTokenForApplicationUser(mockRequest, mockUserResponse, function() {});
         expect(mockUserResponse.data).to.be.ok();
         expect(mockUserResponse.data.token_id).to.be(456);
         expect(mockUserResponse.data.user_id).to.be(123);
@@ -142,7 +142,7 @@ describe('UserController Tests', () => {
 
       it('calls next with no error', async () => {
         let mockNext = sinon.stub();
-        await userController.generateToken(mockRequest, mockUserResponse, mockNext);
+        await userController.generateTokenForApplicationUser(mockRequest, mockUserResponse, mockNext);
         expect(mockNext.calledOnce);
         expect(mockNext.calledWith(undefined));
       });
@@ -155,18 +155,18 @@ describe('UserController Tests', () => {
       });
 
       it('calls user token service', async () => {
-        await userController.generateToken(mockRequest, mockUserResponse, function() {});
+        await userController.generateTokenForApplicationUser(mockRequest, mockUserResponse, function() {});
         expect(mockUserTokenService.generateToken.calledOnce);
       });
 
       it('passes correct params to user token service', async () => {
-        await userController.generateToken(mockRequest, mockUserResponse, function() {});
+        await userController.generateTokenForApplicationUser(mockRequest, mockUserResponse, function() {});
         expect(mockUserTokenService.generateToken.getCall(0).args[0]).to.be.eql(mockUserResponse.user);
       });
 
       it('calls next with error', async () => {
         let mockNext = sinon.stub();
-        await userController.generateToken(mockRequest, mockUserResponse, mockNext);
+        await userController.generateTokenForApplicationUser(mockRequest, mockUserResponse, mockNext);
         expect(mockNext.calledOnce);
         expect(mockNext.calledWith(new Error('token creation error')));
       });

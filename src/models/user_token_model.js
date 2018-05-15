@@ -23,6 +23,27 @@ function UserTokenModel(logger, postgrePool) {
     }
   };
 
+  this.findByUserId = async (user_id) => {
+    let query = 'SELECT token_id, user_id, token FROM users_tokens WHERE user_id = $1;';
+    let values = [user_id];
+    try {
+      let response = await executeQuery(query, values);
+      if (response.rows.length == 0) {
+        _logger.info('Token for user_id:\'%s\' not found', user_id);
+        return;
+      } else if (response.rows.length > 1) {
+        _logger.warn('More than a token found for user_id: \'%s\'', user_id);
+        return response.rows[0];
+      } else {
+        _logger.info('Token for user_id:\'%s\' found', user_id);
+        return response.rows[0];
+      }
+    } catch (err) {
+      _logger.error('Error looking for token for user_id:\'%s\' in the database', user_id);
+      throw err;
+    }
+  };
+
   this.createOrUpdate = async (user, token) => {
     let query = 'INSERT INTO users_tokens(user_id, token) VALUES ($1, $2) ' +
       'ON CONFLICT(user_id) DO UPDATE ' +
