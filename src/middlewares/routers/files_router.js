@@ -7,7 +7,6 @@ function FilesRouter(app, logger, postgrePool) {
 
   app.post('/api/files/upload',
     _fileController.createFile,
-    _fileController.generateToken,
     _fileResponseBuilder.buildResponse
   );
 }

@@ -1,3 +1,4 @@
+require('dotenv').config()
 const config = require('config');
 const cors = require('cors');
 const express = require('express');
@@ -15,7 +16,7 @@ const postgrePool = new ConnectionPoolFactory(logger).createPool();
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '20mb' }));
 
 // Enable CORS for all routes
 app.use(cors());
