@@ -8,14 +8,13 @@ function FileController(logger, postgrePool) {
     let fileUploaded;
     try {
       fileUploaded = await _fileService.createFile(req.body);
-    }
-    catch (err){
+    } catch (err) {
       _logger.error('An error ocurred while creating the file');
       return next(err);
     }
     res.file = fileUploaded;
     return next();
-  }
+  };
 }
 
 module.exports = FileController;

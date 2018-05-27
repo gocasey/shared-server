@@ -9,21 +9,21 @@ const storage = new Storage({
   keyFilename: 'google-cloud-key.json',
 });
 
-function GoogleUploadService(logger){
+function GoogleUploadService(logger) {
   let _logger = logger;
 
-  function getPublicUrl (filename) {
+  function getPublicUrl(filename) {
     return `https://storage.googleapis.com/${bucketName}/${filename}`;
   }
 
-  function getFileModel(gcsFilename){
-    let fileModel =  {};
+  function getFileModel(gcsFilename) {
+    let fileModel = {};
     fileModel.uri = encodeURI(getPublicUrl(gcsFilename));
     fileModel.name = gcsFilename;
     return fileModel;
   }
 
-  function getStorageOptions(gcsFilename){
+  function getStorageOptions(gcsFilename) {
     return {
       public: true,
       destination: gcsFilename,
@@ -35,7 +35,7 @@ function GoogleUploadService(logger){
     let gcsFilename = Date.now() + file.name;
     let storageOptions = getStorageOptions(gcsFilename);
     try {
-      let gcsFile = await bucket.upload(file.path, storageOptions);
+      await bucket.upload(file.path, storageOptions);
       _logger.info('File with name: \'%s\' was uploaded successfully to bucket: \'%s\'', gcsFilename, bucketName);
       return getFileModel(gcsFilename);
     } catch (err) {
@@ -50,7 +50,7 @@ function GoogleUploadService(logger){
     let gcsFilename = Date.now() + filename;
     let storageOptions = getStorageOptions(gcsFilename);
     try {
-      let gcsFile = await bucket.upload(localFilepath, storageOptions);
+      await bucket.upload(localFilepath, storageOptions);
       _logger.info('File with name: \'%s\' was uploaded successfully to bucket: \'%s\'', gcsFilename, bucketName);
       return getFileModel(gcsFilename);
     } catch (err) {

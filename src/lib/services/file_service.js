@@ -14,8 +14,7 @@ function FileService(logger, postgrePool) {
     let writePromise = util.promisify(fs.writeFile);
     try {
       await writePromise(filepath, decodedFile);
-    }
-    catch(err){
+    } catch (err) {
       _logger.error('An error occurred while creating the local copy for file: %s', filepath);
       throw err;
     }
@@ -30,8 +29,7 @@ function FileService(logger, postgrePool) {
     let localFilepath = await createLocalFile(fileData);
     try {
       return await _google.uploadFromLocal(localFilepath);
-    }
-    catch(err){
+    } catch (err) {
       _logger.error('An error occurred while uploading the file: %s', localFilepath);
       _logger.error(err);
       throw err;
