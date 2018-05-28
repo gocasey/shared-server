@@ -28,9 +28,9 @@ function setupFileService() {
       return mockFileModel;
     },
     'fs': mockFs,
-    './google_upload_service.js' : function() {
+    './google_upload_service.js': function() {
       return mockGoogleUploadService;
-    }
+    },
   };
   let FileService = proxyquire(FileServiceModule, mocks);
   return new FileService(mockLogger);
@@ -44,8 +44,7 @@ describe('FileService Tests', () => {
   });
 
   describe('#createFile', () => {
-
-    function getMockFileBody(){
+    function getMockFileBody() {
       let encodedFile = Buffer.from('fileContent').toString('base64');
       return {
         metadata: {
@@ -60,7 +59,8 @@ describe('FileService Tests', () => {
         mockFs.writeFile.callsArgWith(2, null);
         mockFs.stat.callsArgWith(1, null, { size: 1234 });
         mockGoogleUploadService.uploadFromLocal.resolves({ resource: 'remoteFileUri', file_name: 'fileNameOnGoogleStorage' });
-        mockFileModel.create.resolves({ file_id: 1, file_name: 'name', _rev: 'rev', updated_time: '2018-04-09', created_time: '2018-04-09', resource: 'remoteFileUri', size: 1234});
+        mockFileModel.create.resolves({ file_id: 1, file_name: 'name', _rev: 'rev', updated_time: '2018-04-09',
+                                        created_time: '2018-04-09', resource: 'remoteFileUri', size: 1234 });
       });
 
       it('returns file', async () => {
@@ -91,7 +91,7 @@ describe('FileService Tests', () => {
         let error;
         try {
           await fileService.createFile(mockFileBody);
-        } catch (ex){
+        } catch (ex) {
           error = ex;
         }
         expect(error).to.be.ok();
@@ -113,7 +113,7 @@ describe('FileService Tests', () => {
         let error;
         try {
           await fileService.createFile(mockFileBody);
-        } catch (ex){
+        } catch (ex) {
           error = ex;
         }
         expect(error).to.be.ok();
