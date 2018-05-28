@@ -30,20 +30,6 @@ function GoogleUploadService(logger) {
     };
   }
 
-  this.uploadMultipart = async (file) => {
-    let bucket = storage.bucket(bucketName);
-    let gcsFilename = Date.now() + file.name;
-    let storageOptions = getStorageOptions(gcsFilename);
-    try {
-      await bucket.upload(file.path, storageOptions);
-      _logger.info('File with name: \'%s\' was uploaded successfully to bucket: \'%s\'', gcsFilename, bucketName);
-      return getFileModel(gcsFilename);
-    } catch (err) {
-      _logger.error('Error uploading file with name: \'%s\' to bucket: \'%s\'', gcsFilename, bucketName);
-      throw err;
-    }
-  };
-
   this.uploadFromLocal = async (localFilepath) => {
     let bucket = storage.bucket(bucketName);
     let filename = path.basename(localFilepath);
@@ -51,12 +37,12 @@ function GoogleUploadService(logger) {
     let storageOptions = getStorageOptions(gcsFilename);
     try {
       await bucket.upload(localFilepath, storageOptions);
-      _logger.info('File with name: \'%s\' was uploaded successfully to bucket: \'%s\'', gcsFilename, bucketName);
-      return getFileModel(gcsFilename);
     } catch (err) {
       _logger.error('Error uploading file with name: \'%s\' to bucket: \'%s\'', gcsFilename, bucketName);
       throw err;
     }
+    _logger.info('File with name: \'%s\' was uploaded successfully to bucket: \'%s\'', gcsFilename, bucketName);
+    return getFileModel(gcsFilename);
   };
 }
 
