@@ -8,7 +8,7 @@
   },
   "scripts": {
     "lint": "eslint src test",
-    "test": "mocha --recursive",
+    "test": "mocha --recursive --timeout 5000",
     "db_init": "node ./config/db_creation.js",
     "coverage": "nyc npm test",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
