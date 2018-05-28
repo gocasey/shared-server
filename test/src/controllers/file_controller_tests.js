@@ -41,7 +41,7 @@ describe('FileController Tests', () => {
             name: 'fileName',
           },
           file: encodedFile,
-        }
+        },
       };
     }
 
@@ -50,7 +50,7 @@ describe('FileController Tests', () => {
     describe('success', () => {
       before(() => {
         mockFileService.createFile.resolves({ file_id: 123, file_name: 'name', _rev: 'rev', size: 1234,
-                                              updated_time: '2018-04-09', created_time:'2018-04-09', resource: 'remoteFileUri'});
+                                              updated_time: '2018-04-09', created_time: '2018-04-09', resource: 'remoteFileUri' });
       });
 
       it('calls file service', async () => {
