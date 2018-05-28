@@ -18,8 +18,8 @@ function GoogleUploadService(logger) {
 
   function getFileModel(gcsFilename) {
     let fileModel = {};
-    fileModel.uri = encodeURI(getPublicUrl(gcsFilename));
-    fileModel.name = gcsFilename;
+    fileModel.resource = encodeURI(getPublicUrl(gcsFilename));
+    fileModel.file_name = gcsFilename;
     return fileModel;
   }
 
