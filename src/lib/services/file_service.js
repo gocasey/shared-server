@@ -15,6 +15,7 @@ function FileService(logger, postgrePool) {
     let filename = Date.now() + fileData.name;
     let fileDirectory = path.join('temp', 'uploads');
     if (!fs.existsSync(fileDirectory)) {
+      fs.mkdirSync('temp');
       fs.mkdirSync(fileDirectory);
     }
     let filepath = path.join(fileDirectory, filename);
