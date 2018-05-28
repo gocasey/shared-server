@@ -23,7 +23,7 @@ function FileService(logger, postgrePool) {
     return filepath;
   }
 
-  async function getFileSize(fileName){
+  async function getFileSize(fileName) {
     let fileStatsAsync = util.promisify(fs.stat);
     let fileStats = await fileStatsAsync(fileName);
     return fileStats.size;
