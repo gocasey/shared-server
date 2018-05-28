@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
+const BaseHttpError = require('../../errors/base_http_error.js');
 const FileModel = require('../../models/file_model.js');
 const GoogleUploadService = require('./google_upload_service.js');
 
@@ -47,9 +48,13 @@ function FileService(logger, postgrePool) {
   };
 
   this.createFile = async (body) => {
-    let uploadedFile = await createRemoteFile(body);
-    let savedFile = await _fileModel.create(uploadedFile);
-    return savedFile;
+    try {
+      let uploadedFile = await createRemoteFile(body);
+      let savedFile = await _fileModel.create(uploadedFile);
+      return savedFile;
+    } catch (err) {
+      throw new BaseHttpError('File creation error', 500);
+    }
   };
 }
 
