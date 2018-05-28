@@ -57,6 +57,7 @@ function FileService(logger, postgrePool) {
       let savedFile = await _fileModel.create(uploadedFile);
       return savedFile;
     } catch (err) {
+      _logger.error('Error during file creation: %s', err);
       throw new BaseHttpError('File creation error', 500);
     }
   };
