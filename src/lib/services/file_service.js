@@ -13,7 +13,11 @@ function FileService(logger, postgrePool) {
   async function createLocalFile(fileData) {
     let decodedFile = new Buffer(fileData.encodedFile, 'base64');
     let filename = Date.now() + fileData.name;
-    let filepath = path.join('temp', 'uploads', filename);
+    let fileDirectory = path.join('temp', 'uploads');
+    if (!fs.existsSync(fileDirectory)) {
+      fs.mkdirSync(fileDirectory);
+    }
+    let filepath = path.join(fileDirectory, filename);
     let writePromise = util.promisify(fs.writeFile);
     try {
       await writePromise(filepath, decodedFile);
