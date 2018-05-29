@@ -13,7 +13,12 @@ function FileService(logger, postgrePool) {
   async function createLocalFile(fileData) {
     let decodedFile = new Buffer(fileData.encodedFile, 'base64');
     let filename = Date.now() + fileData.name;
-    let filepath = path.join('temp', 'uploads', filename);
+    let fileDirectory = path.join('temp', 'uploads');
+    if (!fs.existsSync(fileDirectory)) {
+      fs.mkdirSync('temp');
+      fs.mkdirSync(fileDirectory);
+    }
+    let filepath = path.join(fileDirectory, filename);
     let writePromise = util.promisify(fs.writeFile);
     try {
       await writePromise(filepath, decodedFile);
@@ -53,6 +58,7 @@ function FileService(logger, postgrePool) {
       let savedFile = await _fileModel.create(uploadedFile);
       return savedFile;
     } catch (err) {
+      _logger.error('Error during file creation: %s', err);
       throw new BaseHttpError('File creation error', 500);
     }
   };

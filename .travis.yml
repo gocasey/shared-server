@@ -28,12 +28,14 @@ jobs:
     deploy:
     - provider: heroku
       app: stories-shared-server
+      skip_cleanup: true
       api_key:
         secure: Hp6NZi5ovFnRvLBwbmZjRHV96xPf3EVboQlMK3hRt8X5oYuJDxhB3lyQmEbkbXl7DN2bN7RV7yyo/79cgXokov+LPtTCIce62+lKCspkgMbkNPNJhoEKbh4FARHMJYaccOuUjYCSVDvE3xcEBDHPwNgREaJrlmw8OotaJhP8p8xDHgZOCy4oIUJAql+Mjn06rRWBwinzZnK9/ORzOzT0HHL1HNG7564zrupkZFrSaVpOPJujorQR7JbvHVF+zX1CQLwcHIVsgAHGZTaJGhHUhypavO0MHqdswfFFoXDvktR+Co6IGS5ih17rAdzYzWub33xQ2f+UAms5uhan2lMEIHeXffIXHuItvAqImfKha9y5GVhmh4TLHN87/mXgDeaiVsZnyLiNaY+0qa9/zYZYSU4w9NKdnCoTLKDqtYSYUn4Fol33pQTGI+ef48KzqiYD3gIVLd+sMegyfLF0IPfYJJG1PxmdEWvJA7f/WNWK5OiU+ZB+agbYwMmh5wDi0FRpxGR4YIKb0rSr+dZXC4mJOw1omg4j4MSYAa4XRaats0LMKRrOJsrPUq8k6tDHv3pxxEGYG/vgb4SRl5Kd+Tb5UP2wC7eHuPAzHyYQ27g/mdJf5blfccDivO2BJXsNuEmmLGAkGx4wHt0qdmfuXElMn+Z6TZ9AFShkow1KFxaIQxg=
       on:
         branch: master
     - provider: heroku
       app: shared-server-stories
+      skip_cleanup: true
       api_key:
         secure: cBvXGnrwoOtZkvikhtbq4Y08w53IpbsaszkpLNnkX8Y+rH9DES+DEXYAoILiUfGjAOoVCJA0aFnsYLThzUJSuZbgs9vIsQF0cOQFu6ACa+lNiKeptBXzP2wupTqa2iai2SKI9+R3H6CnIr+zCJ2LSfTM4vP1rvuA7TyhmcWaKtrx4957yRqM5mv0VF3w7BErgpBGA25nwXhHAbOQv/AJWDSyn9PCl2LmzSCWoepzhFhni3ivu2o55/0BNyPoTSeIehOd/J3Dm5vbjw0smWHDXRob9eLkbC4+AlqAawahTqgqXP3LbhbvV3xEDknDaq5x48V+cekbeXOSesweJOwcJTSiPXoFqvb7OasH6ioIf4+k7n0vGyPoBfPVY/ebJ2e9u/I/Z0iR5fL9lJAIqRrr+XzyapJZwEJXICrrMkgrBL7QvxsOmXq9yYhldCeu8mcGVGNh6jC4XdGmackYOGRJ/83pUDhv4AKnhXANovPvuZyShtkkkF8joffhT8uL8kcVlve/8GkzjKLDY9cq95pEUs+ijniL8oZXQXzALJSMYYVkjKFPQrLC7y2vqWEYxxOJ2/DA2StTte53/6JXZNPC665Cf82fUxDU8VDd7/ygKZ4FNkEJtg/Jhb2TAS0Xs9spKzwu14/ivTIMafHvCarzNTFWB4DtXBjHdvlQ5kBO63c=
       on:

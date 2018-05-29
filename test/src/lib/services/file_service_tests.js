@@ -14,6 +14,7 @@ const mockFileModel = {
 };
 
 const mockFs = {
+  existsSync: sinon.stub(),
   writeFile: sinon.stub(),
   stat: sinon.stub(),
 };
@@ -56,6 +57,7 @@ describe('FileService Tests', () => {
 
     describe('create success', () => {
       before(() => {
+        mockFs.existsSync.returns(true);
         mockFs.writeFile.callsArgWith(2, null);
         mockFs.stat.callsArgWith(1, null, { size: 1234 });
         mockGoogleUploadService.uploadFromLocal.resolves({ resource: 'remoteFileUri', file_name: 'fileNameOnGoogleStorage' });
@@ -80,6 +82,7 @@ describe('FileService Tests', () => {
 
     describe('db create failure', () => {
       before(() => {
+        mockFs.existsSync.returns(true);
         mockFs.writeFile.callsArgWith(2, null);
         mockFs.stat.callsArgWith(1, null, { size: 1234 });
         mockGoogleUploadService.uploadFromLocal.resolves({ resource: 'remoteFileUri', file_name: 'fileNameOnGoogleStorage' });
