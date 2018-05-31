@@ -32,5 +32,5 @@ jobs:
     - docker build -t registry.heroku.com/shared-server-stories/web .
     - docker push registry.heroku.com/shared-server-stories/web
     on:
-      branch: docker_to_heroku
+      branch: master
       repo: taller2-2018-1-grupo2/shared-server
