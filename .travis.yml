@@ -12,11 +12,10 @@ before_install:
   -in google-cloud-key.json.enc -out google-cloud-key.json -d
 install: npm install
 stages:
-- name: lint
-- name: test
-- name: coverage
-- name: deploy
-  if: branch = master
+- lint
+- test
+- coverage
+- deploy
 jobs:
   include:
   - stage: lint
@@ -28,6 +27,7 @@ jobs:
     - npm run coverage
     - npm run coveralls
   - stage: deploy
+    if: branch = master
     script:
     - docker login --username=_ --password=$HEROKU_TOKEN registry.heroku.com
     - docker build -t registry.heroku.com/shared-server-stories/web .
