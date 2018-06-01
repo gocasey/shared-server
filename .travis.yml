@@ -12,10 +12,11 @@ before_install:
   -in google-cloud-key.json.enc -out google-cloud-key.json -d
 install: npm install
 stages:
-- lint
-- test
-- coverage
-- deploy
+- name: lint
+- name: test
+- name: coverage
+- name: deploy
+  if: branch = docker_on_heroku
 jobs:
   include:
   - stage: lint
@@ -31,6 +32,3 @@ jobs:
     - docker login --username=_ --password=$HEROKU_TOKEN registry.heroku.com
     - docker build -t registry.heroku.com/shared-server-stories/web .
     - docker push registry.heroku.com/shared-server-stories/web
-    on:
-      branch: master
-      repo: taller2-2018-1-grupo2/shared-server
