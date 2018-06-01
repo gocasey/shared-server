@@ -16,7 +16,7 @@ stages:
 - name: test
 - name: coverage
 - name: deploy
-  if: branch = docker_to_heroku
+  if: branch = master
 jobs:
   include:
   - stage: lint
