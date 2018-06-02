@@ -9,7 +9,7 @@ function ServerController(logger, postgrePool) {
   this.createServer = async (req, res, next) => {
     let serverData = {
       name: req.body.name,
-    }
+    };
     let serverCreated;
     try {
       serverCreated = await _serverService.createServer(serverData);

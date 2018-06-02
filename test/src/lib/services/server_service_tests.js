@@ -121,11 +121,11 @@ describe('ServerService Tests', () => {
         mockServerModel.update.rejects(new Error('Update error'));
       });
 
-      it('throws 500 error', async() => {
+      it('throws 500 error', async () => {
         let err;
-        try{
+        try {
           await serverService.updateServer(mockBody);
-        } catch (ex){
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.a(BaseHttpError);
@@ -139,11 +139,11 @@ describe('ServerService Tests', () => {
         mockServerModel.update.rejects(new Error('Integrity check error'));
       });
 
-      it('throws 500 error', async() => {
+      it('throws 500 error', async () => {
         let err;
-        try{
+        try {
           await serverService.updateServer(mockBody);
-        } catch (ex){
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.a(BaseHttpError);
@@ -157,11 +157,11 @@ describe('ServerService Tests', () => {
         mockServerModel.update.rejects(new Error('Server does not exist'));
       });
 
-      it('throws 500 error', async() => {
+      it('throws 500 error', async () => {
         let err;
-        try{
+        try {
           await serverService.updateServer(mockBody);
-        } catch (ex){
+        } catch (ex) {
           err = ex;
         }
         expect(err).to.be.a(BaseHttpError);

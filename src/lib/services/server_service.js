@@ -31,31 +31,28 @@ function ServerService(logger, postgrePool) {
     let server;
     try {
       server = await _serverModel.findByServerId(serverId);
-    } catch (findErr){
+    } catch (findErr) {
       _logger.error('An error happened while looking for the server with id: \'%s\'', serverId);
       throw new BaseHttpError('Server find error', 500);
     }
-    if (server){
+    if (server) {
       return server;
-    }
-    else{
+    } else {
       _logger.error('The server with id: \'%s\' was not found', serverId);
       throw new BaseHttpError('Server not found', 404);
     }
   };
 
-  this.updateServer = async(serverData) => {
+  this.updateServer = async (serverData) => {
     try {
       return await _serverModel.update(serverData);
-    } catch (updateErr){
+    } catch (updateErr) {
       _logger.error('An error happened while updating the server with id: \'%s\'', serverData.id);
-      if (updateErr.message == 'Server does not exist'){
+      if (updateErr.message == 'Server does not exist') {
         throw new BaseHttpError(updateErr.message, 404);
-      }
-      else if (updateErr.message == 'Integrity check error'){
+      } else if (updateErr.message == 'Integrity check error') {
         throw new BaseHttpError(updateErr.message, 409);
-      }
-      else throw new BaseHttpError('Server update error', 500);
+      } else throw new BaseHttpError('Server update error', 500);
     }
   };
 }
