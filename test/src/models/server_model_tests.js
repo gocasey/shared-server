@@ -38,6 +38,75 @@ describe('ServerModel Tests', () => {
     mockPool.query.resetHistory();
   });
 
+  describe('#findByServerId', () => {
+    describe('server found', () => {
+      before(() => {
+        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev' }] });
+      });
+
+      it('returns server', async () => {
+        let server = await serverModel.findByServerId(123);
+        expect(server).to.be.ok();
+        expect(server.id).to.be(123);
+        expect(server.name).to.be('name');
+        expect(server._rev).to.be('rev');
+      });
+
+      it('logs success', async () => {
+        await serverModel.findByServerId(123);
+        expect(mockLogger.info.calledOnce);
+        expect(mockLogger.info.getCall(0).args[0]).to.be('Server with id:\'%s\' found');
+        expect(mockLogger.info.getCall(0).args[1]).to.be(123);
+      });
+    });
+
+    describe('server not found', () => {
+      before(() => {
+        mockPool.query.resolves({ rows: [] });
+      });
+
+      it('returns null', async () => {
+        let server = await serverModel.findByServerId(123);
+        expect(server).to.be.null;
+      });
+
+      it('logs server not found', async () => {
+        await serverModel.findByServerId(123);
+        expect(mockLogger.info.calledOnce);
+        expect(mockLogger.info.getCall(0).args[0]).to.be('Server with id:\'%s\' not found');
+        expect(mockLogger.info.getCall(0).args[1]).to.be(123);
+      });
+    });
+
+    describe('db error', () => {
+      before(() => {
+        mockPool.query.rejects(new Error('DB error'));
+      });
+
+      it('returns error', async () => {
+        let err;
+        try {
+          await serverModel.findByServerId(123);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.ok();
+        expect(err.message).to.be('DB error');
+      });
+
+      it('logs db failure', async () => {
+        try {
+          await serverModel.findByServerId(123);
+        } catch (err) { }
+        expect(mockLogger.error.calledTwice);
+        expect(mockLogger.error.getCall(0).args[0]).to.be('DB error: %j');
+        expect(mockLogger.error.getCall(0).args[1]).to.be('DB error');
+        expect(mockLogger.error.getCall(1).args[0]).to.be('Error looking for server id:\'%s\' in the database');
+        expect(mockLogger.error.getCall(1).args[1]).to.be(123);
+      });
+    });
+  });
+
   describe('#findByServerName', () => {
     describe('server found', () => {
       before(() => {
@@ -108,8 +177,9 @@ describe('ServerModel Tests', () => {
   });
 
   describe('#update', () => {
-    let mockServer = {
-      name: 'name',
+    let mockServerToUpdate = {
+      id: 123,
+      name: 'newName',
       _rev: 'oldRev',
     };
 
@@ -121,13 +191,13 @@ describe('ServerModel Tests', () => {
 
     let dbServerFoundModified = {
       server_id: 123,
-      server_name: 'name',
+      server_name: 'anotherName',
       _rev: 'anotherRev',
     };
 
     let dbServerUpdated = {
       server_id: 123,
-      server_name: 'name',
+      server_name: 'newName',
       _rev: 'newRev',
     };
 
@@ -143,20 +213,20 @@ describe('ServerModel Tests', () => {
           });
 
           it('passes correct values to find query', async () => {
-            await serverModel.update(mockServer);
-            expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+            await serverModel.update(mockServerToUpdate);
+            expect(mockPool.query.getCall(0).args[1]).to.eql([123]);
           });
 
           it('passes correct values to update query', async () => {
-            await serverModel.update(mockServer);
+            await serverModel.update(mockServerToUpdate);
             expect(mockPool.query.calledTwice);
-            expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name']);
+            expect(mockPool.query.getCall(1).args[1]).to.eql(['newName', 'newRev', 123]);
           });
 
           it('returns updated server', async () => {
-            let server = await serverModel.update(mockServer);
+            let server = await serverModel.update(mockServerToUpdate);
             expect(server.id).to.be(123);
-            expect(server.name).to.be('name');
+            expect(server.name).to.be('newName');
             expect(server._rev).to.be('newRev');
           });
         });
@@ -168,16 +238,16 @@ describe('ServerModel Tests', () => {
 
           it('passes correct values to update query', async () => {
             try {
-              await serverModel.update(mockServer);
+              await serverModel.update(mockServerToUpdate);
             } catch (err) {}
             expect(mockPool.query.calledTwice);
-            expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name']);
+            expect(mockPool.query.getCall(1).args[1]).to.eql(['newName', 'newRev', 123]);
           });
 
           it('returns error', async () => {
             let err;
             try {
-              await serverModel.update(mockServer);
+              await serverModel.update(mockServerToUpdate);
             } catch (ex) {
               err = ex;
             }
@@ -194,21 +264,21 @@ describe('ServerModel Tests', () => {
 
         it('passes correct values to find query', async () => {
           try {
-            await serverModel.update(mockServer);
+            await serverModel.update(mockServerToUpdate);
           } catch (err) { }
           expect(mockPool.query.calledOnce);
-          expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+          expect(mockPool.query.getCall(0).args[1]).to.eql([123]);
         });
 
         it('returns error', async () => {
           let err;
           try {
-            await serverModel.update(mockServer);
+            await serverModel.update(mockServerToUpdate);
           } catch (ex) {
             err = ex;
           }
           expect(err).to.be.ok();
-          expect(err.message).to.be('Error updating');
+          expect(err.message).to.be('Integrity check error');
         });
       });
     });
@@ -220,16 +290,16 @@ describe('ServerModel Tests', () => {
 
       it('passes correct values to find query', async () => {
         try {
-          await serverModel.update(mockServer);
+          await serverModel.update(mockServerToUpdate);
         } catch (err) {}
         expect(mockPool.query.calledOnce);
-        expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+        expect(mockPool.query.getCall(0).args[1]).to.eql([123]);
       });
 
       it('returns error', async () => {
         let err;
         try {
-          await serverModel.update(mockServer);
+          await serverModel.update(mockServerToUpdate);
         } catch (ex) {
           err = ex;
         }
@@ -245,16 +315,16 @@ describe('ServerModel Tests', () => {
 
       it('passes correct values to find query', async () => {
         try {
-          await serverModel.update(mockServer);
+          await serverModel.update(mockServerToUpdate);
         } catch (err) {}
         expect(mockPool.query.calledOnce);
-        expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+        expect(mockPool.query.getCall(0).args[1]).to.eql([123]);
       });
 
       it('returns error', async () => {
         let err;
         try {
-          await serverModel.update(mockServer);
+          await serverModel.update(mockServerToUpdate);
         } catch (ex) {
           err = ex;
         }
