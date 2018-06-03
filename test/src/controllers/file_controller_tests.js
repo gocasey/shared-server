@@ -63,7 +63,8 @@ describe('FileController Tests', () => {
       it('passes correct params to file service', async () => {
         let mockFileRequest = getMockFileRequest();
         await fileController.createFile(mockFileRequest, mockResponse, function() {});
-        expect(mockFileService.createFile.getCall(0).args[0]).to.be.eql({ name: 'fileName', encodedFile: mockFileRequest.body.file });
+        expect(mockFileService.createFile.getCall(0).args[0]).to.be.eql({ name: 'fileName',
+                                                                          encodedFile: mockFileRequest.body.file });
       });
 
       it('saves file in response', async () => {
@@ -103,7 +104,8 @@ describe('FileController Tests', () => {
       it('passes correct params to file service', async () => {
         let mockFileRequest = getMockFileRequest();
         await fileController.createFile(mockFileRequest, mockResponse, function() {});
-        expect(mockFileService.createFile.getCall(0).args[0]).to.be.eql({ name: 'fileName', encodedFile: mockFileRequest.body.file });
+        expect(mockFileService.createFile.getCall(0).args[0]).to.be.eql({ name: 'fileName',
+                                                                          encodedFile: mockFileRequest.body.file });
       });
 
       it('calls next with error', async () => {
@@ -148,7 +150,8 @@ describe('FileController Tests', () => {
       it('passes correct params to file service', async () => {
         let mockFileRequest = getMockFileRequest();
         await fileController.updateFile(mockFileRequest, mockResponse, function() {});
-        expect(mockFileService.updateFile.getCall(0).args[0]).to.be.eql({ id: 123, filename: 'newName', _rev: 'rev', size: 5678, resource: 'newRemoteFileUri'});
+        expect(mockFileService.updateFile.getCall(0).args[0]).to.be.eql({ id: 123, filename: 'newName', _rev: 'rev',
+                                                                          size: 5678, resource: 'newRemoteFileUri' });
       });
 
       it('saves file in response', async () => {
@@ -188,7 +191,8 @@ describe('FileController Tests', () => {
       it('passes correct params to file service', async () => {
         let mockFileRequest = getMockFileRequest();
         await fileController.updateFile(mockFileRequest, mockResponse, function() {});
-        expect(mockFileService.updateFile.getCall(0).args[0]).to.be.eql({ id: 123, filename: 'newName', _rev: 'rev', size: 5678, resource: 'newRemoteFileUri'});
+        expect(mockFileService.updateFile.getCall(0).args[0]).to.be.eql({ id: 123, filename: 'newName', _rev: 'rev',
+                                                                          size: 5678, resource: 'newRemoteFileUri' });
       });
 
       it('calls next with error', async () => {
