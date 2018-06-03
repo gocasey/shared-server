@@ -22,6 +22,7 @@ function ServersRouter(app, logger, postgrePool) {
   // Modificacion de servidor
   app.put('/api/servers/:serverId',
     _serverController.updateServer,
+    _serverController.generateToken,
     _serverResponseBuilder.buildResponse
   );
 }
