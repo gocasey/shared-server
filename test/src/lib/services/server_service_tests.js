@@ -139,7 +139,7 @@ describe('ServerService Tests', () => {
         mockServerModel.update.rejects(new Error('Integrity check error'));
       });
 
-      it('throws 500 error', async () => {
+      it('throws 409 error', async () => {
         let err;
         try {
           await serverService.updateServer(mockBody);
@@ -157,7 +157,7 @@ describe('ServerService Tests', () => {
         mockServerModel.update.rejects(new Error('Server does not exist'));
       });
 
-      it('throws 500 error', async () => {
+      it('throws 404 error', async () => {
         let err;
         try {
           await serverService.updateServer(mockBody);

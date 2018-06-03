@@ -35,11 +35,7 @@ function FileService(logger, postgrePool) {
     return fileStats.size;
   }
 
-  async function createRemoteFile(body) {
-    let fileData = {
-      encodedFile: body.file,
-      name: body.metadata.name,
-    };
+  async function createRemoteFile(fileData) {
     let localFilepath = await createLocalFile(fileData);
     let uploadedFile;
     try {
@@ -52,14 +48,27 @@ function FileService(logger, postgrePool) {
     return uploadedFile;
   };
 
-  this.createFile = async (body) => {
+  this.createFile = async (fileData) => {
     try {
-      let uploadedFile = await createRemoteFile(body);
+      let uploadedFile = await createRemoteFile(fileData);
       let savedFile = await _fileModel.create(uploadedFile);
       return savedFile;
     } catch (err) {
       _logger.error('Error during file creation: %s', err);
       throw new BaseHttpError('File creation error', 500);
+    }
+  };
+
+  this.updateFile = async (fileData) => {
+    try {
+      return await _fileModel.update(fileData);
+    } catch (updateErr) {
+      _logger.error('An error happened while updating the file with id: \'%s\'', fileData.id);
+      if (updateErr.message == 'File does not exist') {
+        throw new BaseHttpError(updateErr.message, 404);
+      } else if (updateErr.message == 'Integrity check error') {
+        throw new BaseHttpError(updateErr.message, 409);
+      } else throw new BaseHttpError('File update error', 500);
     }
   };
 }

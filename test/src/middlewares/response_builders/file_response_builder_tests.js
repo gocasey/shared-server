@@ -15,12 +15,12 @@ describe('FileResponseBuilder Tests', function() {
     let returnedResponse;
     let mockResponse = {
       file: {
-        file_id: '123',
-        file_name: 'name',
+        id: '123',
+        filename: 'name',
         _rev: 'rev',
         size: 1234,
-        updated_time: '2018-04-09',
-        created_time: '2018-04-09',
+        updatedTime: '2018-04-09',
+        createdTime: '2018-04-09',
         resource: 'remoteFileUri',
       },
       status: function(statusCode) {

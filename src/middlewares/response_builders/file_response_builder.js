@@ -8,12 +8,12 @@ function FileResponseBuilder(logger) {
 
     let response = getBasicResponse();
     response.metadata.version = pjson.version;
-    response.file.id = file.file_id;
+    response.file.id = file.id;
     response.file._rev = file._rev;
-    response.file.createdTime = file.created_time;
-    response.file.updatedTime = file.updated_time;
+    response.file.createdTime = file.createdTime;
+    response.file.updatedTime = file.updatedTime;
     response.file.size = file.size;
-    response.file.filename = file.file_name;
+    response.file.filename = file.filename;
     response.file.resource = file.resource;
 
     _logger.debug('Response: %j', response);
