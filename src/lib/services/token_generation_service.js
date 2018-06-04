@@ -16,7 +16,7 @@ function TokenGenerationService(logger) {
     }
   };
 
-  async function decodeToken(token){
+  async function decodeToken(token) {
     // replace hardcoded secret with private key
     try {
       let decoded = await jwt.verify(token, 'secret');

@@ -5,13 +5,12 @@ function UserTokenGenerationServiceFactory(logger) {
   let _logger = logger;
 
   this.getAdminUserTokenGenerationService = () => {
-    return new AdminUserTokenGenerationService(logger);
-  }
+    return new AdminUserTokenGenerationService(_logger);
+  };
 
   this.getApplicationUserTokenGenerationService = () => {
-    return new ApplicationUserTokenGenerationService(logger);
-  }
-
+    return new ApplicationUserTokenGenerationService(_logger);
+  };
 }
 
 module.exports = UserTokenGenerationServiceFactory;

@@ -12,13 +12,13 @@ function UserController(logger, postgrePool) {
     let tokenGenerationService = new UserTokenGenerationServiceFactory().getApplicationUserTokenGenerationService();
     _userTokenService = new UserTokenService(_logger, _postgrePool, tokenGenerationService);
     await this.generateToken(req, res, next);
-  }
+  };
 
   this.generateTokenForAdminUser = async (req, res, next) => {
     let tokenGenerationService = new UserTokenGenerationServiceFactory().getAdminUserTokenGenerationService();
     _userTokenService = new UserTokenService(_logger, _postgrePool, tokenGenerationService);
     await this.generateToken(req, res, next);
-  }
+  };
 
   this.generateToken = async (req, res, next) => {
     let user = res.user;

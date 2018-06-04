@@ -4,7 +4,7 @@ const BaseHttpError = require('../../errors/base_http_error.js');
 function TokenAuthenticator(logger, postgrePool) {
   let _userService = new UserService(logger, postgrePool);
 
-  function getToken(req){
+  function getToken(req) {
     if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
       return req.headers.authorization.split(' ')[1];
     } else if (req.query && req.query.token) {
@@ -15,7 +15,7 @@ function TokenAuthenticator(logger, postgrePool) {
   this.authenticate = async (req, res, next) => {
     let token = getToken(req);
     if (token) {
-      _userService.authenticateWithToken(req.body.username, token, function (err) {
+      _userService.authenticateWithToken(req.body.username, token, function(err) {
         if (err) {
           let error = new BaseHttpError('Unauthorized', 401);
           next(error);

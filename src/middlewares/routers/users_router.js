@@ -29,7 +29,7 @@ function UsersRouter(app, logger, postgrePool) {
   app.post('/api/admin-user',
     _userController.createUser,
     _userController.generateTokenForAdminUser(),
-    //_userRegistrationResponseBuilder.buildResponse
+    // _userRegistrationResponseBuilder.buildResponse
   );
 }
 

@@ -105,7 +105,9 @@ describe('TokenGenerationService Tests', function() {
           idDecoded = 'id';
           nameDecoded = 'name';
           mockJwt.verify.resolves({ data: { id: idDecoded, name: nameDecoded } });
-          validateFunction = () => { return true; };
+          validateFunction = () => {
+ return true;
+};
         });
 
         it('logs success', async function() {
@@ -125,7 +127,9 @@ describe('TokenGenerationService Tests', function() {
           idDecoded = 'id';
           nameDecoded = 'another_name';
           mockJwt.verify.resolves({ data: { id: idDecoded, name: nameDecoded } });
-          validateFunction = () => { return false; };
+          validateFunction = () => {
+ return false;
+};
         });
 
         it('returns error', async function() {

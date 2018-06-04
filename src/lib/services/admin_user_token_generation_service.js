@@ -1,7 +1,6 @@
 const TokenGenerationService = require('../services/token_generation_service.js');
 
 function AdminUserTokenGenerationService(logger) {
-
   let _tokenGenerationService = new TokenGenerationService(logger);
 
   function getAdminUserData(user) {
@@ -23,7 +22,7 @@ function AdminUserTokenGenerationService(logger) {
       _logger.error('Error creating token for admin user: \'%s\'', user.username);
       throw err;
     }
-  }
+  };
 
   function isValidOwner(decodedData, owner) {
     return decodedData && (decodedData.id == owner.id) && (decodedData.name == owner.name) && (decodedData.is_admin == owner.is_admin);
@@ -40,17 +39,16 @@ function AdminUserTokenGenerationService(logger) {
       _logger.error('Error validating token for admin user: \'%s\'', user.username);
       throw err;
     }
-  }
+  };
 
   this.getUserIdFromToken = async (token) => {
     let decodedTokenData = await _tokenGenerationService.decodeTokenData(token);
     if (decodedTokenData.is_admin) {
       throw new Error('invalid token');
-    }
-    else {
+    } else {
       return decodedTokenData.id;
     }
-  }
+  };
 }
 
 module.exports = AdminUserTokenGenerationService;

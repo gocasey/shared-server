@@ -46,8 +46,9 @@ function UserTokenService(logger, postgrePool, tokenGenerationService) {
   };
 
   this.validateToken = async (token) => {
-    let userToken = await _userTokenModel.findByUserId(user);
-  }
+    // WORK IN PROGRESS
+    // let userToken = await _userTokenModel.findByUserId(user);
+  };
 }
 
 module.exports = UserTokenService;
