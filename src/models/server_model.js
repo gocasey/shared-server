@@ -21,9 +21,6 @@ function ServerModel(logger, postgrePool) {
       if (res.rows.length == 0) {
         _logger.info('Server with name:\'%s\' not found', serverName);
         return;
-      } else if (res.rows.length > 1) {
-        _logger.warn('More than a server found for name: %s', serverName);
-        return res.rows[0];
       } else {
         _logger.info('Server with name:\'%s\' found', serverName);
         return res.rows[0];
@@ -34,8 +31,31 @@ function ServerModel(logger, postgrePool) {
     }
   }
 
+  async function findByServerIdReturnAllParams(serverId) {
+    let query = 'SELECT server_id, server_name, _rev FROM servers WHERE server_id = $1;';
+    let values = [serverId];
+    try {
+      let res = await executeQuery(query, values);
+      if (res.rows.length == 0) {
+        _logger.info('Server with id:\'%s\' not found', serverId);
+        return;
+      } else {
+        _logger.info('Server with id:\'%s\' found', serverId);
+        return res.rows[0];
+      }
+    } catch (err) {
+      _logger.error('Error looking for server id:\'%s\' in the database', serverId);
+      throw err;
+    }
+  }
+
   this.findByServerName = async (serverName) => {
     let dbServer = await findByServerNameReturnAllParams(serverName);
+    return dbServer ? getBusinessServer(dbServer) : null;
+  };
+
+  this.findByServerId = async (serverId) => {
+    let dbServer = await findByServerIdReturnAllParams(serverId);
     return dbServer ? getBusinessServer(dbServer) : null;
   };
 
@@ -72,8 +92,8 @@ function ServerModel(logger, postgrePool) {
 
   async function executeUpdate(server) {
     let currentRev = integrityValidator.createHash(server);
-    let query = 'UPDATE servers SET _rev=$1 WHERE server_name=$2 RETURNING server_id, server_name;';
-    let values = [currentRev, server.name];
+    let query = 'UPDATE servers SET server_name=$1, _rev=$2 WHERE server_id=$3 RETURNING *;';
+    let values = [server.name, currentRev, server.id];
     try {
       let res = await executeQuery(query, values);
       _logger.info('Server with name: \'%s\' updated successfully', server.name);
@@ -86,14 +106,14 @@ function ServerModel(logger, postgrePool) {
   };
 
   this.update = async (server) => {
-    let dbServer = await findByServerNameReturnAllParams(server.name);
+    let dbServer = await findByServerIdReturnAllParams(server.id);
     if (dbServer) {
       if (dbServer._rev === server._rev) {
         _logger.info('The integrity check for server with name: \'%s\' was successful. Proceeding with update.', server.name);
         return await executeUpdate(server);
       } else {
         _logger.error('The integrity check for server with name: \'%s\' failed. Aborting update.', server.name);
-        throw new Error('Error updating');
+        throw new Error('Integrity check error');
       }
     } else {
       _logger.error('Update cannot be completed, server with name: \'%s\' does not exist', server.name);

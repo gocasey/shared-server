@@ -5,6 +5,8 @@ const ServerControllerModule = '../../../src/controllers/server_controller.js';
 
 let mockServerService = {
   createServer: sinon.stub(),
+  findServer: sinon.stub(),
+  updateServer: sinon.stub(),
 };
 
 let mockServerTokenService = {
@@ -38,6 +40,8 @@ describe('ServerController Tests', () => {
   beforeEach(() => {
     mockServerTokenService.generateToken.resetHistory();
     mockServerService.createServer.resetHistory();
+    mockServerService.updateServer.resetHistory();
+    mockServerService.findServer.resetHistory();
   });
 
   describe('#createServer', () => {
@@ -101,6 +105,140 @@ describe('ServerController Tests', () => {
         await serverController.createServer(mockServerRequest, mockResponse, mockNext);
         expect(mockNext.calledOnce);
         expect(mockNext.calledWith(new Error('creation error')));
+      });
+    });
+  });
+
+  describe('#findServer', () => {
+    let mockServerRequest = {
+      params: {
+        serverId: 123,
+      },
+    };
+
+    let mockResponse = {};
+
+    describe('success', () => {
+      before(() => {
+        mockServerService.findServer.resolves({ id: 123, name: 'name', _rev: 'rev' });
+      });
+
+      it('calls server service', async () => {
+        await serverController.findServer(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.findServer.calledOnce);
+      });
+
+      it('passes correct params to server service', async () => {
+        await serverController.findServer(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.findServer.getCall(0).args[0]).to.be.eql(123);
+      });
+
+      it('saves server in response', async () => {
+        await serverController.findServer(mockServerRequest, mockResponse, function() {});
+        expect(mockResponse.server).to.be.ok();
+        expect(mockResponse.server.id).to.be(123);
+        expect(mockResponse.server.name).to.be('name');
+        expect(mockResponse.server._rev).to.be('rev');
+      });
+
+      it('calls next with no error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.findServer(mockServerRequest, mockResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(undefined));
+      });
+    });
+
+
+    describe('failure', () => {
+      before(() => {
+        mockServerService.findServer.rejects(new Error('find error'));
+      });
+
+      it('calls server service', async () => {
+        await serverController.findServer(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.findServer.calledOnce);
+      });
+
+      it('passes correct params to server service', async () => {
+        await serverController.findServer(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.findServer.getCall(0).args[0]).to.be.eql(123);
+      });
+
+      it('calls next with error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.findServer(mockServerRequest, mockResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(new Error('find error')));
+      });
+    });
+  });
+
+  describe('#updateServer', () => {
+    let mockServerRequest = {
+      params: {
+        serverId: 123,
+      },
+      body: {
+        name: 'newName',
+        _rev: 'oldRev',
+      },
+    };
+
+    let mockResponse = {};
+
+    describe('success', () => {
+      before(() => {
+        mockServerService.updateServer.resolves({ id: 123, name: 'newName', _rev: 'newRev' });
+      });
+
+      it('calls server service', async () => {
+        await serverController.updateServer(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.updateServer.calledOnce);
+      });
+
+      it('passes correct params to server service', async () => {
+        await serverController.updateServer(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.updateServer.getCall(0).args[0]).to.be.eql({ id: 123, name: 'newName', _rev: 'oldRev' });
+      });
+
+      it('saves server in response', async () => {
+        await serverController.updateServer(mockServerRequest, mockResponse, function() {});
+        expect(mockResponse.server).to.be.ok();
+        expect(mockResponse.server.id).to.be(123);
+        expect(mockResponse.server.name).to.be('newName');
+        expect(mockResponse.server._rev).to.be('newRev');
+      });
+
+      it('calls next with no error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.updateServer(mockServerRequest, mockResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(undefined));
+      });
+    });
+
+
+    describe('failure', () => {
+      before(() => {
+        mockServerService.updateServer.rejects(new Error('update error'));
+      });
+
+      it('calls server service', async () => {
+        await serverController.updateServer(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.updateServer.calledOnce);
+      });
+
+      it('passes correct params to server service', async () => {
+        await serverController.updateServer(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.updateServer.getCall(0).args[0]).to.be.eql({ id: 123, name: 'newName', _rev: 'oldRev' });
+      });
+
+      it('calls next with error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.updateServer(mockServerRequest, mockResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(new Error('update error')));
       });
     });
   });

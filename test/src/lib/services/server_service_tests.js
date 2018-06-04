@@ -10,6 +10,7 @@ const mockLogger = {
 };
 
 const mockServerModel = {
+  findByServerId: sinon.stub(),
   findByServerName: sinon.stub(),
   update: sinon.stub(),
   create: sinon.stub(),
@@ -90,6 +91,138 @@ describe('ServerService Tests', () => {
           expect(err.statusCode).to.be(500);
           expect(err.message).to.be('Server creation error');
         });
+      });
+    });
+  });
+
+  describe('#updateServer', () => {
+    let mockBody = {
+      id: 1,
+      name: 'newName',
+      _rev: 'oldRev',
+    };
+
+    describe('update success', () => {
+      before(() => {
+        mockServerModel.update.resolves({ id: 1, name: 'newName', _rev: 'newRev' });
+      });
+
+      it('returns server', async () => {
+        let server = await serverService.updateServer(mockBody);
+        expect(server).to.be.ok();
+        expect(server.id).to.be(1);
+        expect(server.name).to.be('newName');
+        expect(server._rev).to.be('newRev');
+      });
+    });
+
+    describe('update failure', () => {
+      before(() => {
+        mockServerModel.update.rejects(new Error('Update error'));
+      });
+
+      it('throws 500 error', async () => {
+        let err;
+        try {
+          await serverService.updateServer(mockBody);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.a(BaseHttpError);
+        expect(err.statusCode).to.be(500);
+        expect(err.message).to.be('Server update error');
+      });
+    });
+
+    describe('integrity check failure', () => {
+      before(() => {
+        mockServerModel.update.rejects(new Error('Integrity check error'));
+      });
+
+      it('throws 409 error', async () => {
+        let err;
+        try {
+          await serverService.updateServer(mockBody);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.a(BaseHttpError);
+        expect(err.statusCode).to.be(409);
+        expect(err.message).to.be('Integrity check error');
+      });
+    });
+
+    describe('server not found', () => {
+      before(() => {
+        mockServerModel.update.rejects(new Error('Server does not exist'));
+      });
+
+      it('throws 404 error', async () => {
+        let err;
+        try {
+          await serverService.updateServer(mockBody);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.a(BaseHttpError);
+        expect(err.statusCode).to.be(404);
+        expect(err.message).to.be('Server does not exist');
+      });
+    });
+  });
+
+  describe('#findServer', () => {
+    let mockBody = {
+      id: 1,
+    };
+
+    describe('server found', () => {
+      before(() => {
+        mockServerModel.findByServerId.resolves({ id: 1, name: 'name', _rev: 'rev' });
+      });
+
+      it('returns server', async () => {
+        let server = await serverService.findServer(mockBody);
+        expect(server).to.be.ok();
+        expect(server.id).to.be(1);
+        expect(server.name).to.be('name');
+        expect(server._rev).to.be('rev');
+      });
+    });
+
+    describe('server not found', () => {
+      before(() => {
+        mockServerModel.findByServerId.resolves();
+      });
+
+      it('throws 404 error', async () => {
+        let err;
+        try {
+          await serverService.findServer(mockBody);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.a(BaseHttpError);
+        expect(err.statusCode).to.be(404);
+        expect(err.message).to.be('Server does not exist');
+      });
+    });
+
+    describe('find failure', () => {
+      before(() => {
+        mockServerModel.findByServerId.rejects(new Error('Find error'));
+      });
+
+      it('throws 500 error', async () => {
+        let err;
+        try {
+          await serverService.findServer(mockBody);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.a(BaseHttpError);
+        expect(err.statusCode).to.be(500);
+        expect(err.message).to.be('Server find error');
       });
     });
   });
