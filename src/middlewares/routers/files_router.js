@@ -12,7 +12,7 @@ function FilesRouter(app, logger, postgrePool) {
   );
 
   // Actualizacion de archivo
-  app.put('/api/files',
+  app.put('/api/files/:fileId',
     _fileController.updateFile,
     _fileResponseBuilder.buildResponse
   );
