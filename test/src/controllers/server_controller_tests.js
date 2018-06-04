@@ -11,6 +11,7 @@ let mockServerService = {
 
 let mockServerTokenService = {
   generateToken: sinon.stub(),
+  retrieveToken: sinon.stub(),
 };
 
 let mockLogger = {
@@ -112,7 +113,7 @@ describe('ServerController Tests', () => {
   describe('#findServer', () => {
     let mockServerRequest = {
       params: {
-        serverId: 123,
+        fileId: 123,
       },
     };
 
@@ -177,7 +178,7 @@ describe('ServerController Tests', () => {
   describe('#updateServer', () => {
     let mockServerRequest = {
       params: {
-        serverId: 123,
+        fileId: 123,
       },
       body: {
         name: 'newName',
@@ -306,6 +307,73 @@ describe('ServerController Tests', () => {
         await serverController.generateToken(mockRequest, mockServerResponse, mockNext);
         expect(mockNext.calledOnce);
         expect(mockNext.calledWith(new Error('token creation error')));
+      });
+    });
+  });
+
+  describe('#retrieveToken', () => {
+    let mockServerResponse = {
+      server: {
+        id: 123,
+        name: 'name',
+        _rev: 'rev',
+      },
+    };
+
+    let mockRequest = {};
+
+    describe('success', () => {
+      before(() => {
+        mockServerTokenService.retrieveToken.resolves({ token_id: 456, server_id: 123, token: 'token' });
+      });
+
+      it('calls server token service', async () => {
+        await serverController.retrieveToken(mockRequest, mockServerResponse, function() {});
+        expect(mockServerTokenService.retrieveToken.calledOnce);
+      });
+
+      it('passes correct params to server token service', async () => {
+        await serverController.retrieveToken(mockRequest, mockServerResponse, function() {});
+        expect(mockServerTokenService.retrieveToken.getCall(0).args[0]).to.be.eql(mockServerResponse.server);
+      });
+
+      it('saves token in response', async () => {
+        await serverController.retrieveToken(mockRequest, mockServerResponse, function() {});
+        expect(mockServerResponse.serverToken).to.be.ok();
+        expect(mockServerResponse.serverToken.token_id).to.be(456);
+        expect(mockServerResponse.serverToken.server_id).to.be(123);
+        expect(mockServerResponse.serverToken.token).to.be('token');
+      });
+
+      it('calls next with no error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.retrieveToken(mockRequest, mockServerResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(undefined));
+      });
+    });
+
+
+    describe('failure', () => {
+      before(() => {
+        mockServerTokenService.retrieveToken.rejects(new Error('token error'));
+      });
+
+      it('calls server token service', async () => {
+        await serverController.retrieveToken(mockRequest, mockServerResponse, function() {});
+        expect(mockServerTokenService.retrieveToken.calledOnce);
+      });
+
+      it('passes correct params to server token service', async () => {
+        await serverController.retrieveToken(mockRequest, mockServerResponse, function() {});
+        expect(mockServerTokenService.retrieveToken.getCall(0).args[0]).to.be.eql(mockServerResponse.server);
+      });
+
+      it('calls next with error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.retrieveToken(mockRequest, mockServerResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(new Error('token error')));
       });
     });
   });

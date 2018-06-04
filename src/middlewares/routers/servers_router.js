@@ -12,6 +12,13 @@ function ServersRouter(app, logger, postgrePool) {
     _serverResponseBuilder.buildResponse
   );
 
+  // Consulta de servidor
+  app.get('/api/servers/:serverId',
+    _serverController.findServer,
+    _serverController.retrieveToken,
+    _serverResponseBuilder.buildResponse
+  );
+
   // Reseteo de token
   app.post('/api/servers/:serverId',
     _serverController.findServer,

@@ -24,9 +24,9 @@ function ServerController(logger, postgrePool) {
   this.findServer = async (req, res, next) => {
     let serverFound;
     try {
-      serverFound = await _serverService.findServer(req.params.serverId);
+      serverFound = await _serverService.findServer(req.params.fileId);
     } catch (err) {
-      _logger.error('An error ocurred while finding server with id: %s', req.params.serverId);
+      _logger.error('An error ocurred while finding server with id: %s', req.params.fileId);
       return next(err);
     }
     res.server = serverFound;
@@ -35,7 +35,7 @@ function ServerController(logger, postgrePool) {
 
   this.updateServer = async (req, res, next) => {
     let serverDataToUpdate = {
-      id: req.params.serverId,
+      id: req.params.fileId,
       name: req.body.name,
       _rev: req.body._rev,
     };
@@ -57,6 +57,19 @@ function ServerController(logger, postgrePool) {
       token = await _serverTokenService.generateToken(server);
     } catch (err) {
       _logger.error('An error ocurred while generating the token for server name: %s', server.name);
+      return next(err);
+    }
+    res.serverToken = token;
+    return next();
+  };
+
+  this.retrieveToken = async (req, res, next) => {
+    let server = res.server;
+    let token;
+    try {
+      token = await _serverTokenService.retrieveToken(server);
+    } catch (err) {
+      _logger.error('An error ocurred while retrieving the token for server name: %s', server.name);
       return next(err);
     }
     res.serverToken = token;

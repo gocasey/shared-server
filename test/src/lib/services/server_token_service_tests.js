@@ -16,6 +16,7 @@ const mockServerTokenModel = {
 const mockTokenGenerationService = {
   generateToken: sinon.stub(),
   validateToken: sinon.stub(),
+  decodeToken: sinon.stub(),
 };
 
 function setupServerTokenService() {
@@ -135,6 +136,23 @@ describe('ServerTokenService Tests', function() {
           expect(err).to.be.ok();
           expect(err.message).to.be('token error');
         });
+      });
+    });
+  });
+
+  describe('#retrieveToken', function() {
+    describe('token found', async () => {
+      before(function() {
+        mockServerTokenModel.findByServer.resolves({ token_id: 6789, server_id: 12345, token: 'token' });
+        mockTokenGenerationService.decodeToken.returns({ token: 'token', expiresAt: 123456789 });
+      });
+
+      it('returns token', async function() {
+        let token = await serverTokenService.retrieveToken(mockServer);
+        expect(token).to.be.ok();
+        console.log(token);
+        expect(token.token).to.be('token');
+        expect(token.tokenExpiration).to.be(123456789);
       });
     });
   });

@@ -11,6 +11,12 @@ function FilesRouter(app, logger, postgrePool) {
     _fileResponseBuilder.buildResponse
   );
 
+  // Consulta de archivo
+  app.get('/api/files/:fileId',
+    _fileController.findFile,
+    _fileResponseBuilder.buildResponse
+  );
+
   // Actualizacion de archivo
   app.put('/api/files/:fileId',
     _fileController.updateFile,
