@@ -39,7 +39,7 @@ function ServerService(logger, postgrePool) {
       return server;
     } else {
       _logger.error('The server with id: \'%s\' was not found', serverId);
-      throw new BaseHttpError('Server not found', 404);
+      throw new BaseHttpError('Server does not exist', 404);
     }
   };
 
