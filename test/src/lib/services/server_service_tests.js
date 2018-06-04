@@ -204,7 +204,7 @@ describe('ServerService Tests', () => {
         }
         expect(err).to.be.a(BaseHttpError);
         expect(err.statusCode).to.be(404);
-        expect(err.message).to.be('Server not found');
+        expect(err.message).to.be('Server does not exist');
       });
     });
 
