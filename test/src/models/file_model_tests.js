@@ -59,13 +59,13 @@ describe('FileModel Tests', () => {
       it('returns file', async () => {
         let file = await fileModel.findByFileId(idToLookFor);
         expect(file).to.be.ok();
-        expect(file.file_id).to.be(123);
-        expect(file.file_name).to.be('name');
+        expect(file.id).to.be(123);
+        expect(file.filename).to.be('name');
         expect(file._rev).to.be('rev');
         expect(file.size).to.be(7890);
         expect(file.resource).to.be('remoteFileUri');
-        expect(file.updated_time).to.be('2018-04-09');
-        expect(file.created_time).to.be('2018-04-09');
+        expect(file.updatedTime).to.be('2018-04-09');
+        expect(file.createdTime).to.be('2018-04-09');
       });
 
       it('logs success', async () => {
@@ -125,8 +125,8 @@ describe('FileModel Tests', () => {
 
   describe('#update', () => {
     let mockFile = {
-      file_id: 123,
-      file_name: 'name',
+      id: 123,
+      filename: 'name',
       _rev: 'oldRev',
       size: 1234,
       resource: 'newRemoteFileUri',
@@ -180,8 +180,8 @@ describe('FileModel Tests', () => {
 
           it('returns updated file', async () => {
             let file = await fileModel.update(mockFile);
-            expect(file.file_id).to.be(123);
-            expect(file.file_name).to.be('name');
+            expect(file.id).to.be(123);
+            expect(file.filename).to.be('name');
             expect(file._rev).to.be('newRev');
           });
         });
@@ -338,13 +338,13 @@ describe('FileModel Tests', () => {
 
         it('returns updated file', async () => {
           let file = await fileModel.create(mockFile);
-          expect(file.file_id).to.be(123);
-          expect(file.file_name).to.be('name');
+          expect(file.id).to.be(123);
+          expect(file.filename).to.be('name');
           expect(file._rev).to.be('newRev');
           expect(file.size).to.be(7890);
           expect(file.resource).to.be('remoteFileUri');
-          expect(file.updated_time).to.be('2018-04-09');
-          expect(file.created_time).to.be('2018-04-09');
+          expect(file.updatedTime).to.be('2018-04-09');
+          expect(file.createdTime).to.be('2018-04-09');
         });
       });
 

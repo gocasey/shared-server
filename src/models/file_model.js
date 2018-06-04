@@ -7,12 +7,12 @@ function FileModel(logger, postgrePool) {
 
   function getBusinessFile(dbFile) {
     return {
-      file_id: dbFile.file_id,
-      file_name: dbFile.file_name,
+      id: dbFile.file_id,
+      filename: dbFile.file_name,
       _rev: dbFile._rev,
       size: dbFile.size,
-      updated_time: dbFile.updated_time,
-      created_time: dbFile.created_time,
+      updatedTime: dbFile.updated_time,
+      createdTime: dbFile.created_time,
       resource: dbFile.resource,
     };
   };
@@ -76,31 +76,31 @@ function FileModel(logger, postgrePool) {
   async function executeUpdate(file) {
     let currentRev = integrityValidator.createHash(file);
     let query = 'UPDATE files SET _rev=$1, file_name=$2, size=$3, resource=$4 WHERE file_id=$5 RETURNING *;';
-    let values = [currentRev, file.file_name, file.size, file.resource, file.file_id];
+    let values = [currentRev, file.filename, file.size, file.resource, file.id];
     let response;
     try {
       response = await executeQuery(query, values);
     } catch (err) {
-      _logger.error('Error updating file with name:\'%s\' to database', file.file_id);
+      _logger.error('Error updating file with name:\'%s\' to database', file.id);
       throw err;
     }
-    _logger.info('File with id: \'%s\' updated successfully', file.file_id);
+    _logger.info('File with id: \'%s\' updated successfully', file.id);
     _logger.debug('File updated in db: %j', response.rows[0]);
     return getBusinessFile(response.rows[0]);
   };
 
   this.update = async (file) => {
-    let dbFile = await findByFileIdReturnAllParams(file.file_id);
+    let dbFile = await findByFileIdReturnAllParams(file.id);
     if (dbFile) {
       if (dbFile._rev === file._rev) {
-        _logger.info('The integrity check for file with id: \'%s\' was successful. Proceeding with update.', file.file_id);
+        _logger.info('The integrity check for file with id: \'%s\' was successful. Proceeding with update.', file.id);
         return await executeUpdate(file);
       } else {
-        _logger.error('The integrity check for file with id: \'%s\' failed. Aborting update.', file.file_id);
+        _logger.error('The integrity check for file with id: \'%s\' failed. Aborting update.', file.id);
         throw new Error('Error updating');
       }
     } else {
-      _logger.error('Update cannot be completed, file with id: \'%s\' does not exist', file.file_id);
+      _logger.error('Update cannot be completed, file with id: \'%s\' does not exist', file.id);
       throw new Error('File does not exist');
     }
   };
