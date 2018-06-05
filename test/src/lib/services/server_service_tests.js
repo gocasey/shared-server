@@ -232,7 +232,6 @@ describe('ServerService Tests', () => {
   });
 
   describe('#getAllServers', () => {
-
     describe('servers found', () => {
       before(() => {
         mockServerModel.getAllServers.resolves([{ id: 1, name: 'name', _rev: 'rev', createdTime: '2018-04-09' },

@@ -179,7 +179,7 @@ describe('ServerController Tests', () => {
   });
 
   describe('#getAllServers', () => {
-    let mockServerRequest = {}
+    let mockServerRequest = {};
     let mockResponse = {};
 
     describe('success', () => {

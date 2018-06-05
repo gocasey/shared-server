@@ -69,7 +69,9 @@ function ServerModel(logger, postgrePool) {
         return [];
       } else {
         _logger.info('Servers retrieved: %j', res.rows);
-        return res.rows.map( (server) => { return getBusinessServer(server); } );
+        return res.rows.map( (server) => {
+ return getBusinessServer(server);
+} );
       }
     } catch (err) {
       _logger.error('Error retrieving the servers from the database');
