@@ -9,28 +9,34 @@ function ServersRouter(app, logger, postgrePool) {
   app.post('/api/servers',
     _serverController.createServer,
     _serverController.generateToken,
-    _serverResponseBuilder.buildResponse
+    _serverResponseBuilder.buildSingleResponse
   );
 
   // Consulta de servidor
   app.get('/api/servers/:serverId',
     _serverController.findServer,
     _serverController.retrieveToken,
-    _serverResponseBuilder.buildResponse
+    _serverResponseBuilder.buildSingleResponse
+  );
+
+  // Consulta de todos los servidores
+  app.get('/api/servers',
+    _serverController.getAllServers,
+    _serverResponseBuilder.buildSetResponse
   );
 
   // Reseteo de token
   app.post('/api/servers/:serverId',
     _serverController.findServer,
     _serverController.generateToken,
-    _serverResponseBuilder.buildResponse
+    _serverResponseBuilder.buildSingleResponse
   );
 
   // Modificacion de servidor
   app.put('/api/servers/:serverId',
     _serverController.updateServer,
     _serverController.generateToken,
-    _serverResponseBuilder.buildResponse
+    _serverResponseBuilder.buildSingleResponse
   );
 }
 

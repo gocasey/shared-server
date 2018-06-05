@@ -38,6 +38,79 @@ describe('ServerModel Tests', () => {
     mockPool.query.resetHistory();
   });
 
+  describe('#getAllServers', () => {
+    describe('servers found', () => {
+      before(() => {
+        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev', created_time: '2018-04-09' },
+                                         { server_id: 456, server_name: 'name1', _rev: 'rev1', created_time: '2018-04-10' }] });
+      });
+
+      it('returns servers', async () => {
+        let servers = await serverModel.getAllServers();
+        expect(servers).to.be.ok();
+        expect(servers.length).to.be(2);
+        expect(servers[0].id).to.be(123);
+        expect(servers[0].name).to.be('name');
+        expect(servers[0]._rev).to.be('rev');
+        expect(servers[0].createdTime).to.be('2018-04-09');
+        expect(servers[1].id).to.be(456);
+        expect(servers[1].name).to.be('name1');
+        expect(servers[1]._rev).to.be('rev1');
+        expect(servers[1].createdTime).to.be('2018-04-10');
+      });
+
+      it('logs success', async () => {
+        await serverModel.getAllServers();
+        expect(mockLogger.info.calledOnce);
+        expect(mockLogger.info.getCall(0).args[0]).to.be('Servers retrieved: %j');
+      });
+    });
+
+    describe('no servers found', () => {
+      before(() => {
+        mockPool.query.resolves({ rows: [] });
+      });
+
+      it('returns empty', async () => {
+        let servers = await serverModel.getAllServers();
+        expect(servers).to.be.empty;
+      });
+
+      it('logs server not found', async () => {
+        await serverModel.getAllServers();
+        expect(mockLogger.info.calledOnce);
+        expect(mockLogger.info.getCall(0).args[0]).to.be('There are no servers created');
+      });
+    });
+
+    describe('db error', () => {
+      before(() => {
+        mockPool.query.rejects(new Error('DB error'));
+      });
+
+      it('returns error', async () => {
+        let err;
+        try {
+          await serverModel.getAllServers();
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.ok();
+        expect(err.message).to.be('DB error');
+      });
+
+      it('logs db failure', async () => {
+        try {
+          await serverModel.getAllServers();
+        } catch (err) { }
+        expect(mockLogger.error.calledTwice);
+        expect(mockLogger.error.getCall(0).args[0]).to.be('DB error: %j');
+        expect(mockLogger.error.getCall(0).args[1]).to.be('DB error');
+        expect(mockLogger.error.getCall(1).args[0]).to.be('Error retrieving the servers from the database');
+      });
+    });
+  });
+
   describe('#findByServerId', () => {
     describe('server found', () => {
       before(() => {

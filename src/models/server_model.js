@@ -60,6 +60,23 @@ function ServerModel(logger, postgrePool) {
     return dbServer ? getBusinessServer(dbServer) : null;
   };
 
+  this.getAllServers = async () => {
+    let query = 'SELECT server_id, server_name, _rev, created_time FROM servers;';
+    try {
+      let res = await executeQuery(query);
+      if (res.rows.length == 0) {
+        _logger.info('There are no servers created');
+        return [];
+      } else {
+        _logger.info('Servers retrieved: %j', res.rows);
+        return res.rows.map( (server) => { return getBusinessServer(server); } );
+      }
+    } catch (err) {
+      _logger.error('Error retrieving the servers from the database');
+      throw err;
+    }
+  };
+
   async function updateServerRev(serverName, rev) {
     let query = 'UPDATE servers SET _rev=$1 WHERE server_name=$2 RETURNING server_id, server_name, _rev, created_time;';
     let values = [rev, serverName];

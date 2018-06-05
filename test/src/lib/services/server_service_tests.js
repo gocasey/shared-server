@@ -10,6 +10,7 @@ const mockLogger = {
 };
 
 const mockServerModel = {
+  getAllServers: sinon.stub(),
   findByServerId: sinon.stub(),
   findByServerName: sinon.stub(),
   update: sinon.stub(),
@@ -226,6 +227,59 @@ describe('ServerService Tests', () => {
         expect(err).to.be.a(BaseHttpError);
         expect(err.statusCode).to.be(500);
         expect(err.message).to.be('Server find error');
+      });
+    });
+  });
+
+  describe('#getAllServers', () => {
+
+    describe('servers found', () => {
+      before(() => {
+        mockServerModel.getAllServers.resolves([{ id: 1, name: 'name', _rev: 'rev', createdTime: '2018-04-09' },
+                                                { id: 2, name: 'name1', _rev: 'rev1', createdTime: '2018-04-10' }]);
+      });
+
+      it('returns servers', async () => {
+        let servers = await serverService.getAllServers();
+        expect(servers).to.be.ok();
+        expect(servers.length).to.be(2);
+        expect(servers[0].id).to.be(1);
+        expect(servers[0].name).to.be('name');
+        expect(servers[0]._rev).to.be('rev');
+        expect(servers[0].createdTime).to.be('2018-04-09');
+        expect(servers[1].id).to.be(2);
+        expect(servers[1].name).to.be('name1');
+        expect(servers[1]._rev).to.be('rev1');
+        expect(servers[1].createdTime).to.be('2018-04-10');
+      });
+    });
+
+    describe('servers not found', () => {
+      before(() => {
+        mockServerModel.getAllServers.resolves([]);
+      });
+
+      it('returns empty', async () => {
+        let servers = await serverService.getAllServers();
+        expect(servers).to.be.empty;
+      });
+    });
+
+    describe('find failure', () => {
+      before(() => {
+        mockServerModel.getAllServers.rejects(new Error('Find error'));
+      });
+
+      it('throws 500 error', async () => {
+        let err;
+        try {
+          await serverService.getAllServers();
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.a(BaseHttpError);
+        expect(err.statusCode).to.be(500);
+        expect(err.message).to.be('Servers retrieval error');
       });
     });
   });

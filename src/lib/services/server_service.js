@@ -43,6 +43,15 @@ function ServerService(logger, postgrePool) {
     }
   };
 
+  this.getAllServers = async () => {
+    try {
+      return await _serverModel.getAllServers();
+    } catch (findErr) {
+      _logger.error('An error happened while retrieving all the servers');
+      throw new BaseHttpError('Servers retrieval error', 500);
+    }
+  };
+
   this.updateServer = async (serverData) => {
     try {
       return await _serverModel.update(serverData);

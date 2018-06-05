@@ -4,6 +4,7 @@ const sinon = require('sinon');
 const ServerControllerModule = '../../../src/controllers/server_controller.js';
 
 let mockServerService = {
+  getAllServers: sinon.stub(),
   createServer: sinon.stub(),
   findServer: sinon.stub(),
   updateServer: sinon.stub(),
@@ -171,6 +172,63 @@ describe('ServerController Tests', () => {
       it('calls next with error', async () => {
         let mockNext = sinon.stub();
         await serverController.findServer(mockServerRequest, mockResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(new Error('find error')));
+      });
+    });
+  });
+
+  describe('#getAllServers', () => {
+    let mockServerRequest = {}
+    let mockResponse = {};
+
+    describe('success', () => {
+      before(() => {
+        mockServerService.getAllServers.resolves([{ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09' },
+                                                  { id: 456, name: 'name1', _rev: 'rev1', createdTime: '2018-04-10' }]);
+      });
+
+      it('calls server service', async () => {
+        await serverController.getAllServers(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.getAllServers.calledOnce);
+      });
+
+      it('saves servers in response', async () => {
+        await serverController.getAllServers(mockServerRequest, mockResponse, function() {});
+        expect(mockResponse.servers).to.be.ok();
+        expect(mockResponse.servers.length).to.be(2);
+        expect(mockResponse.servers[0].id).to.be(123);
+        expect(mockResponse.servers[0].name).to.be('name');
+        expect(mockResponse.servers[0]._rev).to.be('rev');
+        expect(mockResponse.servers[0].createdTime).to.be('2018-04-09');
+        expect(mockResponse.servers[1].id).to.be(456);
+        expect(mockResponse.servers[1].name).to.be('name1');
+        expect(mockResponse.servers[1]._rev).to.be('rev1');
+        expect(mockResponse.servers[1].createdTime).to.be('2018-04-10');
+      });
+
+      it('calls next with no error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.getAllServers(mockServerRequest, mockResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(undefined));
+      });
+    });
+
+
+    describe('failure', () => {
+      before(() => {
+        mockServerService.getAllServers.rejects(new Error('find error'));
+      });
+
+      it('calls server service', async () => {
+        await serverController.getAllServers(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.getAllServers.calledOnce);
+      });
+
+      it('calls next with error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.getAllServers(mockServerRequest, mockResponse, mockNext);
         expect(mockNext.calledOnce);
         expect(mockNext.calledWith(new Error('find error')));
       });

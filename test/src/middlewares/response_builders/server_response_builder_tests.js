@@ -36,7 +36,7 @@ describe('ServerResponseBuilder Tests', function() {
 
     beforeEach(function() {
       mockLogger.debug.resetHistory();
-      serverResponseBuilder.buildResponse(mockRequest, mockResponse);
+      serverResponseBuilder.buildSingleResponse(mockRequest, mockResponse);
     });
 
     it('returns status and response', function() {
