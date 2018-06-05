@@ -56,7 +56,7 @@ describe('ServerController Tests', () => {
 
     describe('success', () => {
       before(() => {
-        mockServerService.createServer.resolves({ id: 123, name: 'name', _rev: 'rev' });
+        mockServerService.createServer.resolves({ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09' });
       });
 
       it('calls server service', async () => {
@@ -75,6 +75,7 @@ describe('ServerController Tests', () => {
         expect(mockResponse.server.id).to.be(123);
         expect(mockResponse.server.name).to.be('name');
         expect(mockResponse.server._rev).to.be('rev');
+        expect(mockResponse.server.createdTime).to.be('2018-04-09');
       });
 
       it('calls next with no error', async () => {
@@ -121,7 +122,7 @@ describe('ServerController Tests', () => {
 
     describe('success', () => {
       before(() => {
-        mockServerService.findServer.resolves({ id: 123, name: 'name', _rev: 'rev' });
+        mockServerService.findServer.resolves({ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09' });
       });
 
       it('calls server service', async () => {
@@ -140,6 +141,7 @@ describe('ServerController Tests', () => {
         expect(mockResponse.server.id).to.be(123);
         expect(mockResponse.server.name).to.be('name');
         expect(mockResponse.server._rev).to.be('rev');
+        expect(mockResponse.server.createdTime).to.be('2018-04-09');
       });
 
       it('calls next with no error', async () => {
@@ -190,7 +192,7 @@ describe('ServerController Tests', () => {
 
     describe('success', () => {
       before(() => {
-        mockServerService.updateServer.resolves({ id: 123, name: 'newName', _rev: 'newRev' });
+        mockServerService.updateServer.resolves({ id: 123, name: 'newName', _rev: 'newRev', createdTime: '2018-04-09' });
       });
 
       it('calls server service', async () => {
@@ -209,6 +211,7 @@ describe('ServerController Tests', () => {
         expect(mockResponse.server.id).to.be(123);
         expect(mockResponse.server.name).to.be('newName');
         expect(mockResponse.server._rev).to.be('newRev');
+        expect(mockResponse.server.createdTime).to.be('2018-04-09');
       });
 
       it('calls next with no error', async () => {
@@ -250,6 +253,7 @@ describe('ServerController Tests', () => {
         id: 123,
         name: 'name',
         _rev: 'rev',
+        createdTime: '2018-04-09',
       },
     };
 
@@ -317,6 +321,7 @@ describe('ServerController Tests', () => {
         id: 123,
         name: 'name',
         _rev: 'rev',
+        createdTime: '2018-04-09',
       },
     };
 

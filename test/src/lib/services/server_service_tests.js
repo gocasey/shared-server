@@ -40,7 +40,7 @@ describe('ServerService Tests', () => {
 
     describe('create success', () => {
       before(() => {
-        mockServerModel.create.resolves({ id: 1, name: 'name', _rev: 'rev' });
+        mockServerModel.create.resolves({ id: 1, name: 'name', _rev: 'rev', createdTime: '2018-04-09' });
       });
 
       it('returns server', async () => {
@@ -49,6 +49,7 @@ describe('ServerService Tests', () => {
         expect(server.id).to.be(1);
         expect(server.name).to.be('name');
         expect(server._rev).to.be('rev');
+        expect(server.createdTime).to.be('2018-04-09');
       });
     });
 
@@ -59,7 +60,7 @@ describe('ServerService Tests', () => {
 
       describe('server found', () => {
         before(() => {
-          mockServerModel.findByServerName.resolves({ id: 1, name: 'name', _rev: 'rev' });
+          mockServerModel.findByServerName.resolves({ id: 1, name: 'name', _rev: 'rev', createdTime: '2018-04-09' });
         });
 
         it('returns error', async () => {
@@ -104,7 +105,7 @@ describe('ServerService Tests', () => {
 
     describe('update success', () => {
       before(() => {
-        mockServerModel.update.resolves({ id: 1, name: 'newName', _rev: 'newRev' });
+        mockServerModel.update.resolves({ id: 1, name: 'newName', _rev: 'newRev', createdTime: '2018-04-09' });
       });
 
       it('returns server', async () => {
@@ -113,6 +114,7 @@ describe('ServerService Tests', () => {
         expect(server.id).to.be(1);
         expect(server.name).to.be('newName');
         expect(server._rev).to.be('newRev');
+        expect(server.createdTime).to.be('2018-04-09');
       });
     });
 
@@ -178,7 +180,7 @@ describe('ServerService Tests', () => {
 
     describe('server found', () => {
       before(() => {
-        mockServerModel.findByServerId.resolves({ id: 1, name: 'name', _rev: 'rev' });
+        mockServerModel.findByServerId.resolves({ id: 1, name: 'name', _rev: 'rev', createdTime: '2018-04-09' });
       });
 
       it('returns server', async () => {
@@ -187,6 +189,7 @@ describe('ServerService Tests', () => {
         expect(server.id).to.be(1);
         expect(server.name).to.be('name');
         expect(server._rev).to.be('rev');
+        expect(server.createdTime).to.be('2018-04-09');
       });
     });
 

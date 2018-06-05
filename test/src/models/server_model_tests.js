@@ -41,7 +41,7 @@ describe('ServerModel Tests', () => {
   describe('#findByServerId', () => {
     describe('server found', () => {
       before(() => {
-        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev' }] });
+        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev', created_time: '2018-04-09' }] });
       });
 
       it('returns server', async () => {
@@ -50,6 +50,7 @@ describe('ServerModel Tests', () => {
         expect(server.id).to.be(123);
         expect(server.name).to.be('name');
         expect(server._rev).to.be('rev');
+        expect(server.createdTime).to.be('2018-04-09');
       });
 
       it('logs success', async () => {
@@ -110,7 +111,7 @@ describe('ServerModel Tests', () => {
   describe('#findByServerName', () => {
     describe('server found', () => {
       before(() => {
-        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev' }] });
+        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev', created_time: '2018-04-09' }] });
       });
 
       it('returns server', async () => {
@@ -119,6 +120,7 @@ describe('ServerModel Tests', () => {
         expect(server.id).to.be(123);
         expect(server.name).to.be('name');
         expect(server._rev).to.be('rev');
+        expect(server.createdTime).to.be('2018-04-09');
       });
 
       it('logs success', async () => {
@@ -187,18 +189,21 @@ describe('ServerModel Tests', () => {
       server_id: 123,
       server_name: 'name',
       _rev: 'oldRev',
+      created_time: '2018-04-09',
     };
 
     let dbServerFoundModified = {
       server_id: 123,
       server_name: 'anotherName',
       _rev: 'anotherRev',
+      created_time: '2018-04-09',
     };
 
     let dbServerUpdated = {
       server_id: 123,
       server_name: 'newName',
       _rev: 'newRev',
+      created_time: '2018-04-09',
     };
 
     describe('server found', () => {
@@ -228,6 +233,7 @@ describe('ServerModel Tests', () => {
             expect(server.id).to.be(123);
             expect(server.name).to.be('newName');
             expect(server._rev).to.be('newRev');
+            expect(server.createdTime).to.be('2018-04-09');
           });
         });
 
@@ -342,12 +348,14 @@ describe('ServerModel Tests', () => {
     let mockDbServer = {
       server_name: 'name',
       server_id: 123,
+      created_time: '2018-04-09',
     };
 
     let mockDbServerUpdated = {
       server_name: 'name',
       server_id: 123,
       _rev: 'newRev',
+      created_time: '2018-04-09',
     };
 
     describe('insert success', () => {
@@ -376,6 +384,7 @@ describe('ServerModel Tests', () => {
           expect(server.id).to.be(123);
           expect(server.name).to.be('name');
           expect(server._rev).to.be('newRev');
+          expect(server.createdTime).to.be('2018-04-09');
         });
       });
 

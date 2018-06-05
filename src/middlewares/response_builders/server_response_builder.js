@@ -12,6 +12,7 @@ function ServerResponseBuilder(logger) {
     response.server.server.id = server.id;
     response.server.server.name = server.name;
     response.server.server._rev = server._rev;
+    response.server.server.createdTime = server.createdTime;
     response.server.token.expiresAt = serverToken.tokenExpiration;
     response.server.token.token = serverToken.token;
 
@@ -30,7 +31,7 @@ function ServerResponseBuilder(logger) {
           _rev: '',
           name: '',
           // createdBy: '',
-          // createdTime: 0,
+          createdTime: '',
           // lastConnection: 0
         },
         token: {
