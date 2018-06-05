@@ -24,9 +24,9 @@ function ServerController(logger, postgrePool) {
   this.findServer = async (req, res, next) => {
     let serverFound;
     try {
-      serverFound = await _serverService.findServer(req.params.fileId);
+      serverFound = await _serverService.findServer(req.params.serverId);
     } catch (err) {
-      _logger.error('An error ocurred while finding server with id: %s', req.params.fileId);
+      _logger.error('An error ocurred while finding server with id: %s', req.params.serverId);
       return next(err);
     }
     res.server = serverFound;

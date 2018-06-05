@@ -113,7 +113,7 @@ describe('ServerController Tests', () => {
   describe('#findServer', () => {
     let mockServerRequest = {
       params: {
-        fileId: 123,
+        serverId: 123,
       },
     };
 
