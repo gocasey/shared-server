@@ -47,7 +47,7 @@ function ServerController(logger, postgrePool) {
 
   this.updateServer = async (req, res, next) => {
     let serverDataToUpdate = {
-      id: req.params.fileId,
+      id: req.params.serverId,
       name: req.body.name,
       _rev: req.body._rev,
     };

@@ -238,7 +238,7 @@ describe('ServerController Tests', () => {
   describe('#updateServer', () => {
     let mockServerRequest = {
       params: {
-        fileId: 123,
+        serverId: 123,
       },
       body: {
         name: 'newName',
