@@ -58,7 +58,7 @@ function ServerResponseBuilder(logger) {
     });
 
     _logger.debug('Response: %j', response);
-    res.status(201).json(response);
+    res.status(200).json(response);
   };
 
   function getBasicSetResponse() {
