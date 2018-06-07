@@ -142,7 +142,7 @@ describe('UserService Tests', () => {
             err = ex;
           }
           expect(err).to.be.a(BaseHttpError);
-          expect(err.statusCode).to.be(400);
+          expect(err.statusCode).to.be(409);
           expect(err.message).to.be('Username already exists');
         });
       });
