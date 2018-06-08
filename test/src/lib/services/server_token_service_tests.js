@@ -151,7 +151,6 @@ describe('ServerTokenService Tests', function() {
       it('returns token', async function() {
         let token = await serverTokenService.retrieveToken(mockServer);
         expect(token).to.be.ok();
-        console.log(token);
         expect(token.token).to.be('token');
         expect(token.tokenExpiration).to.be(123456789);
       });
