@@ -1,5 +1,6 @@
 const ServerTokenModel = require('../../models/server_token_model.js');
 const TokenGenerationService = require('./token_generation_service');
+const BaseHttpError = require('../../errors/base_http_error.js');
 
 function ServerTokenService(logger, postgrePool) {
   let _logger = logger;
@@ -23,6 +24,21 @@ function ServerTokenService(logger, postgrePool) {
     };
     return serverToken;
   }
+
+  this.retrieveToken = async (server) => {
+    let dbToken = await _serverTokenModel.findByServer(server);
+    if (dbToken) {
+      let decodedToken = _tokenGenerationService.decodeToken(dbToken.token);
+      let serverToken = {
+        token: decodedToken.token,
+        tokenExpiration: decodedToken.expiresAt,
+      };
+      return serverToken;
+    } else {
+      _logger.error('Token for server with name: \'%s\' was not found', server.name);
+      throw new BaseHttpError('Server does not have token', 500);
+    }
+  };
 
   this.generateToken = async (server) => {
     let token = await _serverTokenModel.findByServer(server);

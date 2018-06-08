@@ -4,6 +4,7 @@ const sinon = require('sinon');
 const ServerControllerModule = '../../../src/controllers/server_controller.js';
 
 let mockServerService = {
+  getAllServers: sinon.stub(),
   createServer: sinon.stub(),
   findServer: sinon.stub(),
   updateServer: sinon.stub(),
@@ -11,6 +12,7 @@ let mockServerService = {
 
 let mockServerTokenService = {
   generateToken: sinon.stub(),
+  retrieveToken: sinon.stub(),
 };
 
 let mockLogger = {
@@ -55,7 +57,7 @@ describe('ServerController Tests', () => {
 
     describe('success', () => {
       before(() => {
-        mockServerService.createServer.resolves({ id: 123, name: 'name', _rev: 'rev' });
+        mockServerService.createServer.resolves({ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09' });
       });
 
       it('calls server service', async () => {
@@ -74,6 +76,7 @@ describe('ServerController Tests', () => {
         expect(mockResponse.server.id).to.be(123);
         expect(mockResponse.server.name).to.be('name');
         expect(mockResponse.server._rev).to.be('rev');
+        expect(mockResponse.server.createdTime).to.be('2018-04-09');
       });
 
       it('calls next with no error', async () => {
@@ -120,7 +123,7 @@ describe('ServerController Tests', () => {
 
     describe('success', () => {
       before(() => {
-        mockServerService.findServer.resolves({ id: 123, name: 'name', _rev: 'rev' });
+        mockServerService.findServer.resolves({ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09' });
       });
 
       it('calls server service', async () => {
@@ -139,6 +142,7 @@ describe('ServerController Tests', () => {
         expect(mockResponse.server.id).to.be(123);
         expect(mockResponse.server.name).to.be('name');
         expect(mockResponse.server._rev).to.be('rev');
+        expect(mockResponse.server.createdTime).to.be('2018-04-09');
       });
 
       it('calls next with no error', async () => {
@@ -174,6 +178,63 @@ describe('ServerController Tests', () => {
     });
   });
 
+  describe('#getAllServers', () => {
+    let mockServerRequest = {};
+    let mockResponse = {};
+
+    describe('success', () => {
+      before(() => {
+        mockServerService.getAllServers.resolves([{ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09' },
+                                                  { id: 456, name: 'name1', _rev: 'rev1', createdTime: '2018-04-10' }]);
+      });
+
+      it('calls server service', async () => {
+        await serverController.getAllServers(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.getAllServers.calledOnce);
+      });
+
+      it('saves servers in response', async () => {
+        await serverController.getAllServers(mockServerRequest, mockResponse, function() {});
+        expect(mockResponse.servers).to.be.ok();
+        expect(mockResponse.servers.length).to.be(2);
+        expect(mockResponse.servers[0].id).to.be(123);
+        expect(mockResponse.servers[0].name).to.be('name');
+        expect(mockResponse.servers[0]._rev).to.be('rev');
+        expect(mockResponse.servers[0].createdTime).to.be('2018-04-09');
+        expect(mockResponse.servers[1].id).to.be(456);
+        expect(mockResponse.servers[1].name).to.be('name1');
+        expect(mockResponse.servers[1]._rev).to.be('rev1');
+        expect(mockResponse.servers[1].createdTime).to.be('2018-04-10');
+      });
+
+      it('calls next with no error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.getAllServers(mockServerRequest, mockResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(undefined));
+      });
+    });
+
+
+    describe('failure', () => {
+      before(() => {
+        mockServerService.getAllServers.rejects(new Error('find error'));
+      });
+
+      it('calls server service', async () => {
+        await serverController.getAllServers(mockServerRequest, mockResponse, function() {});
+        expect(mockServerService.getAllServers.calledOnce);
+      });
+
+      it('calls next with error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.getAllServers(mockServerRequest, mockResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(new Error('find error')));
+      });
+    });
+  });
+
   describe('#updateServer', () => {
     let mockServerRequest = {
       params: {
@@ -189,7 +250,7 @@ describe('ServerController Tests', () => {
 
     describe('success', () => {
       before(() => {
-        mockServerService.updateServer.resolves({ id: 123, name: 'newName', _rev: 'newRev' });
+        mockServerService.updateServer.resolves({ id: 123, name: 'newName', _rev: 'newRev', createdTime: '2018-04-09' });
       });
 
       it('calls server service', async () => {
@@ -208,6 +269,7 @@ describe('ServerController Tests', () => {
         expect(mockResponse.server.id).to.be(123);
         expect(mockResponse.server.name).to.be('newName');
         expect(mockResponse.server._rev).to.be('newRev');
+        expect(mockResponse.server.createdTime).to.be('2018-04-09');
       });
 
       it('calls next with no error', async () => {
@@ -249,6 +311,7 @@ describe('ServerController Tests', () => {
         id: 123,
         name: 'name',
         _rev: 'rev',
+        createdTime: '2018-04-09',
       },
     };
 
@@ -306,6 +369,74 @@ describe('ServerController Tests', () => {
         await serverController.generateToken(mockRequest, mockServerResponse, mockNext);
         expect(mockNext.calledOnce);
         expect(mockNext.calledWith(new Error('token creation error')));
+      });
+    });
+  });
+
+  describe('#retrieveToken', () => {
+    let mockServerResponse = {
+      server: {
+        id: 123,
+        name: 'name',
+        _rev: 'rev',
+        createdTime: '2018-04-09',
+      },
+    };
+
+    let mockRequest = {};
+
+    describe('success', () => {
+      before(() => {
+        mockServerTokenService.retrieveToken.resolves({ token_id: 456, server_id: 123, token: 'token' });
+      });
+
+      it('calls server token service', async () => {
+        await serverController.retrieveToken(mockRequest, mockServerResponse, function() {});
+        expect(mockServerTokenService.retrieveToken.calledOnce);
+      });
+
+      it('passes correct params to server token service', async () => {
+        await serverController.retrieveToken(mockRequest, mockServerResponse, function() {});
+        expect(mockServerTokenService.retrieveToken.getCall(0).args[0]).to.be.eql(mockServerResponse.server);
+      });
+
+      it('saves token in response', async () => {
+        await serverController.retrieveToken(mockRequest, mockServerResponse, function() {});
+        expect(mockServerResponse.serverToken).to.be.ok();
+        expect(mockServerResponse.serverToken.token_id).to.be(456);
+        expect(mockServerResponse.serverToken.server_id).to.be(123);
+        expect(mockServerResponse.serverToken.token).to.be('token');
+      });
+
+      it('calls next with no error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.retrieveToken(mockRequest, mockServerResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(undefined));
+      });
+    });
+
+
+    describe('failure', () => {
+      before(() => {
+        mockServerTokenService.retrieveToken.rejects(new Error('token error'));
+      });
+
+      it('calls server token service', async () => {
+        await serverController.retrieveToken(mockRequest, mockServerResponse, function() {});
+        expect(mockServerTokenService.retrieveToken.calledOnce);
+      });
+
+      it('passes correct params to server token service', async () => {
+        await serverController.retrieveToken(mockRequest, mockServerResponse, function() {});
+        expect(mockServerTokenService.retrieveToken.getCall(0).args[0]).to.be.eql(mockServerResponse.server);
+      });
+
+      it('calls next with error', async () => {
+        let mockNext = sinon.stub();
+        await serverController.retrieveToken(mockRequest, mockServerResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(new Error('token error')));
       });
     });
   });

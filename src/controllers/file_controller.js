@@ -38,6 +38,18 @@ function FileController(logger, postgrePool) {
     res.file = fileModified;
     return next();
   };
+
+  this.findFile = async (req, res, next) => {
+    let fileFound;
+    try {
+      fileFound = await _fileService.findFile(req.params.fileId);
+    } catch (err) {
+      _logger.error('An error ocurred while finding file with id: %s', req.params.fileId);
+      return next(err);
+    }
+    res.file = fileFound;
+    return next();
+  };
 }
 
 module.exports = FileController;

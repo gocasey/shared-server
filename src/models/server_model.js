@@ -10,11 +10,12 @@ function ServerModel(logger, postgrePool) {
       id: dbServer.server_id,
       name: dbServer.server_name,
       _rev: dbServer._rev,
+      createdTime: dbServer.created_time,
     };
   };
 
   async function findByServerNameReturnAllParams(serverName) {
-    let query = 'SELECT server_id, server_name, _rev FROM servers WHERE server_name = $1;';
+    let query = 'SELECT server_id, server_name, _rev, created_time FROM servers WHERE server_name = $1;';
     let values = [serverName];
     try {
       let res = await executeQuery(query, values);
@@ -32,7 +33,7 @@ function ServerModel(logger, postgrePool) {
   }
 
   async function findByServerIdReturnAllParams(serverId) {
-    let query = 'SELECT server_id, server_name, _rev FROM servers WHERE server_id = $1;';
+    let query = 'SELECT server_id, server_name, _rev, created_time FROM servers WHERE server_id = $1;';
     let values = [serverId];
     try {
       let res = await executeQuery(query, values);
@@ -59,8 +60,27 @@ function ServerModel(logger, postgrePool) {
     return dbServer ? getBusinessServer(dbServer) : null;
   };
 
+  this.getAllServers = async () => {
+    let query = 'SELECT server_id, server_name, _rev, created_time FROM servers;';
+    try {
+      let res = await executeQuery(query);
+      if (res.rows.length == 0) {
+        _logger.info('There are no servers created');
+        return [];
+      } else {
+        _logger.info('Servers retrieved: %j', res.rows);
+        return res.rows.map( (server) => {
+ return getBusinessServer(server);
+} );
+      }
+    } catch (err) {
+      _logger.error('Error retrieving the servers from the database');
+      throw err;
+    }
+  };
+
   async function updateServerRev(serverName, rev) {
-    let query = 'UPDATE servers SET _rev=$1 WHERE server_name=$2 RETURNING server_id, server_name, _rev;';
+    let query = 'UPDATE servers SET _rev=$1 WHERE server_name=$2 RETURNING server_id, server_name, _rev, created_time;';
     let values = [rev, serverName];
     try {
       let res = await executeQuery(query, values);
@@ -74,7 +94,7 @@ function ServerModel(logger, postgrePool) {
 
 
   this.create = async (server) => {
-    let query = 'INSERT INTO servers(server_name) VALUES ($1) RETURNING server_id, server_name;';
+    let query = 'INSERT INTO servers(server_name) VALUES ($1) RETURNING server_id, server_name, created_time;';
     let values = [server.name];
     let response;
     try {
@@ -92,7 +112,7 @@ function ServerModel(logger, postgrePool) {
 
   async function executeUpdate(server) {
     let currentRev = integrityValidator.createHash(server);
-    let query = 'UPDATE servers SET server_name=$1, _rev=$2 WHERE server_id=$3 RETURNING *;';
+    let query = 'UPDATE servers SET server_name=$1, _rev=$2 WHERE server_id=$3 RETURNING server_id, server_name, _rev, created_time;';
     let values = [server.name, currentRev, server.id];
     try {
       let res = await executeQuery(query, values);

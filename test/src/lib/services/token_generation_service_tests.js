@@ -40,6 +40,15 @@ describe('TokenGenerationService Tests', function() {
     name: 'name',
   };
 
+  describe('#decodeToken', function() {
+    it('returns token with expiration', async () => {
+      let decodedToken = await tokenGenerationService.decodeToken('token');
+      expect(decodedToken).to.be.ok();
+      expect(decodedToken.token).to.be('token');
+      expect(decodedToken.expiresAt).to.be('12345678');
+    });
+  });
+
   describe('#generateToken', function() {
     describe('jwt sign success', function() {
       beforeEach(function() {

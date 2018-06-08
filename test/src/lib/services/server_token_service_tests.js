@@ -1,6 +1,7 @@
 const expect = require('expect.js');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
+const BaseHttpError = require('../../../../src/errors/base_http_error.js');
 const ServerTokenServiceModule = '../../../../src/lib/services/server_token_service.js';
 
 const mockLogger = {
@@ -16,6 +17,7 @@ const mockServerTokenModel = {
 const mockTokenGenerationService = {
   generateToken: sinon.stub(),
   validateToken: sinon.stub(),
+  decodeToken: sinon.stub(),
 };
 
 function setupServerTokenService() {
@@ -135,6 +137,41 @@ describe('ServerTokenService Tests', function() {
           expect(err).to.be.ok();
           expect(err.message).to.be('token error');
         });
+      });
+    });
+  });
+
+  describe('#retrieveToken', function() {
+    describe('token found', async () => {
+      before(function() {
+        mockServerTokenModel.findByServer.resolves({ token_id: 6789, server_id: 12345, token: 'token' });
+        mockTokenGenerationService.decodeToken.returns({ token: 'token', expiresAt: 123456789 });
+      });
+
+      it('returns token', async function() {
+        let token = await serverTokenService.retrieveToken(mockServer);
+        expect(token).to.be.ok();
+        expect(token.token).to.be('token');
+        expect(token.tokenExpiration).to.be(123456789);
+      });
+    });
+
+    describe('token not found', async () => {
+      before(function() {
+        mockServerTokenModel.findByServer.resolves();
+      });
+
+      it('throws 500 error', async function() {
+        let err;
+        try {
+          await serverTokenService.retrieveToken(mockServer);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.ok();
+        expect(err).to.be.a(BaseHttpError);
+        expect(err.statusCode).to.be(500);
+        expect(err.message).to.be('Server does not have token');
       });
     });
   });

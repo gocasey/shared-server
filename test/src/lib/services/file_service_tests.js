@@ -12,6 +12,7 @@ const mockLogger = {
 const mockFileModel = {
   create: sinon.stub(),
   update: sinon.stub(),
+  findByFileId: sinon.stub(),
 };
 
 const mockFs = {
@@ -213,6 +214,67 @@ describe('FileService Tests', () => {
         expect(error).to.be.a(BaseHttpError);
         expect(error.statusCode).to.be(404);
         expect(error.message).to.be('File does not exist');
+      });
+    });
+  });
+
+  describe('#findFile', () => {
+    let mockBody = {
+      id: 1,
+    };
+
+    describe('file found', () => {
+      before(() => {
+        mockFileModel.findByFileId.resolves({ id: 1, filename: 'name', _rev: 'rev', size: 789,
+                                              resource: 'remoteFileUri', updatedTime: '2018-04-09', createdTime: '2018-04-09' });
+      });
+
+      it('returns file', async () => {
+        let file = await fileService.findFile(mockBody);
+        expect(file).to.be.ok();
+        expect(file.id).to.be(1);
+        expect(file.filename).to.be('name');
+        expect(file._rev).to.be('rev');
+        expect(file.size).to.be(789);
+        expect(file.resource).to.be('remoteFileUri');
+        expect(file.updatedTime).to.be('2018-04-09');
+        expect(file.createdTime).to.be('2018-04-09');
+      });
+    });
+
+    describe('file not found', () => {
+      before(() => {
+        mockFileModel.findByFileId.resolves();
+      });
+
+      it('throws 404 error', async () => {
+        let err;
+        try {
+          await fileService.findFile(mockBody);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.a(BaseHttpError);
+        expect(err.statusCode).to.be(404);
+        expect(err.message).to.be('File does not exist');
+      });
+    });
+
+    describe('find failure', () => {
+      before(() => {
+        mockFileModel.findByFileId.rejects(new Error('Find error'));
+      });
+
+      it('throws 500 error', async () => {
+        let err;
+        try {
+          await fileService.findFile(mockBody);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.a(BaseHttpError);
+        expect(err.statusCode).to.be(500);
+        expect(err.message).to.be('File find error');
       });
     });
   });

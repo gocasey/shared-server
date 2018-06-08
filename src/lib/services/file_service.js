@@ -71,6 +71,22 @@ function FileService(logger, postgrePool) {
       } else throw new BaseHttpError('File update error', 500);
     }
   };
+
+  this.findFile = async (fileId) => {
+    let file;
+    try {
+      file = await _fileModel.findByFileId(fileId);
+    } catch (findErr) {
+      _logger.error('An error happened while looking for the file with id: \'%s\'', fileId);
+      throw new BaseHttpError('File find error', 500);
+    }
+    if (file) {
+      return file;
+    } else {
+      _logger.error('The file with id: \'%s\' was not found', fileId);
+      throw new BaseHttpError('File does not exist', 404);
+    }
+  };
 }
 
 module.exports = FileService;

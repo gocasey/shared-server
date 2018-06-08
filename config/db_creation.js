@@ -22,7 +22,9 @@ $$ LANGUAGE plpgsql;`
 const serversTableCreationQuery = `CREATE TABLE servers (
   server_id serial PRIMARY KEY,
   server_name varchar(100) UNIQUE NOT NULL,
-  _rev varchar(500)
+  _rev varchar(500),
+  created_time timestamp NOT NULL DEFAULT NOW(),
+  updated_time timestamp NOT NULL DEFAULT NOW()
 );`
 
 const usersTableCreationQuery = `CREATE TABLE users (
@@ -55,15 +57,22 @@ const filesTableCreationQuery = `CREATE TABLE files (
   resource varchar(500)
 );`
 
-const filesTimestampTrigger = `CREATE TRIGGER set_timestamp
+const filesUpdateTimeTrigger = `CREATE TRIGGER set_timestamp
 BEFORE UPDATE ON files
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();`
+
+const serversUpdateTimeTrigger = `CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON servers
 FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();`
 
 client.connect();
 
-const cleanupQueries = [serversTokensTableCleanupQuery, usersTokensTableCleanupQuery, usersTableCleanupQuery, serversTableCleanupQuery, filesTableCleanupQuery];
-const creationQueries = [createTimestampFunction, serversTableCreationQuery, usersTableCreationQuery, usersTokensTableCreationQuery, serversTokensTableCreationQuery, filesTableCreationQuery, filesTimestampTrigger];
+const cleanupQueries = [serversTokensTableCleanupQuery, usersTokensTableCleanupQuery, usersTableCleanupQuery,
+                        serversTableCleanupQuery, filesTableCleanupQuery];
+const creationQueries = [ createTimestampFunction, serversTableCreationQuery, usersTableCreationQuery, usersTokensTableCreationQuery,
+                          serversTokensTableCreationQuery, filesTableCreationQuery, filesUpdateTimeTrigger, serversUpdateTimeTrigger];
 const queriesToRun = cleanupQueries.concat(creationQueries);
 
 runQueries();

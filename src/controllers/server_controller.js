@@ -33,6 +33,18 @@ function ServerController(logger, postgrePool) {
     return next();
   };
 
+  this.getAllServers = async (req, res, next) => {
+    let servers;
+    try {
+      servers = await _serverService.getAllServers();
+    } catch (err) {
+      _logger.error('An error ocurred while retrieving all the servers');
+      return next(err);
+    }
+    res.servers = servers;
+    return next();
+  };
+
   this.updateServer = async (req, res, next) => {
     let serverDataToUpdate = {
       id: req.params.serverId,
@@ -57,6 +69,19 @@ function ServerController(logger, postgrePool) {
       token = await _serverTokenService.generateToken(server);
     } catch (err) {
       _logger.error('An error ocurred while generating the token for server name: %s', server.name);
+      return next(err);
+    }
+    res.serverToken = token;
+    return next();
+  };
+
+  this.retrieveToken = async (req, res, next) => {
+    let server = res.server;
+    let token;
+    try {
+      token = await _serverTokenService.retrieveToken(server);
+    } catch (err) {
+      _logger.error('An error ocurred while retrieving the token for server name: %s', server.name);
       return next(err);
     }
     res.serverToken = token;
