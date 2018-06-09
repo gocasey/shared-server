@@ -18,7 +18,7 @@ function FileModel(logger, postgrePool) {
   };
 
   async function findByFileIdReturnAllParams(fileId) {
-    let query = 'SELECT file_id, file_name, _rev FROM files WHERE file_id = $1;';
+    let query = 'SELECT file_id, file_name, _rev, size, resource, updated_time, created_time FROM files WHERE file_id = $1;';
     let values = [fileId];
     let response;
     try {

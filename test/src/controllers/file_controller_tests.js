@@ -6,6 +6,7 @@ const FileControllerModule = '../../../src/controllers/file_controller.js';
 let mockFileService = {
   createFile: sinon.stub(),
   updateFile: sinon.stub(),
+  findFile: sinon.stub(),
 };
 
 let mockLogger = {
@@ -201,6 +202,76 @@ describe('FileController Tests', () => {
         await fileController.updateFile(mockFileRequest, mockResponse, mockNext);
         expect(mockNext.calledOnce);
         expect(mockNext.calledWith(new Error('update error')));
+      });
+    });
+  });
+
+  describe('#findFile', () => {
+    let mockFileRequest = {
+      params: {
+        fileId: 123,
+      },
+    };
+
+    let mockResponse = {};
+
+    describe('success', () => {
+      before(() => {
+        mockFileService.findFile.resolves({ id: 123, filename: 'name', _rev: 'rev', size: 789,
+                                            resource: 'remoteFileUri', updatedTime: '2018-04-09', createdTime: '2018-04-09' });
+      });
+
+      it('calls file service', async () => {
+        await fileController.findFile(mockFileRequest, mockResponse, function() {});
+        expect(mockFileService.findFile.calledOnce);
+      });
+
+      it('passes correct params to file service', async () => {
+        await fileController.findFile(mockFileRequest, mockResponse, function() {});
+        expect(mockFileService.findFile.getCall(0).args[0]).to.be.eql(123);
+      });
+
+      it('saves file in response', async () => {
+        await fileController.findFile(mockFileRequest, mockResponse, function() {});
+        expect(mockResponse.file).to.be.ok();
+        expect(mockResponse.file.id).to.be(123);
+        expect(mockResponse.file.filename).to.be('name');
+        expect(mockResponse.file._rev).to.be('rev');
+        expect(mockResponse.file.size).to.be(789);
+        expect(mockResponse.file.resource).to.be('remoteFileUri');
+        expect(mockResponse.file.updatedTime).to.be('2018-04-09');
+        expect(mockResponse.file.createdTime).to.be('2018-04-09');
+      });
+
+      it('calls next with no error', async () => {
+        let mockNext = sinon.stub();
+        await fileController.findFile(mockFileRequest, mockResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(undefined));
+      });
+    });
+
+
+    describe('failure', () => {
+      before(() => {
+        mockFileService.findFile.rejects(new Error('find error'));
+      });
+
+      it('calls file service', async () => {
+        await fileController.findFile(mockFileRequest, mockResponse, function() {});
+        expect(mockFileService.findFile.calledOnce);
+      });
+
+      it('passes correct params to file service', async () => {
+        await fileController.findFile(mockFileRequest, mockResponse, function() {});
+        expect(mockFileService.findFile.getCall(0).args[0]).to.be.eql(123);
+      });
+
+      it('calls next with error', async () => {
+        let mockNext = sinon.stub();
+        await fileController.findFile(mockFileRequest, mockResponse, mockNext);
+        expect(mockNext.calledOnce);
+        expect(mockNext.calledWith(new Error('find error')));
       });
     });
   });

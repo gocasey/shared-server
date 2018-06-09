@@ -3,15 +3,16 @@ const pjson = require('../../../package.json');
 function ServerResponseBuilder(logger) {
   let _logger = logger;
 
-  this.buildResponse = function(req, res) {
+  this.buildSingleResponse = function(req, res) {
     let server = res.server;
     let serverToken = res.serverToken;
 
-    let response = getBasicResponse();
+    let response = getBasicSingleResponse();
     response.metadata.version = pjson.version;
     response.server.server.id = server.id;
     response.server.server.name = server.name;
     response.server.server._rev = server._rev;
+    response.server.server.createdTime = server.createdTime;
     response.server.token.expiresAt = serverToken.tokenExpiration;
     response.server.token.token = serverToken.token;
 
@@ -19,7 +20,7 @@ function ServerResponseBuilder(logger) {
     res.status(201).json(response);
   };
 
-  function getBasicResponse() {
+  function getBasicSingleResponse() {
     return {
       metadata: {
         version: '',
@@ -30,7 +31,7 @@ function ServerResponseBuilder(logger) {
           _rev: '',
           name: '',
           // createdBy: '',
-          // createdTime: 0,
+          createdTime: '',
           // lastConnection: 0
         },
         token: {
@@ -38,6 +39,34 @@ function ServerResponseBuilder(logger) {
           token: '',
         },
       },
+    };
+  }
+
+  this.buildSetResponse = function(req, res) {
+    let servers = res.servers;
+
+    let response = getBasicSetResponse();
+    response.metadata.version = pjson.version;
+
+    servers.forEach( (server) => {
+      let serverResponse = {};
+      serverResponse.id = server.id;
+      serverResponse.name = server.name;
+      serverResponse._rev = server._rev;
+      serverResponse.createdTime = server.createdTime;
+      response.servers.push(serverResponse);
+    });
+
+    _logger.debug('Response: %j', response);
+    res.status(200).json(response);
+  };
+
+  function getBasicSetResponse() {
+    return {
+      metadata: {
+        version: '',
+      },
+      servers: [],
     };
   }
 }

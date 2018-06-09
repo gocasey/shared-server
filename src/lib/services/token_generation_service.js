@@ -3,13 +3,17 @@ const jwt = require('jsonwebtoken');
 function TokenGenerationService(logger) {
   let _logger = logger;
 
+  this.decodeToken = (token) => {
+    let tokenData = jwt.decode(token);
+    return { token: token, expiresAt: tokenData.exp };
+  };
+
   this.generateToken = async (data, expiration) => {
     // replace hardcoded secret with private key
     try {
       let token = await jwt.sign({ data: data }, 'secret', { expiresIn: expiration } );
-      _logger.info('Token created successfully');
-      let tokenData = jwt.decode(token);
-      return { token: token, expiresAt: tokenData.exp };
+      _logger.info('Token was created successfully for owner name: \'%s\'', owner.name);
+      return this.decodeToken(token);
     } catch (err) {
       _logger.error('Token generation failed');
       throw err;
