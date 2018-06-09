@@ -1,9 +1,6 @@
-sudo: required
 language: node_js
 node_js:
 - '8'
-services:
-- docker
 cache:
   directories:
   - node_modules
@@ -27,8 +24,13 @@ jobs:
     - npm run coverage
     - npm run coveralls
   - stage: deploy
-    if: branch = master and type != pull_request
-    script:
-    - docker login --username=_ --password=$HEROKU_TOKEN registry.heroku.com
-    - docker build -t registry.heroku.com/shared-server-stories/web .
-    - docker push registry.heroku.com/shared-server-stories/web
+    script: ignore
+    deploy:
+    - provider: heroku
+      app: shared-server-stories
+      skip_cleanup: true
+      api_key:
+        secure: cBvXGnrwoOtZkvikhtbq4Y08w53IpbsaszkpLNnkX8Y+rH9DES+DEXYAoILiUfGjAOoVCJA0aFnsYLThzUJSuZbgs9vIsQF0cOQFu6ACa+lNiKeptBXzP2wupTqa2iai2SKI9+R3H6CnIr+zCJ2LSfTM4vP1rvuA7TyhmcWaKtrx4957yRqM5mv0VF3w7BErgpBGA25nwXhHAbOQv/AJWDSyn9PCl2LmzSCWoepzhFhni3ivu2o55/0BNyPoTSeIehOd/J3Dm5vbjw0smWHDXRob9eLkbC4+AlqAawahTqgqXP3LbhbvV3xEDknDaq5x48V+cekbeXOSesweJOwcJTSiPXoFqvb7OasH6ioIf4+k7n0vGyPoBfPVY/ebJ2e9u/I/Z0iR5fL9lJAIqRrr+XzyapJZwEJXICrrMkgrBL7QvxsOmXq9yYhldCeu8mcGVGNh6jC4XdGmackYOGRJ/83pUDhv4AKnhXANovPvuZyShtkkkF8joffhT8uL8kcVlve/8GkzjKLDY9cq95pEUs+ijniL8oZXQXzALJSMYYVkjKFPQrLC7y2vqWEYxxOJ2/DA2StTte53/6JXZNPC665Cf82fUxDU8VDd7/ygKZ4FNkEJtg/Jhb2TAS0Xs9spKzwu14/ivTIMafHvCarzNTFWB4DtXBjHdvlQ5kBO63c=
+      on:
+        branch: master
+        repo: taller2-2018-1-grupo2/shared-server
