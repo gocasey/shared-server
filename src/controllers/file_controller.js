@@ -1,3 +1,6 @@
+const fs = require('fs');
+const multer = require('multer');
+const config = require('../../config/default.js');
 const FileService = require('../lib/services/file_service.js');
 
 function FileController(logger, postgrePool) {
@@ -11,13 +14,40 @@ function FileController(logger, postgrePool) {
     };
     let fileUploaded;
     try {
-      fileUploaded = await _fileService.createFile(fileDataToCreate);
+      fileUploaded = await _fileService.createFileAndUpload(fileDataToCreate);
     } catch (err) {
       _logger.error('An error ocurred while creating the file');
       return next(err);
     }
     res.file = fileUploaded;
     return next();
+  };
+
+  this.createFileFromMultipart = async (req, res, next) => {
+    let filesDirectory = config.TEMP_FILES_DIRECTORY;
+    if (!fs.existsSync(filesDirectory)) {
+      fs.mkdirSync('temp');
+      fs.mkdirSync(filesDirectory);
+    }
+    var storageOpts = multer.diskStorage({
+      destination: (req, file, cb) => cb(null, filesDirectory),
+      filename: (req, file, cb) => cb(null, Date.now() + file.originalname),
+    });
+    let upload = multer({ storage: storageOpts });
+    upload.single('file')(req, res, async (err) => {
+      if (err) next(err);
+      else {
+        let fileUploaded;
+        try {
+          fileUploaded = await _fileService.loadFileAndUpload(req.file.path);
+        } catch (err) {
+          _logger.error('An error ocurred while creating the file');
+          return next(err);
+        }
+        res.file = fileUploaded;
+        return next();
+      }
+    });
   };
 
   this.updateFile = async (req, res, next) => {

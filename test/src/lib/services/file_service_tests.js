@@ -67,7 +67,7 @@ describe('FileService Tests', () => {
 
       it('returns file', async () => {
         let mockFileBody = getMockFileData();
-        let file = await fileService.createFile(mockFileBody);
+        let file = await fileService.createFileAndUpload(mockFileBody);
         expect(file).to.be.ok();
         expect(file.id).to.be(1);
         expect(file.filename).to.be('name');
@@ -93,7 +93,7 @@ describe('FileService Tests', () => {
         let mockFileBody = getMockFileData();
         let error;
         try {
-          await fileService.createFile(mockFileBody);
+          await fileService.createFileAndUpload(mockFileBody);
         } catch (ex) {
           error = ex;
         }
@@ -115,7 +115,7 @@ describe('FileService Tests', () => {
         let mockFileBody = getMockFileData();
         let error;
         try {
-          await fileService.createFile(mockFileBody);
+          await fileService.createFileAndUpload(mockFileBody);
         } catch (ex) {
           error = ex;
         }
