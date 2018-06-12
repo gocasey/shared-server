@@ -4,7 +4,7 @@ function FileController(logger, postgrePool) {
   let _logger = logger;
   let _fileService = new FileService(logger, postgrePool);
 
-  this.createFile = async (req, res, next) => {
+  this.createFileFromJson = async (req, res, next) => {
     let fileDataToCreate = {
       encodedFile: req.body.file,
       name: req.body.metadata.name,
