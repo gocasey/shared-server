@@ -29,7 +29,7 @@ function FileController(logger, postgrePool) {
       fs.mkdirSync('temp');
       fs.mkdirSync(filesDirectory);
     }
-    var storageOpts = multer.diskStorage({
+    let storageOpts = multer.diskStorage({
       destination: (req, file, cb) => cb(null, filesDirectory),
       filename: (req, file, cb) => cb(null, Date.now() + file.originalname),
     });
