@@ -15,14 +15,15 @@ function ApplicationUserTokenGenerationService(logger) {
   this.generateToken = async (user) => {
     let applicationUserData = getApplicationUserData(user);
     let applicationUserExpiration = '1h';
+    let token;
     try {
-      let token = await _tokenGenerationService.generateToken(applicationUserData, applicationUserExpiration);
-      _logger.info('Token created for user: \'%s\'', user.username);
-      return token;
+      token = await _tokenGenerationService.generateToken(applicationUserData, applicationUserExpiration);
     } catch (err) {
       _logger.error('Error creating token for user: \'%s\'', user.username);
       throw err;
     }
+    _logger.info('Token created for user: \'%s\'', user.username);
+    return token;
   };
 
   function isValidOwner(decodedData, owner) {
@@ -30,16 +31,17 @@ function ApplicationUserTokenGenerationService(logger) {
   }
 
   this.validateToken = async (token, user) => {
+    let validatedToken;
     try {
-      let validatedToken = await _tokenGenerationService.validateToken(token, (decodedData) => {
+      validatedToken = await _tokenGenerationService.validateToken(token, (decodedData) => {
         return isValidOwner(decodedData, getApplicationUserData(user));
       });
-      _logger.info('Token validated for user: \'%s\'', user.username);
-      return validatedToken;
     } catch (err) {
       _logger.error('Error validating token for user: \'%s\'', user.username);
       throw err;
     }
+    _logger.info('Token validated for user: \'%s\'', user.username);
+    return validatedToken;
   };
 
   this.getUserIdFromToken = async (token) => {

@@ -1,6 +1,7 @@
 const TokenGenerationService = require('../services/token_generation_service.js');
 
 function AdminUserTokenGenerationService(logger) {
+  let _logger = logger;
   let _tokenGenerationService = new TokenGenerationService(logger);
 
   function getAdminUserData(user) {
@@ -14,14 +15,15 @@ function AdminUserTokenGenerationService(logger) {
   this.generateToken = async (user) => {
     let adminUserData = getAdminUserData(user);
     let adminUserExpiration = '12h';
+    let token;
     try {
-      let token = await _tokenGenerationService.generateToken(adminUserData, adminUserExpiration);
-      _logger.info('Token created for admin user: \'%s\'', user.username);
-      return token;
+      token = await _tokenGenerationService.generateToken(adminUserData, adminUserExpiration);
     } catch (err) {
       _logger.error('Error creating token for admin user: \'%s\'', user.username);
       throw err;
     }
+    _logger.info('Token created for admin user: \'%s\'', user.username);
+    return token;
   };
 
   function isValidOwner(decodedData, owner) {
@@ -29,16 +31,17 @@ function AdminUserTokenGenerationService(logger) {
   }
 
   this.validateToken = async (token, user) => {
+    let validatedToken;
     try {
-      let validatedToken = await _tokenGenerationService.validateToken(token, (decodedData) => {
+      validatedToken = await _tokenGenerationService.validateToken(token, (decodedData) => {
         return isValidOwner(decodedData, getAdminUserData(user));
       });
-      _logger.info('Token validated for admin user: \'%s\'', user.username);
-      return validatedToken;
     } catch (err) {
       _logger.error('Error validating token for admin user: \'%s\'', user.username);
       throw err;
     }
+    _logger.info('Token validated for admin user: \'%s\'', user.username);
+    return validatedToken;
   };
 
   this.getUserIdFromToken = async (token) => {
