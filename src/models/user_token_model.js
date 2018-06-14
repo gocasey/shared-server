@@ -10,9 +10,6 @@ function UserTokenModel(logger, postgrePool) {
       if (response.rows.length == 0) {
         _logger.info('Token for username:\'%s\' not found', user.username);
         return;
-      } else if (response.rows.length > 1) {
-        _logger.warn('More than a token found for username: \'%s\'', user.username);
-        return response.rows[0];
       } else {
         _logger.info('Token for username:\'%s\' found', user.username);
         return response.rows[0];
@@ -31,9 +28,6 @@ function UserTokenModel(logger, postgrePool) {
       if (response.rows.length == 0) {
         _logger.info('Token for user_id:\'%s\' not found', userId);
         return;
-      } else if (response.rows.length > 1) {
-        _logger.warn('More than a token found for user_id: \'%s\'', userId);
-        return response.rows[0];
       } else {
         _logger.info('Token for user_id:\'%s\' found', userId);
         return response.rows[0];
