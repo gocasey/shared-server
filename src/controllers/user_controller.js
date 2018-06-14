@@ -6,24 +6,23 @@ function UserController(logger, postgrePool) {
   let _logger = logger;
   let _postgrePool = postgrePool;
   let _userService = new UserService(logger, postgrePool);
-  let _userTokenService;
+  let _userTokenGenerationServiceFactory = new UserTokenGenerationServiceFactory(logger);
 
   this.generateTokenForApplicationUser = async (req, res, next) => {
-    let tokenGenerationService = new UserTokenGenerationServiceFactory().getApplicationUserTokenGenerationService();
-    _userTokenService = new UserTokenService(_logger, _postgrePool, tokenGenerationService);
-    await this.generateToken(req, res, next);
+    let tokenGenerationService = _userTokenGenerationServiceFactory.getApplicationUserTokenGenerationService();
+    await generateToken(req, res, next, tokenGenerationService);
   };
 
   this.generateTokenForAdminUser = async (req, res, next) => {
-    let tokenGenerationService = new UserTokenGenerationServiceFactory().getAdminUserTokenGenerationService();
-    _userTokenService = new UserTokenService(_logger, _postgrePool, tokenGenerationService);
-    await this.generateToken(req, res, next);
+    let tokenGenerationService = _userTokenGenerationServiceFactory.getAdminUserTokenGenerationService();
+    await generateToken(req, res, next, tokenGenerationService);
   };
 
-  this.generateToken = async (req, res, next) => {
+  async function generateToken(req, res, next, tokenGenerationService) {
+    let userTokenService = new UserTokenService(_logger, _postgrePool, tokenGenerationService);
     let user = res.user;
     try {
-      let token = await _userTokenService.generateToken(user);
+      let token = await userTokenService.generateToken(user);
       res.data = token;
       return next();
     } catch (err) {
