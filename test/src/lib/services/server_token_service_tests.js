@@ -59,7 +59,7 @@ describe('ServerTokenService Tests', function() {
         });
 
         it('returns token', async function() {
-          let token = await serverTokenService.generateTokenForApplicationUser(mockServer);
+          let token = await serverTokenService.generateToken(mockServer);
           expect(token).to.be.ok();
           expect(token.token).to.be('token');
           expect(token.tokenExpiration).to.be(123456789);
@@ -73,7 +73,7 @@ describe('ServerTokenService Tests', function() {
         });
 
         it('returns new token', async () => {
-          let token = await serverTokenService.generateTokenForApplicationUser(mockServer);
+          let token = await serverTokenService.generateToken(mockServer);
           expect(token).to.be.ok();
           expect(token.token).to.be('new token');
           expect(token.tokenExpiration).to.be(123456789);
@@ -97,7 +97,7 @@ describe('ServerTokenService Tests', function() {
           });
 
           it('returns token', async function() {
-            let token = await serverTokenService.generateTokenForApplicationUser(mockServer);
+            let token = await serverTokenService.generateToken(mockServer);
             expect(token).to.be.ok();
             expect(token.token).to.be('token');
             expect(token.tokenExpiration).to.be(123456789);
@@ -112,7 +112,7 @@ describe('ServerTokenService Tests', function() {
           it('returns error', async function() {
             let err;
             try {
-              await serverTokenService.generateTokenForApplicationUser(mockServer);
+              await serverTokenService.generateToken(mockServer);
             } catch (ex) {
               err = ex;
             }
@@ -130,7 +130,7 @@ describe('ServerTokenService Tests', function() {
         it('returns error', async function() {
           let err;
           try {
-            await serverTokenService.generateTokenForApplicationUser(mockServer);
+            await serverTokenService.generateToken(mockServer);
           } catch (ex) {
             err = ex;
           }

@@ -57,20 +57,20 @@ describe('TokenGenerationService Tests', function() {
       });
 
       it('returns token', async function() {
-        let token = await tokenGenerationService.generateTokenForApplicationUser(mockData);
+        let token = await tokenGenerationService.generateToken(mockData);
         expect(token).to.be.ok();
         expect(token.token).to.be('token');
         expect(token.expiresAt).to.be('12345678');
       });
 
       it('logs success', async function() {
-        await tokenGenerationService.generateTokenForApplicationUser(mockData);
+        await tokenGenerationService.generateToken(mockData);
         expect(mockLogger.info.calledOnce);
         expect(mockLogger.info.getCall(0).args[0]).to.be('Token created successfully');
       });
 
       it('does not log error', async function() {
-        await tokenGenerationService.generateTokenForApplicationUser(mockData);
+        await tokenGenerationService.generateToken(mockData);
         expect(mockLogger.error.notCalled);
       });
     });
@@ -84,7 +84,7 @@ describe('TokenGenerationService Tests', function() {
       it('returns error', async function() {
         let err;
         try {
-          await tokenGenerationService.generateTokenForApplicationUser(mockData);
+          await tokenGenerationService.generateToken(mockData);
         } catch (ex) {
           err = ex;
         }
@@ -94,7 +94,7 @@ describe('TokenGenerationService Tests', function() {
 
       it('logs failure', async function() {
         try {
-          await tokenGenerationService.generateTokenForApplicationUser(mockData);
+          await tokenGenerationService.generateToken(mockData);
         } catch (err) { }
         expect(mockLogger.error.calledOnce);
         expect(mockLogger.error.getCall(0).args[0]).to.be('Token generation failed');

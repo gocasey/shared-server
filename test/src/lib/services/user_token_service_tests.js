@@ -55,7 +55,7 @@ describe('UserTokenService Tests', () => {
         });
 
         it('returns token', async () => {
-          let token = await userTokenService.generateTokenForApplicationUser(mockUser);
+          let token = await userTokenService.generateToken(mockUser);
           expect(token).to.be.ok();
           expect(token.token).to.be('token');
           expect(token.tokenExpiration).to.be(123456789);
@@ -69,7 +69,7 @@ describe('UserTokenService Tests', () => {
         });
 
         it('returns new token', async () => {
-          let token = await userTokenService.generateTokenForApplicationUser(mockUser);
+          let token = await userTokenService.generateToken(mockUser);
           expect(token).to.be.ok();
           expect(token.token).to.be('new token');
           expect(token.tokenExpiration).to.be(123456789);
@@ -93,7 +93,7 @@ describe('UserTokenService Tests', () => {
           });
 
           it('returns token', async () => {
-            let token = await userTokenService.generateTokenForApplicationUser(mockUser);
+            let token = await userTokenService.generateToken(mockUser);
             expect(token).to.be.ok();
             expect(token.token).to.be('token');
             expect(token.tokenExpiration).to.be(123456789);
@@ -108,7 +108,7 @@ describe('UserTokenService Tests', () => {
           it('returns error', async () => {
             let err;
             try {
-              await userTokenService.generateTokenForApplicationUser(mockUser);
+              await userTokenService.generateToken(mockUser);
             } catch (ex) {
               err = ex;
             }
@@ -126,7 +126,7 @@ describe('UserTokenService Tests', () => {
         it('returns error', async () => {
           let err;
           try {
-            await userTokenService.generateTokenForApplicationUser(mockUser);
+            await userTokenService.generateToken(mockUser);
           } catch (ex) {
             err = ex;
           }
