@@ -46,8 +46,20 @@ function UserTokenService(logger, postgrePool, tokenGenerationService) {
   };
 
   this.validateToken = async (token) => {
-    // WORK IN PROGRESS
-    // let userToken = await _userTokenModel.findByUserId(user);
+    let userId = _tokenGenerationService.getUserIdFromToken(token);
+    let userToken = await _userTokenModel.findByUserId(userId);
+    if (token === userToken){
+      if (_tokenGenerationService.validatePermissions(token)){
+        _logger.info('Token was validated successfully for user_id:\'%s\'', userId);
+        return true;
+      } else {
+        _logger.error('Token does not have the required permissions');
+      }
+    } else {
+      _logger.debug('Token created for user_id:\'%s\' but does not match the token saved in the database for that user', userId);
+      _logger.error('Token contains inconsistent data');
+    }
+    return false;
   };
 }
 

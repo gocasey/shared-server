@@ -43,13 +43,14 @@ function AdminUserTokenGenerationService(logger, tokenGenerationService) {
     return validatedToken;
   };
 
+  this.validatePermissions = async (token) => {
+    let decodedTokenData = await _tokenGenerationService.decodeTokenData(token);
+    return decodedTokenData.is_admin;
+  }
+
   this.getUserIdFromToken = async (token) => {
     let decodedTokenData = await _tokenGenerationService.decodeTokenData(token);
-    if (decodedTokenData.is_admin) {
-      throw new Error('invalid token');
-    } else {
-      return decodedTokenData.id;
-    }
+    return decodedTokenData.id;
   };
 }
 
