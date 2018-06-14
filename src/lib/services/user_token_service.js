@@ -48,8 +48,8 @@ function UserTokenService(logger, postgrePool, tokenGenerationService) {
   this.validateToken = async (token) => {
     let userId = _tokenGenerationService.getUserIdFromToken(token);
     let userToken = await _userTokenModel.findByUserId(userId);
-    if (token === userToken){
-      if (_tokenGenerationService.validatePermissions(token)){
+    if (token === userToken) {
+      if (_tokenGenerationService.validatePermissions(token)) {
         _logger.info('Token was validated successfully for user_id:\'%s\'', userId);
         return true;
       } else {

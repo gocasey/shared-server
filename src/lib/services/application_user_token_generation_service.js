@@ -46,7 +46,7 @@ function ApplicationUserTokenGenerationService(logger, tokenGenerationService) {
   this.validatePermissions = async (token) => {
     let decodedTokenData = await _tokenGenerationService.decodeTokenData(token);
     return ! decodedTokenData.is_admin;
-  }
+  };
 
   this.getUserIdFromToken = async (token) => {
     let decodedTokenData = await _tokenGenerationService.decodeTokenData(token);
