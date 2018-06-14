@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
+const config = require('../../../config/default.js');
 const BaseHttpError = require('../../errors/base_http_error.js');
 const FileModel = require('../../models/file_model.js');
 const GoogleUploadService = require('./google_upload_service.js');
@@ -13,7 +14,7 @@ function FileService(logger, postgrePool) {
   async function createLocalFile(fileData) {
     let decodedFile = new Buffer(fileData.encodedFile, 'base64');
     let filename = Date.now() + fileData.name;
-    let fileDirectory = path.join('temp', 'uploads');
+    let fileDirectory = config.TEMP_FILES_DIRECTORY;
     if (!fs.existsSync(fileDirectory)) {
       fs.mkdirSync('temp');
       fs.mkdirSync(fileDirectory);
@@ -35,8 +36,7 @@ function FileService(logger, postgrePool) {
     return fileStats.size;
   }
 
-  async function createRemoteFile(fileData) {
-    let localFilepath = await createLocalFile(fileData);
+  async function createRemoteFile(localFilepath) {
     let uploadedFile;
     try {
       uploadedFile = await _google.uploadFromLocal(localFilepath);
@@ -48,9 +48,21 @@ function FileService(logger, postgrePool) {
     return uploadedFile;
   };
 
-  this.createFile = async (fileData) => {
+  this.createFileAndUpload = async (fileData) => {
     try {
-      let uploadedFile = await createRemoteFile(fileData);
+      let localFilepath = await createLocalFile(fileData);
+      let uploadedFile = await createRemoteFile(localFilepath);
+      let savedFile = await _fileModel.create(uploadedFile);
+      return savedFile;
+    } catch (err) {
+      _logger.error('Error during file creation: %s', err);
+      throw new BaseHttpError('File creation error', 500);
+    }
+  };
+
+  this.loadFileAndUpload = async (filePath) => {
+    try {
+      let uploadedFile = await createRemoteFile(filePath);
       let savedFile = await _fileModel.create(uploadedFile);
       return savedFile;
     } catch (err) {

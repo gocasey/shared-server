@@ -4,7 +4,7 @@ const sinon = require('sinon');
 const FileControllerModule = '../../../src/controllers/file_controller.js';
 
 let mockFileService = {
-  createFile: sinon.stub(),
+  createFileAndUpload: sinon.stub(),
   updateFile: sinon.stub(),
   findFile: sinon.stub(),
 };
@@ -31,7 +31,7 @@ describe('FileController Tests', () => {
   });
 
   beforeEach(() => {
-    mockFileService.createFile.resetHistory();
+    mockFileService.createFileAndUpload.resetHistory();
   });
 
   describe('#createFile', () => {
@@ -51,26 +51,26 @@ describe('FileController Tests', () => {
 
     describe('success', () => {
       before(() => {
-        mockFileService.createFile.resolves({ id: 123, filename: 'name', _rev: 'rev', size: 1234,
+        mockFileService.createFileAndUpload.resolves({ id: 123, filename: 'name', _rev: 'rev', size: 1234,
                                               updatedTime: '2018-04-09', createdTime: '2018-04-09', resource: 'remoteFileUri' });
       });
 
       it('calls file service', async () => {
         let mockFileRequest = getMockFileRequest();
-        await fileController.createFile(mockFileRequest, mockResponse, function() {});
-        expect(mockFileService.createFile.calledOnce);
+        await fileController.createFileFromJson(mockFileRequest, mockResponse, function() {});
+        expect(mockFileService.createFileAndUpload.calledOnce);
       });
 
       it('passes correct params to file service', async () => {
         let mockFileRequest = getMockFileRequest();
-        await fileController.createFile(mockFileRequest, mockResponse, function() {});
-        expect(mockFileService.createFile.getCall(0).args[0]).to.be.eql({ name: 'fileName',
+        await fileController.createFileFromJson(mockFileRequest, mockResponse, function() {});
+        expect(mockFileService.createFileAndUpload.getCall(0).args[0]).to.be.eql({ name: 'fileName',
                                                                           encodedFile: mockFileRequest.body.file });
       });
 
       it('saves file in response', async () => {
         let mockFileRequest = getMockFileRequest();
-        await fileController.createFile(mockFileRequest, mockResponse, function() {});
+        await fileController.createFileFromJson(mockFileRequest, mockResponse, function() {});
         expect(mockResponse.file).to.be.ok();
         expect(mockResponse.file.id).to.be(123);
         expect(mockResponse.file.filename).to.be('name');
@@ -84,7 +84,7 @@ describe('FileController Tests', () => {
       it('calls next with no error', async () => {
         let mockNext = sinon.stub();
         let mockFileRequest = getMockFileRequest();
-        await fileController.createFile(mockFileRequest, mockResponse, mockNext);
+        await fileController.createFileFromJson(mockFileRequest, mockResponse, mockNext);
         expect(mockNext.calledOnce);
         expect(mockNext.calledWith(undefined));
       });
@@ -93,26 +93,26 @@ describe('FileController Tests', () => {
 
     describe('failure', () => {
       before(() => {
-        mockFileService.createFile.rejects(new Error('creation error'));
+        mockFileService.createFileAndUpload.rejects(new Error('creation error'));
       });
 
       it('calls file service', async () => {
         let mockFileRequest = getMockFileRequest();
-        await fileController.createFile(mockFileRequest, mockResponse, function() {});
-        expect(mockFileService.createFile.calledOnce);
+        await fileController.createFileFromJson(mockFileRequest, mockResponse, function() {});
+        expect(mockFileService.createFileAndUpload.calledOnce);
       });
 
       it('passes correct params to file service', async () => {
         let mockFileRequest = getMockFileRequest();
-        await fileController.createFile(mockFileRequest, mockResponse, function() {});
-        expect(mockFileService.createFile.getCall(0).args[0]).to.be.eql({ name: 'fileName',
+        await fileController.createFileFromJson(mockFileRequest, mockResponse, function() {});
+        expect(mockFileService.createFileAndUpload.getCall(0).args[0]).to.be.eql({ name: 'fileName',
                                                                           encodedFile: mockFileRequest.body.file });
       });
 
       it('calls next with error', async () => {
         let mockNext = sinon.stub();
         let mockFileRequest = getMockFileRequest();
-        await fileController.createFile(mockFileRequest, mockResponse, mockNext);
+        await fileController.createFileFromJson(mockFileRequest, mockResponse, mockNext);
         expect(mockNext.calledOnce);
         expect(mockNext.calledWith(new Error('creation error')));
       });

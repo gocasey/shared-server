@@ -5,9 +5,15 @@ function FilesRouter(app, logger, postgrePool) {
   let _fileController = new FileController(logger, postgrePool);
   let _fileResponseBuilder = new FileResponseBuilder(logger);
 
-  // Usuario sube archivo
+  // Usuario sube archivo en json
   app.post('/api/files/upload',
-    _fileController.createFile,
+    _fileController.createFileFromJson,
+    _fileResponseBuilder.buildResponse
+  );
+
+  // Usuario sube archivo en json
+  app.post('/api/files/upload_multipart',
+    _fileController.createFileFromMultipart,
     _fileResponseBuilder.buildResponse
   );
 
