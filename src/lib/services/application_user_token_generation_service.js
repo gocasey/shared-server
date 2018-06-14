@@ -1,8 +1,7 @@
-const TokenGenerationService = require('../services/token_generation_service.js');
 
-function ApplicationUserTokenGenerationService(logger) {
+function ApplicationUserTokenGenerationService(logger, tokenGenerationService) {
   let _logger = logger;
-  let _tokenGenerationService = new TokenGenerationService(logger);
+  let _tokenGenerationService = tokenGenerationService;
 
   function getApplicationUserData(user) {
     return {
