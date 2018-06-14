@@ -12,7 +12,7 @@ function TokenGenerationService(logger) {
     // replace hardcoded secret with private key
     try {
       let token = await jwt.sign({ data: data }, 'secret', { expiresIn: expiration } );
-      _logger.info('Token was created successfully for owner name: \'%s\'', owner.name);
+      _logger.info('Token created successfully');
       return this.decodeToken(token);
     } catch (err) {
       _logger.error('Token generation failed');
