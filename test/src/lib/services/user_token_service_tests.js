@@ -8,6 +8,8 @@ const mockLogger = {
   error: sinon.stub(),
 };
 
+const mockPostgrePool = {};
+
 const mockUserTokenModel = {
   findByUser: sinon.stub(),
   createOrUpdate: sinon.stub(),
@@ -23,12 +25,9 @@ function setupUserTokenService() {
     '../../models/user_token_model.js': function() {
       return mockUserTokenModel;
     },
-    './token_generation_service.js': function() {
-      return mockTokenGenerationService;
-    },
   };
   let UserTokenService = proxyquire(UserTokenServiceModule, mocks);
-  return new UserTokenService(mockLogger);
+  return new UserTokenService(mockLogger, mockPostgrePool, mockTokenGenerationService);
 }
 
 describe('UserTokenService Tests', () => {
