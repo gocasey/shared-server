@@ -1,6 +1,7 @@
 const TokenGenerationService = require('../services/token_generation_service.js');
 
 function ServerTokenGenerationService(logger) {
+  let _logger = logger;
   let _tokenGenerationService = new TokenGenerationService(logger);
 
   function getServerData(server) {
@@ -28,26 +29,28 @@ function ServerTokenGenerationService(logger) {
     return decodedData && (decodedData.id == owner.id) && (decodedData.name == owner.name) && (decodedData.is_admin == owner.is_admin);
   }
 
-  this.validateTokenWithServer = async (token, server) => {
+  this.validateToken = async (token, server) => {
+    let validatedToken;
     try {
-      let validatedToken = await _tokenGenerationService.validateToken(token, (decodedData) => {
-        return isValidOwner(decodedData, getServerData(user));
+      validatedToken = await _tokenGenerationService.validateToken(token, (decodedData) => {
+        return isValidOwner(decodedData, getServerData(server));
       });
-      _logger.info('Token validated for server: \'%s\'', server.name);
-      return validatedToken;
     } catch (err) {
       _logger.error('Error validating token for server: \'%s\'', server.name);
       throw err;
     }
+    _logger.info('Token validated for server: \'%s\'', server.name);
+    return validatedToken;
+  };
+
+  this.validatePermissions = async (token) => {
+    let decodedTokenData = await _tokenGenerationService.decodeTokenData(token);
+    return ! decodedTokenData.is_admin;
   };
 
   this.getServerIdFromToken = async (token) => {
     let decodedTokenData = await _tokenGenerationService.decodeTokenData(token);
-    if (decodedTokenData.is_admin) {
-      throw new Error('invalid token');
-    } else {
-      return decodedTokenData.id;
-    }
+    return decodedTokenData.id;
   };
 }
 

@@ -25,7 +25,7 @@ function setupServerTokenService() {
     '../../models/server_token_model.js': function() {
       return mockServerTokenModel;
     },
-    './token_generation_service': function() {
+    './server_token_generation_service.js': function() {
       return mockTokenGenerationService;
     },
   };

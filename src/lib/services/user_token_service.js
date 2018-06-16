@@ -56,7 +56,7 @@ function UserTokenService(logger, postgrePool, tokenGenerationService) {
         _logger.error('Token does not have the required permissions');
       }
     } else {
-      _logger.debug('Token created for user_id:\'%s\' but does not match the token saved in the database for that user', userId);
+      _logger.debug('Token was created for user_id:\'%s\' but does not match the token saved in the database for that user', userId);
       _logger.error('Token contains inconsistent data');
     }
     return false;

@@ -1,8 +1,8 @@
-const UserTokenService = require('../../lib/services/user_token_service.js');
+const ServerTokenService = require('../../lib/services/server_token_service.js');
 const BaseHttpError = require('../../errors/base_http_error.js');
 
-function UserTokenAuthenticator(logger, postgrePool) {
-  let _userTokenService = new UserTokenService(logger, postgrePool);
+function ServerTokenAuthenticator(logger, postgrePool) {
+  let _serverTokenService = new ServerTokenService(logger, postgrePool);
 
   function getTokenFromHeader(req) {
     if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
@@ -10,16 +10,10 @@ function UserTokenAuthenticator(logger, postgrePool) {
     } else return null;
   }
 
-  function getTokenFromQuerystring(req) {
-    if (req.query && req.query.token) {
-      return req.query.token;
-    } else return null;
-  }
-
   async function authenticate(token, next) {
     if (token) {
       try {
-        await _userTokenService.validateToken(token);
+        await _serverTokenService.validateToken(token);
         return next();
       } catch (err) {
         let error = new BaseHttpError('Unauthorized', 401);
@@ -42,4 +36,4 @@ function UserTokenAuthenticator(logger, postgrePool) {
   };
 }
 
-module.exports = UserTokenAuthenticator;
+module.exports = ServerTokenAuthenticator;
