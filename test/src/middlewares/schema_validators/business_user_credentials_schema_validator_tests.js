@@ -1,6 +1,6 @@
 const expect = require('expect.js');
 const sinon = require('sinon');
-const BusinessUserCredentialsSchemaValidator = require('../../../../src/middlewares/schema_validators/business_user_credentials_schema_validator.js');
+const BusinessUserCredentialsSchemaValidator = require('../../../../src/middlewares/schema_validators/application_user_credentials_schema_validator.js');
 
 const mockLogger = {
   debug: sinon.stub(),

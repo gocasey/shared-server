@@ -54,7 +54,8 @@ const filesTableCreationQuery = `CREATE TABLE files (
   updated_time timestamp NOT NULL DEFAULT NOW(),
   size bigint,
   file_name varchar(200),
-  resource varchar(500)
+  resource varchar(500),
+  owner integer REFERENCES servers
 );`
 
 const filesUpdateTimeTrigger = `CREATE TRIGGER set_timestamp

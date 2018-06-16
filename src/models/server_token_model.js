@@ -23,6 +23,24 @@ function ServerTokenModel(logger, postgrePool) {
     }
   };
 
+  this.findByServerId = async (serverId) => {
+    let query = 'SELECT token_id, server_id, token FROM servers_tokens WHERE server_id = $1;';
+    let values = [serverId];
+    try {
+      let response = await executeQuery(query, values);
+      if (response.rows.length == 0) {
+        _logger.info('Token for server_id:\'%s\' not found', serverId);
+        return;
+      } else {
+        _logger.info('Token for server_id:\'%s\' found', serverId);
+        return response.rows[0];
+      }
+    } catch (err) {
+      _logger.error('Error looking for token for server_id:\'%s\' in the database', serverId);
+      throw err;
+    }
+  };
+
   this.createOrUpdate = async (server, token) => {
     let query = 'INSERT INTO servers_tokens(server_id, token) VALUES ($1, $2) ' +
       'ON CONFLICT(server_id) DO UPDATE ' +

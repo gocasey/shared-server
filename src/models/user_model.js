@@ -36,9 +36,32 @@ function UserModel(logger, postgrePool) {
     }
   }
 
+  async function findByUserIdReturnAllParams(userId) {
+    let query = 'SELECT user_id, username, password, _rev, app_owner FROM users WHERE user_id = $1;';
+    let values = [userId];
+    try {
+      let res = await executeQuery(query, values);
+      if (res.rows.length == 0) {
+        _logger.info('User with id:\'%s\' not found', userId);
+        return;
+      } else {
+        _logger.info('User with id:\'%s\' found', userId);
+        return res.rows[0];
+      }
+    } catch (err) {
+      _logger.error('Error looking for user id:\'%s\' in the database', userId);
+      throw err;
+    }
+  }
+
   this.findByUsername = async (username) => {
     let user = await findByUsernameReturnAllParams(username);
     return user ? getBusinessUser(user) : null;
+  };
+
+  this.findByUserId = async (serverId) => {
+    let dbUser = await findByUserIdReturnAllParams(serverId);
+    return dbUser ? getBusinessUser(dbUser) : null;
   };
 
   async function updateUserRev(username, rev) {

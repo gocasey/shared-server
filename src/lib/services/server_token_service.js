@@ -63,21 +63,21 @@ function ServerTokenService(logger, postgrePool) {
   };
 
   this.validateToken = async (token) => {
-    let userId = _serverTokenGenerationService.getServerIdFromToken(token);
+    let serverId = _serverTokenGenerationService.getServerIdFromToken(token);
 
-    let userToken = await _userTokenModel.findByUserId(userId);
-    if (token === userToken) {
+    let serverToken = await _serverTokenModel.findByServerId(serverId);
+    if (token === serverToken) {
       if (_serverTokenGenerationService.validatePermissions(token)) {
-        _logger.info('Token was validated successfully for user_id:\'%s\'', userId);
-        return true;
+        _logger.info('Token was validated successfully for server_id:\'%s\'', serverId);
+        return serverId;
       } else {
         _logger.error('Token does not have the required permissions');
       }
     } else {
-      _logger.debug('Token was created for user_id:\'%s\' but does not match the token saved in the database for that user', userId);
+      _logger.debug('Token was created for server_id:\'%s\' but does not match the token saved in the database for that server', serverId);
       _logger.error('Token contains inconsistent data');
     }
-    return false;
+    return null;
   };
 }
 

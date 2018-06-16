@@ -99,6 +99,20 @@ function FileService(logger, postgrePool) {
       throw new BaseHttpError('File does not exist', 404);
     }
   };
+
+  this.findServerFiles = async (serverId) => {
+    try {
+      return await _fileModel.findByServerId(serverId);
+    } catch (findErr) {
+      _logger.error('An error happened while retrieving the files for server_id: %s', serverId);
+      throw new BaseHttpError('Servers retrieval error', 500);
+    }
+  };
+
+  this.assignOwnership = async (fileData, serverId) => {
+    fileData.owner = serverId;
+    return this.updateFile(fileData);
+  };
 }
 
 module.exports = FileService;

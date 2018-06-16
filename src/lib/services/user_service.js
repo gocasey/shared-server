@@ -53,6 +53,22 @@ function UserService(logger, postgrePool) {
       }
     }
   };
+
+  this.findUser = async (userId) => {
+    let user;
+    try {
+      user = await _userModel.findByUserId(userId);
+    } catch (findErr) {
+      _logger.error('An error happened while looking for the user with id: \'%s\'', userId);
+      throw new BaseHttpError('User find error', 500);
+    }
+    if (user) {
+      return user;
+    } else {
+      _logger.error('The user with id: \'%s\' was not found', userId);
+      throw new BaseHttpError('User does not exist', 404);
+    }
+  };
 }
 
 module.exports = UserService;

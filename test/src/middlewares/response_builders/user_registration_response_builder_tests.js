@@ -1,6 +1,6 @@
 const expect = require('expect.js');
 const sinon = require('sinon');
-const UserRegistrationResponseBuilder = require('../../../../src/middlewares/response_builders/user_registration_response_builder.js');
+const UserRegistrationResponseBuilder = require('../../../../src/middlewares/response_builders/application_user_response_builder.js');
 
 const mockLogger = {
   debug: sinon.stub(),

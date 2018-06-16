@@ -3,10 +3,10 @@ const pjson = require('../../../package.json');
 function FileResponseBuilder(logger) {
   let _logger = logger;
 
-  this.buildResponse = function(req, res) {
+  this.buildSingleResponse = function(req, res) {
     let file = res.file;
 
-    let response = getBasicResponse();
+    let response = getBasicSingleResponse();
     response.metadata.version = pjson.version;
     response.file.id = file.id;
     response.file._rev = file._rev;
@@ -15,12 +15,13 @@ function FileResponseBuilder(logger) {
     response.file.size = file.size;
     response.file.filename = file.filename;
     response.file.resource = file.resource;
+    response.file.owner = file.owner;
 
     _logger.debug('Response: %j', response);
     res.status(200).json(response);
   };
 
-  function getBasicResponse() {
+  function getBasicSingleResponse() {
     return {
       metadata: {
         version: '',
@@ -33,7 +34,41 @@ function FileResponseBuilder(logger) {
         size: '',
         filename: '',
         resource: '',
+        owner: '',
       },
+    };
+  }
+
+  this.buildSetResponse = function(req, res) {
+    let files = res.files;
+
+    let response = getBasicSetResponse();
+    response.metadata.version = pjson.version;
+
+    files.forEach( (file) => {
+      let fileResponse = {};
+      fileResponse.id = file.id;
+      fileResponse.name = file.name;
+      fileResponse._rev = file._rev;
+      fileResponse.createdTime = file.createdTime;
+      fileResponse.updatedTime = file.updatedTime;
+      fileResponse.size = file.size;
+      fileResponse.filename = file.filename;
+      fileResponse.resource = file.resource;
+      fileResponse.owner = file.owner;
+      response.files.push(fileResponse);
+    });
+
+    _logger.debug('Response: %j', response);
+    res.status(200).json(response);
+  };
+
+  function getBasicSetResponse() {
+    return {
+      metadata: {
+        version: '',
+      },
+      files: [],
     };
   }
 }

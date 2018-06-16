@@ -1,6 +1,6 @@
 const pjson = require('../../../package.json');
 
-function UserRegistrationResponseBuilder(logger) {
+function ApplicationUserResponseBuilder(logger) {
   let _logger = logger;
 
   this.buildResponse = function(req, res) {
@@ -31,4 +31,4 @@ function UserRegistrationResponseBuilder(logger) {
   }
 }
 
-module.exports = UserRegistrationResponseBuilder;
+module.exports = ApplicationUserResponseBuilder;
