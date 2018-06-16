@@ -24,7 +24,8 @@ const serversTableCreationQuery = `CREATE TABLE servers (
   server_name varchar(100) UNIQUE NOT NULL,
   _rev varchar(500),
   created_time timestamp NOT NULL DEFAULT NOW(),
-  updated_time timestamp NOT NULL DEFAULT NOW()
+  updated_time timestamp NOT NULL DEFAULT NOW(),
+  last_connection timestamp
 );`
 
 const usersTableCreationQuery = `CREATE TABLE users (

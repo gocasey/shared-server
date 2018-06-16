@@ -87,6 +87,16 @@ function ServerController(logger, postgrePool) {
     res.serverToken = token;
     return next();
   };
+
+  this.updateLastConnection = async (req, res, next) => {
+    try {
+      await _serverService.updateLastConnection(res.serverAuthenticated);
+    } catch (err) {
+      _logger.error('An error ocurred while updating server last connection for server_id: %s', res.serverAuthenticated.id);
+      return next(err);
+    }
+    return next();
+  };
 }
 
 module.exports = ServerController;

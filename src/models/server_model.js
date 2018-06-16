@@ -11,11 +11,12 @@ function ServerModel(logger, postgrePool) {
       name: dbServer.server_name,
       _rev: dbServer._rev,
       createdTime: dbServer.created_time,
+      lastConnection: dbServer.last_connection,
     };
   };
 
   async function findByServerNameReturnAllParams(serverName) {
-    let query = 'SELECT server_id, server_name, _rev, created_time FROM servers WHERE server_name = $1;';
+    let query = 'SELECT server_id, server_name, _rev, created_time, last_connection FROM servers WHERE server_name = $1;';
     let values = [serverName];
     try {
       let res = await executeQuery(query, values);
@@ -33,7 +34,7 @@ function ServerModel(logger, postgrePool) {
   }
 
   async function findByServerIdReturnAllParams(serverId) {
-    let query = 'SELECT server_id, server_name, _rev, created_time FROM servers WHERE server_id = $1;';
+    let query = 'SELECT server_id, server_name, _rev, created_time, last_connection FROM servers WHERE server_id = $1;';
     let values = [serverId];
     try {
       let res = await executeQuery(query, values);
@@ -61,7 +62,7 @@ function ServerModel(logger, postgrePool) {
   };
 
   this.getAllServers = async () => {
-    let query = 'SELECT server_id, server_name, _rev, created_time FROM servers;';
+    let query = 'SELECT server_id, server_name, _rev, created_time, last_connection FROM servers;';
     try {
       let res = await executeQuery(query);
       if (res.rows.length == 0) {
@@ -79,8 +80,24 @@ function ServerModel(logger, postgrePool) {
     }
   };
 
+  this.updateLastConnection = async (server) => {
+    let dbServer = await findByServerIdReturnAllParams(server.id);
+    if (dbServer) {
+      if (dbServer._rev === server._rev) {
+        _logger.info('The integrity check for server with name: \'%s\' was successful. Proceeding with update.', server.name);
+        return await executeUpdateLastConnection(server);
+      } else {
+        _logger.error('The integrity check for server with name: \'%s\' failed. Aborting update.', server.name);
+        throw new Error('Integrity check error');
+      }
+    } else {
+      _logger.error('Update cannot be completed, server with name: \'%s\' does not exist', server.name);
+      throw new Error('Server does not exist');
+    }
+  };
+
   async function updateServerRev(serverName, rev) {
-    let query = 'UPDATE servers SET _rev=$1 WHERE server_name=$2 RETURNING server_id, server_name, _rev, created_time;';
+    let query = 'UPDATE servers SET _rev=$1 WHERE server_name=$2 RETURNING server_id, server_name, _rev, created_time, last_connection;';
     let values = [rev, serverName];
     try {
       let res = await executeQuery(query, values);
@@ -94,7 +111,7 @@ function ServerModel(logger, postgrePool) {
 
 
   this.create = async (server) => {
-    let query = 'INSERT INTO servers(server_name) VALUES ($1) RETURNING server_id, server_name, created_time;';
+    let query = 'INSERT INTO servers(server_name) VALUES ($1) RETURNING server_id, server_name, created_time, last_connection;';
     let values = [server.name];
     let response;
     try {
@@ -112,7 +129,22 @@ function ServerModel(logger, postgrePool) {
 
   async function executeUpdate(server) {
     let currentRev = integrityValidator.createHash(server);
-    let query = 'UPDATE servers SET server_name=$1, _rev=$2 WHERE server_id=$3 RETURNING server_id, server_name, _rev, created_time;';
+    let query = 'UPDATE servers SET server_name=$1, _rev=$2 WHERE server_id=$3 RETURNING server_id, server_name, _rev, created_time, last_connection;';
+    let values = [server.name, currentRev, server.id];
+    try {
+      let res = await executeQuery(query, values);
+      _logger.info('Server with name: \'%s\' updated successfully', server.name);
+      _logger.debug('Server updated in db: %j', res.rows[0]);
+      return getBusinessServer(res.rows[0]);
+    } catch (err) {
+      _logger.error('Error updating server with name:\'%s\' to database', server.name);
+      throw err;
+    }
+  };
+
+  async function executeUpdateLastConnection(server) {
+    let currentRev = integrityValidator.createHash(server);
+    let query = 'UPDATE servers SET _rev=$1, last_connection=NOW() WHERE server_id=$2 RETURNING server_id, server_name, _rev, created_time, last_connection;';
     let values = [server.name, currentRev, server.id];
     try {
       let res = await executeQuery(query, values);

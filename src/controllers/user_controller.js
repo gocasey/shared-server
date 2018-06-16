@@ -26,7 +26,7 @@ function UserController(logger, postgrePool) {
       res.data = token;
       return next();
     } catch (err) {
-      _logger.error('An error ocurred while generating the token for username: %s', user.username);
+      _logger.error('An error occurred while generating the token for username: %s', user.username);
       return next(err);
     }
   };
@@ -37,7 +37,7 @@ function UserController(logger, postgrePool) {
       res.data = user;
       return next();
     } catch (err) {
-      _logger.error('An error ocurred while creating user with username: %s', req.body.username);
+      _logger.error('An error occurred while creating user with username: %s', req.body.username);
       return next(err);
     }
   };

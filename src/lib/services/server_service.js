@@ -64,6 +64,19 @@ function ServerService(logger, postgrePool) {
       } else throw new BaseHttpError('Server update error', 500);
     }
   };
+
+  this.updateLastConnection = async (server) => {
+    try {
+      return await _serverModel.updateLastConnection(server);
+    } catch (updateErr) {
+      _logger.error('An error happened while updating the server with id: \'%s\'', server.id);
+      if (updateErr.message == 'Server does not exist') {
+        throw new BaseHttpError(updateErr.message, 404);
+      } else if (updateErr.message == 'Integrity check error') {
+        throw new BaseHttpError(updateErr.message, 409);
+      } else throw new BaseHttpError('Server update error', 500);
+    }
+  };
 }
 
 module.exports = ServerService;
