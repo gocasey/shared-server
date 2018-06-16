@@ -23,6 +23,7 @@ const serversTableCreationQuery = `CREATE TABLE servers (
   server_id serial PRIMARY KEY,
   server_name varchar(100) UNIQUE NOT NULL,
   _rev varchar(500),
+  created_by REFERENCES users,
   created_time timestamp NOT NULL DEFAULT NOW(),
   updated_time timestamp NOT NULL DEFAULT NOW(),
   last_connection timestamp
