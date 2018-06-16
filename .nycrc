@@ -7,8 +7,6 @@
   "exclude": [
     "config",
     "coverage",
-    "src/middlewares/authenticators/facebook_authenticator.js",
-    "src/middlewares/authenticators/token_authenticator.js",
     "test"
   ],
   "reporter": [
