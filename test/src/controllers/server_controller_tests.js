@@ -53,7 +53,11 @@ describe('ServerController Tests', () => {
       },
     };
 
-    let mockResponse = {};
+    let mockResponse = {
+      serverAuthenticated: {
+        id: 456,
+      },
+    };
 
     describe('success', () => {
       before(() => {
@@ -67,7 +71,7 @@ describe('ServerController Tests', () => {
 
       it('passes correct params to server service', async () => {
         await serverController.createServer(mockServerRequest, mockResponse, function() {});
-        expect(mockServerService.createServer.getCall(0).args[0]).to.be.eql(mockServerRequest.body);
+        expect(mockServerService.createServer.getCall(0).args[0]).to.be.eql({ name: 'name', createdBy: 456 });
       });
 
       it('saves server in response', async () => {
@@ -100,7 +104,7 @@ describe('ServerController Tests', () => {
 
       it('passes correct params to server service', async () => {
         await serverController.createServer(mockServerRequest, mockResponse, function() {});
-        expect(mockServerService.createServer.getCall(0).args[0]).to.be.eql(mockServerRequest.body);
+        expect(mockServerService.createServer.getCall(0).args[0]).to.be.eql({ name: 'name', createdBy: 456 });
       });
 
       it('calls next with error', async () => {

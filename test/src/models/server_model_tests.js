@@ -416,11 +416,13 @@ describe('ServerModel Tests', () => {
   describe('#create', () => {
     let mockServer = {
       name: 'name',
+      createdBy: 'adminUserId',
     };
 
     let mockDbServer = {
       server_name: 'name',
       server_id: 123,
+      createdBy: 'adminUserId',
       created_time: '2018-04-09',
     };
 
@@ -428,6 +430,7 @@ describe('ServerModel Tests', () => {
       server_name: 'name',
       server_id: 123,
       _rev: 'newRev',
+      createdBy: 'adminUserId',
       created_time: '2018-04-09',
     };
 
@@ -443,7 +446,7 @@ describe('ServerModel Tests', () => {
 
         it('passes correct values to insert query', async () => {
           await serverModel.create(mockServer);
-          expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+          expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'adminUserId']);
         });
 
         it('passes correct values to update query', async () => {
@@ -497,7 +500,7 @@ describe('ServerModel Tests', () => {
           await serverModel.create(mockServer);
         } catch (err) {}
         expect(mockPool.query.calledOnce);
-        expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+        expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'adminUserId']);
       });
 
       it('returns error', async () => {
