@@ -1,8 +1,8 @@
 const pg = require('pg');
-const connectionString = process.env.DATABASE_URL || 'postgres://pqjyeqaijafusn:e98fa09f1a4e049674037a98dc4c1f3a956702400f306f9395a280923f38d7c0' +
-  '@ec2-54-163-240-54.compute-1.amazonaws.com:5432/dbhchlmki72u4a?ssl=true';
+const config = require('default.js');
+
 const client = new pg.Client({
-  connectionString: connectionString,
+  connectionString: config.DATABASE_URL,
 });
 
 const serversTokensTableCleanupQuery = `DROP TABLE IF EXISTS servers_tokens;`;
