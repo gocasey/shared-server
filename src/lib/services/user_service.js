@@ -27,7 +27,6 @@ function UserService(logger, postgrePool) {
     let userData = {
       username: body.username,
       password: hash(body.password),
-      applicationOwner: body.applicationOwner,
     };
     let err;
     try {
@@ -47,9 +46,8 @@ function UserService(logger, postgrePool) {
         _logger.error('There is already a user with username: \'%s\'', userData.username);
         throw new BaseHttpError('Username already exists', 409);
       } else {
-        // check that applicationOwner does not actually exist
-        _logger.error('Application owner: \'%s\' does not exist', userData.applicationOwner);
-        throw new BaseHttpError('Application owner does not exist', 422);
+        _logger.debug('Unknown error on user creation. User: \'%j\'', userData);
+        throw new BaseHttpError('User creation error', 500);
       }
     }
   };

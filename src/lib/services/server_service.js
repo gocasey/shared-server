@@ -43,6 +43,22 @@ function ServerService(logger, postgrePool) {
     }
   };
 
+  this.findServerByName = async (serverName) => {
+    let server;
+    try {
+      server = await _serverModel.findByServerName(serverName);
+    } catch (findErr) {
+      _logger.error('An error happened while looking for the server with name: \'%s\'', serverName);
+      throw new BaseHttpError('Server find error', 500);
+    }
+    if (server) {
+      return server;
+    } else {
+      _logger.error('The server with name: \'%s\' was not found', serverName);
+      throw new BaseHttpError('Server does not exist', 404);
+    }
+  };
+
   this.getAllServers = async () => {
     try {
       return await _serverModel.getAllServers();

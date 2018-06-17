@@ -10,13 +10,12 @@ function UserModel(logger, postgrePool) {
       user_id: dbUser.user_id,
       username: dbUser.username,
       password: dbUser.password,
-      applicationOwner: dbUser.app_owner,
       _rev: dbUser._rev,
     };
   };
 
   async function findByUsernameReturnAllParams(username) {
-    let query = 'SELECT user_id, username, password, _rev, app_owner FROM users WHERE username = $1;';
+    let query = 'SELECT user_id, username, password, _rev FROM users WHERE username = $1;';
     let values = [username];
     try {
       let response = await executeQuery(query, values);
@@ -37,7 +36,7 @@ function UserModel(logger, postgrePool) {
   }
 
   async function findByUserIdReturnAllParams(userId) {
-    let query = 'SELECT user_id, username, password, _rev, app_owner FROM users WHERE user_id = $1;';
+    let query = 'SELECT user_id, username, password, _rev FROM users WHERE user_id = $1;';
     let values = [userId];
     try {
       let res = await executeQuery(query, values);
@@ -65,7 +64,7 @@ function UserModel(logger, postgrePool) {
   };
 
   async function updateUserRev(username, rev) {
-    let query = 'UPDATE users SET _rev=$1 WHERE username=$2 RETURNING user_id, username, password, _rev, app_owner;';
+    let query = 'UPDATE users SET _rev=$1 WHERE username=$2 RETURNING user_id, username, password, _rev;';
     let values = [rev, username];
     try {
       let response = await executeQuery(query, values);
@@ -78,8 +77,8 @@ function UserModel(logger, postgrePool) {
   }
 
   this.create = async (user) => {
-    let query = 'INSERT INTO users(username, password, app_owner) VALUES ($1, $2, $3) RETURNING user_id, username, password, app_owner;';
-    let values = [user.username, user.password, user.applicationOwner];
+    let query = 'INSERT INTO users(username, password) VALUES ($1, $2) RETURNING user_id, username, password;';
+    let values = [user.username, user.password];
     let response;
     try {
       response = await executeQuery(query, values);
@@ -96,7 +95,7 @@ function UserModel(logger, postgrePool) {
 
   async function executeUpdate(user) {
     let currentRev = integrityValidator.createHash(user);
-    let query = 'UPDATE users SET password=$1, _rev=$2 WHERE username=$3 RETURNING user_id, username, password, _rev, app_owner;';
+    let query = 'UPDATE users SET password=$1, _rev=$2 WHERE username=$3 RETURNING user_id, username, password, _rev;';
     let values = [user.password, currentRev, user.username];
     try {
       let response = await executeQuery(query, values);

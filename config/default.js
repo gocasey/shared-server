@@ -7,7 +7,6 @@ const PRODUCTION_CONNECTION_STRING = 'postgres://pqjyeqaijafusn:e98fa09f1a4e0496
 
 function getDatabaseUrl(){
   let env = process.env.NODE_ENV;
-  console.log('In %s environment, using %s database.', env, env);
   return (env === 'production') ? PRODUCTION_CONNECTION_STRING : TEST_CONNECTION_STRING;
 }
 

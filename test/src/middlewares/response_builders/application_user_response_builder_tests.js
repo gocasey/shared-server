@@ -1,24 +1,26 @@
 const expect = require('expect.js');
 const sinon = require('sinon');
-const UserRegistrationResponseBuilder = require('../../../../src/middlewares/response_builders/application_user_response_builder.js');
+const ApplicationUserResponserBuilder = require('../../../../src/middlewares/response_builders/application_user_response_builder.js');
 
 const mockLogger = {
   debug: sinon.stub(),
 };
 
-describe('UserRegistrationResponseBuilder Tests', function() {
-  let userRegistrationResponseBuilder = new UserRegistrationResponseBuilder(mockLogger);
+describe('ApplicationUserResponserBuilder Tests', function() {
+  let applicationUserResponseBuilder = new ApplicationUserResponserBuilder(mockLogger);
 
   describe('#buildResponse', function() {
     let mockRequest = {};
     let passedStatusCode;
     let returnedResponse;
     let mockResponse = {
-      data: {
+      user: {
         user_id: 123456789,
         username: 'username',
-        applicationOwner: 'appOwner',
         _rev: 'rev',
+      },
+      serverOwner: {
+        name: 'appOwner',
       },
       status: function(statusCode) {
         passedStatusCode = statusCode;
@@ -32,7 +34,7 @@ describe('UserRegistrationResponseBuilder Tests', function() {
 
     beforeEach(function() {
       mockLogger.debug.resetHistory();
-      userRegistrationResponseBuilder.buildResponse(mockRequest, mockResponse);
+      applicationUserResponseBuilder.buildResponse(mockRequest, mockResponse);
     });
 
     it('passes status and response', function() {

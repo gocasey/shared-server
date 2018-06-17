@@ -30,7 +30,9 @@ function UsersRouter(app, logger, postgrePool) {
     _applicationUserRegistrationSchemaValidator.validateRequest,
     _serverTokenAuthenticator.authenticateFromHeader,
     _serverController.updateLastConnection,
+    _serverController.checkApplicationOwner,
     _userController.createUser,
+    _userController.setOwnership,
     _userRegistrationResponseBuilder.buildResponse
   );
 

@@ -1,5 +1,5 @@
 const pg = require('pg');
-const config = require('default.js');
+const config = require('./default.js');
 
 const client = new pg.Client({
   connectionString: config.DATABASE_URL,
@@ -8,6 +8,7 @@ const client = new pg.Client({
 const serversTokensTableCleanupQuery = `DROP TABLE IF EXISTS servers_tokens;`;
 const usersTokensTableCleanupQuery = `DROP TABLE IF EXISTS users_tokens;`;
 const usersTableCleanupQuery = `DROP TABLE IF EXISTS users;`;
+const usersOwnershipTableCleanupQuery = `DROP TABLE IF EXISTS users_ownership;`;
 const serversTableCleanupQuery = `DROP TABLE IF EXISTS servers;`;
 const filesTableCleanupQuery = `DROP TABLE IF EXISTS files;`;
 
@@ -19,22 +20,27 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;`
 
+const usersTableCreationQuery = `CREATE TABLE users (
+  user_id serial PRIMARY KEY,
+  username varchar(100) UNIQUE NOT NULL,
+  password varchar(100) NOT NULL,
+  _rev varchar(500)
+);`
+
 const serversTableCreationQuery = `CREATE TABLE servers (
   server_id serial PRIMARY KEY,
   server_name varchar(100) UNIQUE NOT NULL,
   _rev varchar(500),
-  created_by REFERENCES users,
+  created_by integer REFERENCES users,
   created_time timestamp NOT NULL DEFAULT NOW(),
   updated_time timestamp NOT NULL DEFAULT NOW(),
   last_connection timestamp
 );`
 
-const usersTableCreationQuery = `CREATE TABLE users (
-  user_id serial PRIMARY KEY,
-  username varchar(100) UNIQUE NOT NULL,
-  password varchar(100) NOT NULL,
-  _rev varchar(500),
-  app_owner varchar(100) REFERENCES servers(server_name) ON UPDATE CASCADE
+const usersOwnershipCreationQuery = `CREATE TABLE users_ownership (
+  id serial PRIMARY KEY,
+  user_id integer REFERENCES users,
+  server_id integer REFERENCES servers
 );`
 
 const usersTokensTableCreationQuery = `CREATE TABLE users_tokens (
@@ -73,8 +79,8 @@ EXECUTE PROCEDURE trigger_set_timestamp();`
 client.connect();
 
 const cleanupQueries = [serversTokensTableCleanupQuery, usersTokensTableCleanupQuery, usersTableCleanupQuery,
-                        serversTableCleanupQuery, filesTableCleanupQuery];
-const creationQueries = [ createTimestampFunction, serversTableCreationQuery, usersTableCreationQuery, usersTokensTableCreationQuery,
+                        usersOwnershipTableCleanupQuery, serversTableCleanupQuery, filesTableCleanupQuery];
+const creationQueries = [ createTimestampFunction, usersTableCreationQuery, serversTableCreationQuery, usersOwnershipCreationQuery, usersTokensTableCreationQuery,
                           serversTokensTableCreationQuery, filesTableCreationQuery, filesUpdateTimeTrigger, serversUpdateTimeTrigger];
 const queriesToRun = cleanupQueries.concat(creationQueries);
 

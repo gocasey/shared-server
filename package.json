@@ -8,8 +8,9 @@
   },
   "scripts": {
     "lint": "eslint src test",
-    "test": "mocha --recursive --timeout 5000",
-    "db_init": "node ./config/db_creation.js",
+    "test": "NODE_ENV=test mocha --recursive --timeout 5000",
+    "test_db_init": "NODE_ENV=test node ./config/db_creation.js",
+    "prod_db_init": "NODE_ENV=production node ./config/db_creation.js",
     "coverage": "nyc npm test",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "start": "NODE_ENV=production node ./src/app.js",

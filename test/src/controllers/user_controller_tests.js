@@ -43,7 +43,9 @@ describe('UserController Tests', () => {
   describe('#createUser', () => {
     let mockUserRequest = {
       body: {
-        name: 'name',
+        username: 'name',
+        password: 'pass',
+        applicationOwner: 'appOwner',
       },
     };
 
@@ -51,7 +53,7 @@ describe('UserController Tests', () => {
 
     describe('success', () => {
       before(() => {
-        mockUserService.createUser.resolves({ id: 123, name: 'name', _rev: 'rev', applicationOwner: 'appOwner' });
+        mockUserService.createUser.resolves({ id: 123, name: 'name', _rev: 'rev'});
       });
 
       it('calls user service', async () => {
@@ -66,11 +68,10 @@ describe('UserController Tests', () => {
 
       it('saves user in response', async () => {
         await userController.createUser(mockUserRequest, mockResponse, function() {});
-        expect(mockResponse.data).to.be.ok();
-        expect(mockResponse.data.id).to.be(123);
-        expect(mockResponse.data.name).to.be('name');
-        expect(mockResponse.data._rev).to.be('rev');
-        expect(mockResponse.data.applicationOwner).to.be('appOwner');
+        expect(mockResponse.user).to.be.ok();
+        expect(mockResponse.user.id).to.be(123);
+        expect(mockResponse.user.name).to.be('name');
+        expect(mockResponse.user._rev).to.be('rev');
       });
 
       it('calls next with no error', async () => {
@@ -134,10 +135,10 @@ describe('UserController Tests', () => {
 
       it('saves token in response', async () => {
         await userController.generateTokenForApplicationUser(mockRequest, mockUserResponse, function() {});
-        expect(mockUserResponse.data).to.be.ok();
-        expect(mockUserResponse.data.token_id).to.be(456);
-        expect(mockUserResponse.data.user_id).to.be(123);
-        expect(mockUserResponse.data.token).to.be('token');
+        expect(mockUserResponse.token).to.be.ok();
+        expect(mockUserResponse.token.token_id).to.be(456);
+        expect(mockUserResponse.token.user_id).to.be(123);
+        expect(mockUserResponse.token.token).to.be('token');
       });
 
       it('calls next with no error', async () => {

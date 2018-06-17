@@ -4,7 +4,7 @@ function TokenResponseBuilder(logger) {
   let _logger = logger;
 
   this.buildResponse = function(req, res) {
-    let token = res.data;
+    let token = res.token;
 
     let response = getBasicResponse();
     response.metadata.version = pjson.version;

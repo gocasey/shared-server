@@ -14,7 +14,7 @@ describe('TokenResponseBuilder Tests', function() {
     let passedStatusCode;
     let returnedResponse;
     let mockResponse = {
-      data: {
+      token: {
         token: 'token',
         tokenExpiration: 123456789,
       },
