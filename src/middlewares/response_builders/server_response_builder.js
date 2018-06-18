@@ -3,9 +3,10 @@ const pjson = require('../../../package.json');
 function ServerResponseBuilder(logger) {
   let _logger = logger;
 
-  this.buildSingleResponse = function(req, res) {
+  this.buildSingleResponse = function(req, res, successStatusCode) {
     let server = res.server;
     let serverToken = res.serverToken;
+    //let user = res.userAuthenticated;
 
     let response = getBasicSingleResponse();
     response.metadata.version = pjson.version;
@@ -19,7 +20,7 @@ function ServerResponseBuilder(logger) {
     response.server.token.token = serverToken.token;
 
     _logger.debug('Response: %j', response);
-    res.status(201).json(response);
+    res.status(successStatusCode).json(response);
   };
 
   function getBasicSingleResponse() {

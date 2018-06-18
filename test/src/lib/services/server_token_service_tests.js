@@ -145,7 +145,7 @@ describe('ServerTokenService Tests', function() {
     describe('token found', async () => {
       before(function() {
         mockServerTokenModel.findByServer.resolves({ token_id: 6789, server_id: 12345, token: 'token' });
-        mockTokenGenerationService.decodeToken.returns({ token: 'token', expiresAt: 123456789 });
+        mockTokenGenerationService.validateToken.returns({ token: 'token', expiresAt: 123456789 });
       });
 
       it('returns token', async function() {

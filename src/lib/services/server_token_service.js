@@ -28,7 +28,7 @@ function ServerTokenService(logger, postgrePool) {
   this.retrieveToken = async (server) => {
     let dbToken = await _serverTokenModel.findByServer(server);
     if (dbToken) {
-      let decodedToken = _serverTokenGenerationService.decodeToken(dbToken.token);
+      let decodedToken = await _serverTokenGenerationService.validateToken(dbToken.token, server);
       let serverToken = {
         token: decodedToken.token,
         tokenExpiration: decodedToken.expiresAt,
