@@ -108,7 +108,7 @@ function ServerController(logger, postgrePool) {
       _logger.error('An error occurred while finding server with name: %s', req.body.applicationOwner);
       return next(err);
     }
-    if (! serverOwner){
+    if (! serverOwner) {
       _logger.error('Application owner: \'%s\' does not exist', req.body.applicationOwner);
       throw new BaseHttpError('Application owner does not exist', 422);
     }

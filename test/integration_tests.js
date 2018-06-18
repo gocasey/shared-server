@@ -7,7 +7,6 @@ const dbCleanup = require('../config/db_cleanup.js');
 let request;
 
 describe('Integration Tests', () =>{
-
   let mockLogger = {
     debug: sinon.stub(),
     error: sinon.stub(),
@@ -18,7 +17,7 @@ describe('Integration Tests', () =>{
   beforeEach(async () => {
     await dbCleanup();
     let mocks = {
-      './utils/logger.js': function(){
+      './utils/logger.js': function() {
         return mockLogger;
         },
     };
@@ -28,7 +27,7 @@ describe('Integration Tests', () =>{
 
   it('Create admin user - Create server - Create user', async () => {
     let adminUserCreationResponse = await request.post('/api/admin-user')
-      .send({username: 'adminUser', password: 'pass'})
+      .send({ username: 'adminUser', password: 'pass' })
       .expect(201);
     expect(adminUserCreationResponse.body.user.user.username).to.be('adminUser');
     expect(adminUserCreationResponse.body.user.token).to.be.ok();
@@ -37,7 +36,7 @@ describe('Integration Tests', () =>{
     let authHeaderUser = util.format('Bearer %s', adminUserToken);
     let serverCreationResponse = await request.post('/api/servers')
       .set('Authorization', authHeaderUser)
-      .send({name: 'appServer'})
+      .send({ name: 'appServer' })
       .expect(201);
 
     expect(serverCreationResponse.body.server.server.name).to.be('appServer');
@@ -47,7 +46,7 @@ describe('Integration Tests', () =>{
     let authHeaderServer = util.format('Bearer %s', serverToken);
     let userCreationResponse = await request.post('/api/user')
       .set('Authorization', authHeaderServer)
-      .send({username: 'appUser', password: 'pass', applicationOwner: 'appServer'})
+      .send({ username: 'appUser', password: 'pass', applicationOwner: 'appServer' })
       .expect(201);
 
     expect(userCreationResponse.body.user.username).to.be('appUser');

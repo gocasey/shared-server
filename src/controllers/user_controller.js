@@ -44,7 +44,7 @@ function UserController(logger, postgrePool) {
     }
   };
 
-  this.setOwnership = async(req, res, next) => {
+  this.setOwnership = async (req, res, next) => {
     try {
       await _userOwnershipService.setOwnership(res.user, res.serverOwner);
     } catch (err) {

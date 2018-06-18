@@ -53,7 +53,7 @@ describe('UserController Tests', () => {
 
     describe('success', () => {
       before(() => {
-        mockUserService.createUser.resolves({ id: 123, name: 'name', _rev: 'rev'});
+        mockUserService.createUser.resolves({ id: 123, name: 'name', _rev: 'rev' });
       });
 
       it('calls user service', async () => {
