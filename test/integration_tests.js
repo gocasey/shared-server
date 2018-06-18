@@ -117,11 +117,10 @@ describe('Integration Tests', () =>{
             expect(userTokenCreationResponse.body.token.token).to.be.ok();
           });
 
-          describe('video upload success', async() => {
-
+          describe('video upload success', async () => {
             let fileUploadResponse;
 
-            it('returns file', async() => {
+            it('returns file', async () => {
               let userToken = userTokenCreationResponse.body.token.token;
               let authHeaderUser = util.format('Bearer %s', userToken);
               fileUploadResponse = await request.post('/api/files/upload_multipart')
@@ -135,11 +134,10 @@ describe('Integration Tests', () =>{
             });
           });
 
-          describe('image upload success', async() => {
-
+          describe('image upload success', async () => {
             let fileUploadResponse;
 
-            it('returns file', async() => {
+            it('returns file', async () => {
               let userToken = userTokenCreationResponse.body.token.token;
               let authHeaderUser = util.format('Bearer %s', userToken);
               fileUploadResponse = await request.post('/api/files/upload_multipart')
