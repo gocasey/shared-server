@@ -98,7 +98,7 @@ function FileModel(logger, postgrePool) {
   async function executeUpdate(file) {
     let currentRev = integrityValidator.createHash(file);
     let query = 'UPDATE files SET _rev=$1, file_name=$2, size=$3, resource=$4, owner=$5 WHERE file_id=$6 RETURNING *;';
-    let values = [currentRev, file.filename, file.size, file.resource, file.id];
+    let values = [currentRev, file.filename, file.size, file.resource, file.owner, file.id];
     let response;
     try {
       response = await executeQuery(query, values);

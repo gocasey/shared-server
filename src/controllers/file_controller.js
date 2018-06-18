@@ -100,7 +100,7 @@ function FileController(logger, postgrePool) {
 
   this.assignOwnership = async (req, res, next) => {
     let fileDataToUpdate = {
-      id: req.params.fileId,
+      id: req.body.id,
       filename: req.body.filename,
       _rev: req.body._rev,
       size: req.body.size,

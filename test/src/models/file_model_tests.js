@@ -130,6 +130,7 @@ describe('FileModel Tests', () => {
       _rev: 'oldRev',
       size: 1234,
       resource: 'newRemoteFileUri',
+      owner: 'serverId',
     };
 
     let dbFileFound = {
@@ -138,6 +139,7 @@ describe('FileModel Tests', () => {
       _rev: 'oldRev',
       size: 7890,
       resource: 'oldRemoteFileUri',
+      owner: 'serverId',
     };
 
     let dbFileFoundModified = {
@@ -146,6 +148,7 @@ describe('FileModel Tests', () => {
       _rev: 'anotherRev',
       size: 3456,
       resource: 'anotherRemoteFileUri',
+      owner: 'serverId',
     };
 
     let dbFileUpdated = {
@@ -154,6 +157,7 @@ describe('FileModel Tests', () => {
       _rev: 'newRev',
       size: 1234,
       resource: 'newRemoteFileUri',
+      owner: 'serverId',
     };
 
     describe('file found', () => {
@@ -175,7 +179,7 @@ describe('FileModel Tests', () => {
           it('passes correct values to update query', async () => {
             await fileModel.update(mockFile);
             expect(mockPool.query.calledTwice);
-            expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name', 1234, 'newRemoteFileUri', 123]);
+            expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name', 1234, 'newRemoteFileUri', 'serverId', 123]);
           });
 
           it('returns updated file', async () => {
@@ -196,7 +200,7 @@ describe('FileModel Tests', () => {
               await fileModel.update(mockFile);
             } catch (err) {}
             expect(mockPool.query.calledTwice);
-            expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name', 1234, 'newRemoteFileUri', 123]);
+            expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name', 1234, 'newRemoteFileUri', 'serverId', 123]);
           });
 
           it('returns error', async () => {

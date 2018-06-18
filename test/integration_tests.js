@@ -66,6 +66,7 @@ describe('Integration Tests', () =>{
 
           expect(serverFindResponse.body.server.server.name).to.be('appServer');
           expect(serverFindResponse.body.server.server.url).to.be('serverUrl');
+          expect(serverFindResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
           expect(serverFindResponse.body.server.server.lastConnection).to.be.empty();
           expect(serverFindResponse.body.server.token).to.be.ok();
         });
@@ -86,6 +87,7 @@ describe('Integration Tests', () =>{
           expect(serverFindResponse.body.servers[0].lastConnection).to.be.empty();
           expect(serverFindResponse.body.servers[0].name).to.be('appServer');
           expect(serverFindResponse.body.servers[0].url).to.be('serverUrl');
+          expect(serverFindResponse.body.servers[0].createdBy).to.be(adminUserCreationResponse.body.user.user.id);
         });
       });
 
@@ -132,6 +134,22 @@ describe('Integration Tests', () =>{
               expect(fileUploadResponse.body.file.resource).to.be.ok();
               expect(fileUploadResponse.body.file.owner).to.be.empty;
             });
+
+            describe('set file ownership success', async () => {
+              let filePostResponse;
+
+              it('returns file', async () => {
+                let serverToken = serverCreationResponse.body.server.token.token;
+                let authHeaderServer = util.format('Bearer %s', serverToken);
+                filePostResponse = await request.post('/api/files')
+                  .set('Authorization', authHeaderServer)
+                  .send(fileUploadResponse.body.file)
+                  .expect(200);
+
+                expect(filePostResponse.body.file.resource).to.be.ok();
+                expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+              });
+            });
           });
 
           describe('image upload success', async () => {
@@ -148,6 +166,22 @@ describe('Integration Tests', () =>{
 
               expect(fileUploadResponse.body.file.resource).to.be.ok();
               expect(fileUploadResponse.body.file.owner).to.be.empty;
+            });
+
+            describe('set file ownership success', async () => {
+              let filePostResponse;
+
+              it('returns file', async () => {
+                let serverToken = serverCreationResponse.body.server.token.token;
+                let authHeaderServer = util.format('Bearer %s', serverToken);
+                filePostResponse = await request.post('/api/files')
+                  .set('Authorization', authHeaderServer)
+                  .send(fileUploadResponse.body.file)
+                  .expect(200);
+
+                expect(filePostResponse.body.file.resource).to.be.ok();
+                expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+              });
             });
           });
         });
@@ -168,6 +202,7 @@ describe('Integration Tests', () =>{
             expect(serverFindResponse.body.server.server.url).to.be('serverUrl');
             expect(serverFindResponse.body.server.token).to.be.ok();
             expect(serverFindResponse.body.server.server.lastConnection).to.not.be.empty();
+            expect(serverFindResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
           });
         });
 
@@ -186,6 +221,7 @@ describe('Integration Tests', () =>{
             expect(serverFindResponse.body.servers[0].name).to.be('appServer');
             expect(serverFindResponse.body.servers[0].url).to.be('serverUrl');
             expect(serverFindResponse.body.servers[0].lastConnection).to.not.be.empty();
+            expect(serverFindResponse.body.servers[0].createdBy).to.be(adminUserCreationResponse.body.user.user.id);
           });
         });
       });
