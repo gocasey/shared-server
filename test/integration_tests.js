@@ -116,6 +116,42 @@ describe('Integration Tests', () =>{
             expect(userTokenCreationResponse.body.token.expiresAt).to.be.ok();
             expect(userTokenCreationResponse.body.token.token).to.be.ok();
           });
+
+          describe('video upload success', async() => {
+
+            let fileUploadResponse;
+
+            it('returns file', async() => {
+              let userToken = userTokenCreationResponse.body.token.token;
+              let authHeaderUser = util.format('Bearer %s', userToken);
+              fileUploadResponse = await request.post('/api/files/upload_multipart')
+                .set('Authorization', authHeaderUser)
+                .field('filename', 'upload.mp4')
+                .attach('file', 'test/files/video.mp4')
+                .expect(201);
+
+              expect(fileUploadResponse.body.file.resource).to.be.ok();
+              expect(fileUploadResponse.body.file.owner).to.be.empty;
+            });
+          });
+
+          describe('image upload success', async() => {
+
+            let fileUploadResponse;
+
+            it('returns file', async() => {
+              let userToken = userTokenCreationResponse.body.token.token;
+              let authHeaderUser = util.format('Bearer %s', userToken);
+              fileUploadResponse = await request.post('/api/files/upload_multipart')
+                .set('Authorization', authHeaderUser)
+                .field('filename', 'upload.jpg')
+                .attach('file', 'test/files/image.jpg')
+                .expect(201);
+
+              expect(fileUploadResponse.body.file.resource).to.be.ok();
+              expect(fileUploadResponse.body.file.owner).to.be.empty;
+            });
+          });
         });
 
         describe('retrieve single server success', async () => {

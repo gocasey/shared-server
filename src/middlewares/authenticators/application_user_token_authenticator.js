@@ -1,9 +1,11 @@
 const UserTokenService = require('../../lib/services/user_token_service.js');
 const UserService = require('../../lib/services/user_service.js');
+const UserTokenGenerationFactory = require('../../lib/factories/user_token_generation_service_factory.js');
 const BaseHttpError = require('../../errors/base_http_error.js');
 
-function UserTokenAuthenticator(logger, postgrePool) {
-  let _userTokenService = new UserTokenService(logger, postgrePool);
+function ApplicationUserTokenAuthenticator(logger, postgrePool) {
+  let _userTokenGenerationFactory = new UserTokenGenerationFactory(logger);
+  let _userTokenService = new UserTokenService(logger, postgrePool, _userTokenGenerationFactory.getAdminUserTokenGenerationService());
   let _userService = new UserService(logger, postgrePool);
 
   function getTokenFromHeader(req) {
@@ -41,4 +43,4 @@ function UserTokenAuthenticator(logger, postgrePool) {
   };
 }
 
-module.exports = UserTokenAuthenticator;
+module.exports = ApplicationUserTokenAuthenticator;

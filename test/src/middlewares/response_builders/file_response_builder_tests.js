@@ -36,7 +36,7 @@ describe('FileResponseBuilder Tests', function() {
 
     beforeEach(function() {
       mockLogger.debug.resetHistory();
-      fileResponseBuilder.buildSingleResponse(mockRequest, mockResponse);
+      fileResponseBuilder.buildSingleResponse(mockRequest, mockResponse, 200);
     });
 
     it('returns status and response', function() {

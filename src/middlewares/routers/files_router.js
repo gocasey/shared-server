@@ -1,40 +1,38 @@
 const FileController = require('../../controllers/file_controller.js');
 const ServerController = require('../../controllers/server_controller.js');
-const FileResponseBuilder = require('../../middlewares/response_builders/file_response_builder.js');
+const FileCreationResponseBuilder = require('../../middlewares/response_builders/file_creation_response_builder.js');
+const FileFindResponseBuilder = require('../../middlewares/response_builders/file_find_response_builder.js');
 const ServerTokenAuthenticator = require('../../middlewares/authenticators/server_token_authenticator.js');
-const UserTokenAuthenticator = require('../authenticators/application_user_token_authenticator.js');
+const ApplicationUserTokenAuthenticator = require('../authenticators/application_user_token_authenticator.js');
 
 function FilesRouter(app, logger, postgrePool) {
   let _serverTokenAuthenticator = new ServerTokenAuthenticator(logger, postgrePool);
-  let _userTokenAuthenticator = new UserTokenAuthenticator(logger, postgrePool);
+  let _applicationUserTokenAuthenticator = new ApplicationUserTokenAuthenticator(logger, postgrePool);
   let _fileController = new FileController(logger, postgrePool);
   let _serverController = new ServerController(logger, postgrePool);
-  let _fileResponseBuilder = new FileResponseBuilder(logger);
+  let _fileCreationResponseBuilder = new FileCreationResponseBuilder(logger);
+  let _fileFindResponseBuilder = new FileFindResponseBuilder(logger);
 
   // Consulta de archivos de un server
   app.get('/api/files',
     _serverTokenAuthenticator.authenticateFromHeader,
     _serverController.updateLastConnection,
     _fileController.findServerFiles,
-    _fileResponseBuilder.buildSetResponse
+    _fileFindResponseBuilder.buildSetResponse
   );
 
   // Usuario sube archivo en json
   app.post('/api/files/upload',
-    _serverTokenAuthenticator.authenticateFromHeader,
-    _serverController.updateLastConnection,
-    _userTokenAuthenticator.authenticateFromQuerystring,
+    _applicationUserTokenAuthenticator.authenticateFromHeader,
     _fileController.createFileFromJson,
-    _fileResponseBuilder.buildSingleResponse
+    _fileCreationResponseBuilder.buildResponse
   );
 
   // Usuario sube archivo en formato multipart
   app.post('/api/files/upload_multipart',
-    _serverTokenAuthenticator.authenticateFromHeader,
-    _serverController.updateLastConnection,
-    _userTokenAuthenticator.authenticateFromQuerystring,
+    _applicationUserTokenAuthenticator.authenticateFromHeader,
     _fileController.createFileFromMultipart,
-    _fileResponseBuilder.buildSingleResponse
+    _fileCreationResponseBuilder.buildResponse
   );
 
   // Alta de archivo para server
@@ -42,7 +40,7 @@ function FilesRouter(app, logger, postgrePool) {
     _serverTokenAuthenticator.authenticateFromHeader,
     _serverController.updateLastConnection,
     _fileController.assignOwnership,
-    _fileResponseBuilder.buildSingleResponse
+    _fileFindResponseBuilder.buildResponse
   );
 
   // Consulta de archivo
@@ -51,7 +49,7 @@ function FilesRouter(app, logger, postgrePool) {
     _serverController.updateLastConnection,
     _fileController.findFile,
     _fileController.checkOwnership,
-    _fileResponseBuilder.buildSingleResponse
+    _fileFindResponseBuilder.buildResponse
   );
 
   // Actualizacion de archivo
@@ -61,7 +59,7 @@ function FilesRouter(app, logger, postgrePool) {
     _fileController.findFile,
     _fileController.checkOwnership,
     _fileController.updateFile,
-    _fileResponseBuilder.buildSingleResponse
+    _fileFindResponseBuilder.buildResponse
   );
 }
 

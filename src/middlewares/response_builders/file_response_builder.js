@@ -3,7 +3,11 @@ const pjson = require('../../../package.json');
 function FileResponseBuilder(logger) {
   let _logger = logger;
 
-  this.buildSingleResponse = function(req, res) {
+  function emptyIfNull(o) {
+    return (o === null || o === undefined) ? '' : o;
+  }
+
+  this.buildSingleResponse = function(req, res, successStatusCode) {
     let file = res.file;
 
     let response = getBasicSingleResponse();
@@ -15,10 +19,10 @@ function FileResponseBuilder(logger) {
     response.file.size = file.size;
     response.file.filename = file.filename;
     response.file.resource = file.resource;
-    response.file.owner = file.owner;
+    response.file.owner = emptyIfNull(file.owner);
 
     _logger.debug('Response: %j', response);
-    res.status(200).json(response);
+    res.status(successStatusCode).json(response);
   };
 
   function getBasicSingleResponse() {
@@ -55,7 +59,7 @@ function FileResponseBuilder(logger) {
       fileResponse.size = file.size;
       fileResponse.filename = file.filename;
       fileResponse.resource = file.resource;
-      fileResponse.owner = file.owner;
+      fileResponse.owner = emptyIfNull(file.owner);
       response.files.push(fileResponse);
     });
 
