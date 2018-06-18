@@ -6,6 +6,7 @@ const UserController = require('../../controllers/user_controller.js');
 const ServerController = require('../../controllers/server_controller.js');
 const TokenResponseBuilder = require('../response_builders/token_response_builder.js');
 const ApplicationUserResponseBuilder = require('../response_builders/application_user_response_builder.js');
+const AdminUserResponseBuilder = require('../response_builders/admin_user_response_builder.js');
 
 function UsersRouter(app, logger, postgrePool) {
   let _applicationUserCredentialsSchemaValidator = new ApplicationUserCredentialsSchemaValidator(logger);
@@ -15,7 +16,8 @@ function UsersRouter(app, logger, postgrePool) {
   let _userController = new UserController(logger, postgrePool);
   let _serverController = new ServerController(logger, postgrePool);
   let _tokenResponseBuilder = new TokenResponseBuilder(logger);
-  let _userRegistrationResponseBuilder = new ApplicationUserResponseBuilder(logger);
+  let _applicationUserResponseBuilder = new ApplicationUserResponseBuilder(logger);
+  let _adminUserResponseBuilder = new AdminUserResponseBuilder(logger);
 
   app.post('/api/token',
     _applicationUserCredentialsSchemaValidator.validateRequest,
@@ -33,13 +35,13 @@ function UsersRouter(app, logger, postgrePool) {
     _serverController.checkApplicationOwner,
     _userController.createUser,
     _userController.setOwnership,
-    _userRegistrationResponseBuilder.buildResponse
+    _applicationUserResponseBuilder.buildResponse
   );
 
   app.post('/api/admin-user',
     _userController.createUser,
-    _userController.generateTokenForAdminUser(),
-    _userRegistrationResponseBuilder.buildResponse
+    _userController.generateTokenForAdminUser,
+    _adminUserResponseBuilder.buildResponse
   );
 }
 

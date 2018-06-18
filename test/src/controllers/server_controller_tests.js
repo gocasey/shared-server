@@ -54,7 +54,7 @@ describe('ServerController Tests', () => {
     };
 
     let mockResponse = {
-      serverAuthenticated: {
+      userAuthenticated: {
         id: 456,
       },
     };

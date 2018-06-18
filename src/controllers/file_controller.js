@@ -1,6 +1,6 @@
 const fs = require('fs');
 const multer = require('multer');
-const config = require('../../config/default.js');
+const config = require('config');
 const FileService = require('../lib/services/file_service.js');
 const BaseHttpError = require('../errors/base_http_error.js');
 

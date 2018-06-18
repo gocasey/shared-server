@@ -38,7 +38,7 @@ describe('ApplicationUserResponserBuilder Tests', function() {
     });
 
     it('passes status and response', function() {
-      expect(passedStatusCode).to.be(200);
+      expect(passedStatusCode).to.be(201);
       expect(returnedResponse).to.be.eql({ metadata: { version: '1.0.0' },
         user: { id: 123456789, _rev: 'rev', applicationOwner: 'appOwner', username: 'username' } });
     });

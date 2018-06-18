@@ -5,14 +5,13 @@ function AdminUserResponseBuilder(logger) {
 
   this.buildResponse = function(req, res) {
     let user = res.user;
-    let userToken = res.userToken;
+    let userToken = res.token;
 
     let response = getBasicResponse();
     response.metadata.version = pjson.version;
     response.user.user.id = user.user_id;
     response.user.user._rev = user._rev;
     response.user.user.username = user.username;
-    response.user.user.applicationOwner = user.applicationOwner;
     response.user.token.expiresAt = userToken.tokenExpiration;
     response.user.token.token = userToken.token;
 
@@ -30,7 +29,6 @@ function AdminUserResponseBuilder(logger) {
           id: '',
           _rev: '',
           username: '',
-          applicationOwner: '',
         },
         token: {
           expiresAt: 0,

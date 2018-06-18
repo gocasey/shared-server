@@ -14,7 +14,7 @@
 * `npm run db_init`: creates the needed tables for the first time on the postgres database.
 * `npm test`: executes tests written using [Mocha](https://mochajs.org/).
 * `npm run coverage`: executes tests and reports coverage, thanks to [nyc/Istambul](https://github.com/istanbuljs/nyc).
-* `npm start`: starts the service in the specified port (by default `8080`). See the [config file](./config/default.js) for more information.
+* `npm start`: starts the service in the specified port (by default `8080`).
 * `npm run debug`: starts the service in debug mode.
 
 ## Instructions to run the app using Docker

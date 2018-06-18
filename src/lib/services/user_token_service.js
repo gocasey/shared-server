@@ -5,16 +5,8 @@ function UserTokenService(logger, postgrePool, tokenGenerationService) {
   let _userTokenModel = new UserTokenModel(logger, postgrePool);
   let _tokenGenerationService = tokenGenerationService;
 
-  function getOwnerFromUser(user) {
-    return {
-      id: user.user_id,
-      name: user.username,
-    };
-  }
-
   async function generateNewTokenForUser(user) {
-    let owner = getOwnerFromUser(user);
-    let token = await _tokenGenerationService.generateToken(owner);
+    let token = await _tokenGenerationService.generateToken(user);
     await _userTokenModel.createOrUpdate(user, token);
     let userToken = {
       token: token.token,
@@ -26,9 +18,8 @@ function UserTokenService(logger, postgrePool, tokenGenerationService) {
   this.generateToken = async (user) => {
     let userToken = await _userTokenModel.findByUser(user);
     if (userToken) {
-      let owner = getOwnerFromUser(user);
       try {
-        let validatedToken = await _tokenGenerationService.validateToken(userToken.token, owner);
+        let validatedToken = await _tokenGenerationService.validateToken(userToken.token, user);
         _logger.info('User: \'%s\' already has a valid token, skipping token generation', user.username);
         let businessToken = {
           token: validatedToken.token,
@@ -46,12 +37,12 @@ function UserTokenService(logger, postgrePool, tokenGenerationService) {
   };
 
   this.validateToken = async (token) => {
-    let userId = _tokenGenerationService.getUserIdFromToken(token);
+    let userId = await _tokenGenerationService.getUserIdFromToken(token);
     let userToken = await _userTokenModel.findByUserId(userId);
-    if (token === userToken) {
+    if (token === userToken.token) {
       if (_tokenGenerationService.validatePermissions(token)) {
         _logger.info('Token was validated successfully for user_id:\'%s\'', userId);
-        return true;
+        return userId;
       } else {
         _logger.error('Token does not have the required permissions');
       }
@@ -59,7 +50,7 @@ function UserTokenService(logger, postgrePool, tokenGenerationService) {
       _logger.debug('Token was created for user_id:\'%s\' but does not match the token saved in the database for that user', userId);
       _logger.error('Token contains inconsistent data');
     }
-    return false;
+    return null;
   };
 }
 

@@ -1,5 +1,5 @@
 const pg = require('pg');
-const config = require('./default.js');
+const config = require('config');
 
 const client = new pg.Client({
   connectionString: config.DATABASE_URL,
@@ -7,10 +7,10 @@ const client = new pg.Client({
 
 const serversTokensTableCleanupQuery = `DROP TABLE IF EXISTS servers_tokens;`;
 const usersTokensTableCleanupQuery = `DROP TABLE IF EXISTS users_tokens;`;
-const usersTableCleanupQuery = `DROP TABLE IF EXISTS users;`;
 const usersOwnershipTableCleanupQuery = `DROP TABLE IF EXISTS users_ownership;`;
-const serversTableCleanupQuery = `DROP TABLE IF EXISTS servers;`;
-const filesTableCleanupQuery = `DROP TABLE IF EXISTS files;`;
+const usersTableCleanupQuery = `DROP TABLE IF EXISTS users CASCADE;`;
+const serversTableCleanupQuery = `DROP TABLE IF EXISTS servers CASCADE;`;
+const filesTableCleanupQuery = `DROP TABLE IF EXISTS files CASCADE;`;
 
 const createTimestampFunction = `CREATE OR REPLACE FUNCTION trigger_set_timestamp()
 RETURNS TRIGGER AS $$
@@ -39,7 +39,7 @@ const serversTableCreationQuery = `CREATE TABLE servers (
 
 const usersOwnershipCreationQuery = `CREATE TABLE users_ownership (
   id serial PRIMARY KEY,
-  user_id integer REFERENCES users,
+  user_id integer UNIQUE REFERENCES users,
   server_id integer REFERENCES servers
 );`
 
@@ -78,8 +78,8 @@ EXECUTE PROCEDURE trigger_set_timestamp();`
 
 client.connect();
 
-const cleanupQueries = [serversTokensTableCleanupQuery, usersTokensTableCleanupQuery, usersTableCleanupQuery,
-                        usersOwnershipTableCleanupQuery, serversTableCleanupQuery, filesTableCleanupQuery];
+const cleanupQueries = [serversTokensTableCleanupQuery, usersTokensTableCleanupQuery, usersOwnershipTableCleanupQuery,
+                        usersTableCleanupQuery, serversTableCleanupQuery, filesTableCleanupQuery];
 const creationQueries = [ createTimestampFunction, usersTableCreationQuery, serversTableCreationQuery, usersOwnershipCreationQuery, usersTokensTableCreationQuery,
                           serversTokensTableCreationQuery, filesTableCreationQuery, filesUpdateTimeTrigger, serversUpdateTimeTrigger];
 const queriesToRun = cleanupQueries.concat(creationQueries);

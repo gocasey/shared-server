@@ -10,7 +10,7 @@ function ServerController(logger, postgrePool) {
   this.createServer = async (req, res, next) => {
     let serverData = {
       name: req.body.name,
-      createdBy: res.serverAuthenticated.id,
+      createdBy: res.userAuthenticated.id,
     };
     let serverCreated;
     try {

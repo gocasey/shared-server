@@ -1,5 +1,5 @@
 const Pool = require('pg').Pool;
-const config = require('../../../config/default.js');
+const config = require('config');
 
 function ConnectionPoolFactory(logger) {
   let _logger = logger;

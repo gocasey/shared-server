@@ -63,10 +63,9 @@ function ServerTokenService(logger, postgrePool) {
   };
 
   this.validateToken = async (token) => {
-    let serverId = _serverTokenGenerationService.getServerIdFromToken(token);
-
+    let serverId = await _serverTokenGenerationService.getServerIdFromToken(token);
     let serverToken = await _serverTokenModel.findByServerId(serverId);
-    if (token === serverToken) {
+    if (token === serverToken.token) {
       if (_serverTokenGenerationService.validatePermissions(token)) {
         _logger.info('Token was validated successfully for server_id:\'%s\'', serverId);
         return serverId;

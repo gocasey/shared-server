@@ -30,8 +30,11 @@ usersRouter(app, logger, postgrePool);
 app.use(errorMiddleware);
 
 // Start the app in the designated port and host
-app.listen(config.express.Port, config.express.Host, () => {
-  console.log(`Shared Server running on http://${config.express.Host}:${config.express.Port}`);
-});
+
+if(! module.parent) {
+  app.listen(config.express.Port, config.express.Host, () => {
+    console.log(`Shared Server running on http://${config.express.Host}:${config.express.Port}`);
+  });
+}
 
 module.exports = app;

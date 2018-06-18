@@ -149,7 +149,7 @@ function ServerModel(logger, postgrePool) {
     let currentRev = integrityValidator.createHash(server);
     let query = 'UPDATE servers SET _rev=$1, last_connection=NOW() ' +
       'WHERE server_id=$2 RETURNING server_id, server_name, _rev, created_by, created_time, last_connection;';
-    let values = [server.name, currentRev, server.id];
+    let values = [currentRev, server.id];
     try {
       let res = await executeQuery(query, values);
       _logger.info('Server with name: \'%s\' updated successfully', server.name);
