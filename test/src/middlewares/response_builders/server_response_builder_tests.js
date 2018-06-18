@@ -45,16 +45,16 @@ describe('ServerResponseBuilder Tests', function() {
     it('returns status and response', function() {
       expect(passedStatusCode).to.be(201);
       expect(returnedResponse).to.be.eql({ metadata: { version: '1.0.0' },
-        server: { server: { id: '123', name: 'name', _rev: 'rev', createdBy: 'adminUserId', createdTime: '2018-04-09', lastConnection: '2018-04-10', url: 'url' },
-                  token: { expiresAt: 123456789, token: 'token' } } });
+        server: { server: { id: '123', name: 'name', _rev: 'rev', createdBy: 'adminUserId', createdTime: '2018-04-09',
+            lastConnection: '2018-04-10', url: 'url' }, token: { expiresAt: 123456789, token: 'token' } } });
     });
 
     it('logs response', function() {
       expect(mockLogger.debug.calledOnce);
       expect(mockLogger.debug.getCall(0).args[0]).to.be('Response: %j');
       expect(mockLogger.debug.getCall(0).args[1]).to.be.eql({ metadata: { version: '1.0.0' },
-        server: { server: { id: '123', name: 'name', _rev: 'rev', createdBy: 'adminUserId', createdTime: '2018-04-09', lastConnection: '2018-04-10', url: 'url' },
-                  token: { expiresAt: 123456789, token: 'token' } } });
+        server: { server: { id: '123', name: 'name', _rev: 'rev', createdBy: 'adminUserId', createdTime: '2018-04-09',
+            lastConnection: '2018-04-10', url: 'url' }, token: { expiresAt: 123456789, token: 'token' } } });
     });
   });
 
