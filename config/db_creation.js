@@ -34,7 +34,8 @@ const serversTableCreationQuery = `CREATE TABLE servers (
   created_by integer REFERENCES users,
   created_time timestamp NOT NULL DEFAULT NOW(),
   updated_time timestamp NOT NULL DEFAULT NOW(),
-  last_connection timestamp
+  last_connection timestamp,
+  url varchar(500)
 );`
 
 const usersOwnershipCreationQuery = `CREATE TABLE users_ownership (

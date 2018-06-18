@@ -19,6 +19,7 @@ function ServerResponseBuilder(logger) {
     response.server.server.createdBy = server.createdBy;
     response.server.server.createdTime = server.createdTime;
     response.server.server.lastConnection = emptyIfNull(server.lastConnection);
+    response.server.server.url = server.url;
     response.server.token.expiresAt = serverToken.tokenExpiration;
     response.server.token.token = serverToken.token;
 
@@ -39,6 +40,7 @@ function ServerResponseBuilder(logger) {
           createdBy: '',
           createdTime: '',
           lastConnection: '',
+          url: '',
         },
         token: {
           expiresAt: 0,
@@ -62,6 +64,7 @@ function ServerResponseBuilder(logger) {
       serverResponse.createdBy = server.createdBy;
       serverResponse.createdTime = server.createdTime;
       serverResponse.lastConnection = emptyIfNull(server.lastConnection);
+      serverResponse.url = server.url;
       response.servers.push(serverResponse);
     });
 

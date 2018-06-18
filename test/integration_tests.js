@@ -44,10 +44,11 @@ describe('Integration Tests', () =>{
         let authHeaderUser = util.format('Bearer %s', adminUserToken);
         serverCreationResponse = await request.post('/api/servers')
           .set('Authorization', authHeaderUser)
-          .send({ name: 'appServer' })
+          .send({ name: 'appServer', url: 'serverUrl' })
           .expect(201);
 
         expect(serverCreationResponse.body.server.server.name).to.be('appServer');
+        expect(serverCreationResponse.body.server.server.url).to.be('serverUrl');
         expect(serverCreationResponse.body.server.token).to.be.ok();
       });
 
@@ -64,6 +65,8 @@ describe('Integration Tests', () =>{
             .expect(200);
 
           expect(serverFindResponse.body.server.server.name).to.be('appServer');
+          expect(serverFindResponse.body.server.server.url).to.be('serverUrl');
+          expect(serverFindResponse.body.server.server.lastConnection).to.be.empty();
           expect(serverFindResponse.body.server.token).to.be.ok();
         });
       });
@@ -80,7 +83,9 @@ describe('Integration Tests', () =>{
 
           expect(serverFindResponse.body.servers).to.be.an.array;
           expect(serverFindResponse.body.servers.length).to.be(1);
+          expect(serverFindResponse.body.servers[0].lastConnection).to.be.empty();
           expect(serverFindResponse.body.servers[0].name).to.be('appServer');
+          expect(serverFindResponse.body.servers[0].url).to.be('serverUrl');
         });
       });
 
@@ -126,6 +131,7 @@ describe('Integration Tests', () =>{
               .expect(200);
 
             expect(serverFindResponse.body.server.server.name).to.be('appServer');
+            expect(serverFindResponse.body.server.server.url).to.be('serverUrl');
             expect(serverFindResponse.body.server.token).to.be.ok();
             expect(serverFindResponse.body.server.server.lastConnection).to.not.be.empty();
           });
@@ -144,6 +150,7 @@ describe('Integration Tests', () =>{
             expect(serverFindResponse.body.servers).to.be.an.array;
             expect(serverFindResponse.body.servers.length).to.be(1);
             expect(serverFindResponse.body.servers[0].name).to.be('appServer');
+            expect(serverFindResponse.body.servers[0].url).to.be('serverUrl');
             expect(serverFindResponse.body.servers[0].lastConnection).to.not.be.empty();
           });
         });
