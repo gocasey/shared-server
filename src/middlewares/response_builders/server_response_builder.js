@@ -3,10 +3,13 @@ const pjson = require('../../../package.json');
 function ServerResponseBuilder(logger) {
   let _logger = logger;
 
+  function emptyIfNull(o) {
+    return (o === null || o === undefined) ? '' : o;
+  }
+
   this.buildSingleResponse = function(req, res, successStatusCode) {
     let server = res.server;
     let serverToken = res.serverToken;
-    //let user = res.userAuthenticated;
 
     let response = getBasicSingleResponse();
     response.metadata.version = pjson.version;
@@ -15,7 +18,7 @@ function ServerResponseBuilder(logger) {
     response.server.server._rev = server._rev;
     response.server.server.createdBy = server.createdBy;
     response.server.server.createdTime = server.createdTime;
-    response.server.server.lastConnection = server.lastConnection;
+    response.server.server.lastConnection = emptyIfNull(server.lastConnection);
     response.server.token.expiresAt = serverToken.tokenExpiration;
     response.server.token.token = serverToken.token;
 
@@ -58,7 +61,7 @@ function ServerResponseBuilder(logger) {
       serverResponse._rev = server._rev;
       serverResponse.createdBy = server.createdBy;
       serverResponse.createdTime = server.createdTime;
-      serverResponse.lastConnection = server.lastConnection;
+      serverResponse.lastConnection = emptyIfNull(server.lastConnection);
       response.servers.push(serverResponse);
     });
 

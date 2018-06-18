@@ -55,13 +55,13 @@ describe('ServerController Tests', () => {
 
     let mockResponse = {
       userAuthenticated: {
-        id: 456,
+        user_id: 456,
       },
     };
 
     describe('success', () => {
       before(() => {
-        mockServerService.createServer.resolves({ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09' });
+        mockServerService.createServer.resolves({ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09', createdBy: 456 });
       });
 
       it('calls server service', async () => {
@@ -81,6 +81,7 @@ describe('ServerController Tests', () => {
         expect(mockResponse.server.name).to.be('name');
         expect(mockResponse.server._rev).to.be('rev');
         expect(mockResponse.server.createdTime).to.be('2018-04-09');
+        expect(mockResponse.server.createdBy).to.be(456);
       });
 
       it('calls next with no error', async () => {

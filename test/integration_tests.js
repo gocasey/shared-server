@@ -17,9 +17,9 @@ describe('Integration Tests', () =>{
   before(async () => {
     await dbCleanup();
     let mocks = {
-      /*'./utils/logger.js': function() {
+      './utils/logger.js': function() {
         return mockLogger;
-        },*/
+        },
     };
     let mockApp = proxyquire('../src/app.js', mocks);
     request = supertest(mockApp.listen());
@@ -71,7 +71,7 @@ describe('Integration Tests', () =>{
       describe('retrieve all servers success', () => {
         let serverFindResponse;
 
-        it('returns server', async () => {
+        it('returns all servers', async () => {
           let adminUserToken = adminUserCreationResponse.body.user.token.token;
           let authHeaderUser = util.format('Bearer %s', adminUserToken);
           serverFindResponse = await request.get('/api/servers')
@@ -87,7 +87,7 @@ describe('Integration Tests', () =>{
       describe('create application user success', () => {
         let userCreationResponse;
 
-        it('returns application user', async() => {
+        it('returns application user', async () => {
           let serverToken = serverCreationResponse.body.server.token.token;
           let authHeaderServer = util.format('Bearer %s', serverToken);
           userCreationResponse = await request.post('/api/user')
@@ -99,7 +99,6 @@ describe('Integration Tests', () =>{
         });
 
         describe('create application user token success', async () => {
-
           let userTokenCreationResponse;
 
           it('returns application user token', async () => {
@@ -111,6 +110,41 @@ describe('Integration Tests', () =>{
               .expect(201);
             expect(userTokenCreationResponse.body.token.expiresAt).to.be.ok();
             expect(userTokenCreationResponse.body.token.token).to.be.ok();
+          });
+        });
+
+        describe('retrieve single server success', async () => {
+          let serverFindResponse;
+
+          it('updates server last connection', async () => {
+            let adminUserToken = adminUserCreationResponse.body.user.token.token;
+            let serverId = serverCreationResponse.body.server.server.id;
+            let authHeaderUser = util.format('Bearer %s', adminUserToken);
+            let resourcePath = util.format('/api/servers/%s', serverId);
+            serverFindResponse = await request.get(resourcePath)
+              .set('Authorization', authHeaderUser)
+              .expect(200);
+
+            expect(serverFindResponse.body.server.server.name).to.be('appServer');
+            expect(serverFindResponse.body.server.token).to.be.ok();
+            expect(serverFindResponse.body.server.server.lastConnection).to.not.be.empty();
+          });
+        });
+
+        describe('retrieve all servers success', async () => {
+          let serverFindResponse;
+
+          it('updates server last connection', async () => {
+            let adminUserToken = adminUserCreationResponse.body.user.token.token;
+            let authHeaderUser = util.format('Bearer %s', adminUserToken);
+            serverFindResponse = await request.get('/api/servers')
+              .set('Authorization', authHeaderUser)
+              .expect(200);
+
+            expect(serverFindResponse.body.servers).to.be.an.array;
+            expect(serverFindResponse.body.servers.length).to.be(1);
+            expect(serverFindResponse.body.servers[0].name).to.be('appServer');
+            expect(serverFindResponse.body.servers[0].lastConnection).to.not.be.empty();
           });
         });
       });

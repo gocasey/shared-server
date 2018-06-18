@@ -82,18 +82,17 @@ function ServerModel(logger, postgrePool) {
   };
 
   this.updateLastConnection = async (server) => {
-    let dbServer = await findByServerIdReturnAllParams(server.id);
-    if (dbServer) {
-      if (dbServer._rev === server._rev) {
-        _logger.info('The integrity check for server with name: \'%s\' was successful. Proceeding with update.', server.name);
-        return await executeUpdateLastConnection(server);
-      } else {
-        _logger.error('The integrity check for server with name: \'%s\' failed. Aborting update.', server.name);
-        throw new Error('Integrity check error');
-      }
-    } else {
-      _logger.error('Update cannot be completed, server with name: \'%s\' does not exist', server.name);
-      throw new Error('Server does not exist');
+    let query = 'UPDATE servers SET last_connection=NOW() ' +
+      'WHERE server_id=$1 RETURNING server_id, server_name, _rev, created_by, created_time, last_connection;';
+    let values = [server.id];
+    try {
+      let res = await executeQuery(query, values);
+      _logger.info('Last connection for server with name: \'%s\' updated successfully', server.name);
+      _logger.debug('Last connection for server updated in db: %j', res.rows[0]);
+      return getBusinessServer(res.rows[0]);
+    } catch (err) {
+      _logger.error('Error updating last connection for server with name:\'%s\' to database', server.name);
+      throw err;
     }
   };
 
@@ -134,22 +133,6 @@ function ServerModel(logger, postgrePool) {
     let query = 'UPDATE servers SET server_name=$1, _rev=$2 ' +
       'WHERE server_id=$3 RETURNING server_id, server_name, _rev, created_by, created_time, last_connection;';
     let values = [server.name, currentRev, server.id];
-    try {
-      let res = await executeQuery(query, values);
-      _logger.info('Server with name: \'%s\' updated successfully', server.name);
-      _logger.debug('Server updated in db: %j', res.rows[0]);
-      return getBusinessServer(res.rows[0]);
-    } catch (err) {
-      _logger.error('Error updating server with name:\'%s\' to database', server.name);
-      throw err;
-    }
-  };
-
-  async function executeUpdateLastConnection(server) {
-    let currentRev = integrityValidator.createHash(server);
-    let query = 'UPDATE servers SET _rev=$1, last_connection=NOW() ' +
-      'WHERE server_id=$2 RETURNING server_id, server_name, _rev, created_by, created_time, last_connection;';
-    let values = [currentRev, server.id];
     try {
       let res = await executeQuery(query, values);
       _logger.info('Server with name: \'%s\' updated successfully', server.name);
