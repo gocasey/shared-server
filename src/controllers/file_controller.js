@@ -70,6 +70,7 @@ function FileController(logger, postgrePool) {
       _rev: req.body._rev,
       size: req.body.size,
       resource: req.body.resource,
+      owner: req.body.owner,
     };
     return await updateFile(res, next, fileDataToUpdate);
   };

@@ -91,6 +91,29 @@ describe('Integration Tests', () =>{
         });
       });
 
+      describe('update server success', () => {
+        let serverUpdateResponse;
+
+        it('returns server', async () => {
+          let adminUserToken = adminUserCreationResponse.body.user.token.token;
+          let serverId = serverCreationResponse.body.server.server.id;
+          let authHeaderUser = util.format('Bearer %s', adminUserToken);
+          let resourcePath = util.format('/api/servers/%s', serverId);
+          let updatedServer = serverCreationResponse.body.server.server;
+          updatedServer.url = 'newServerUrl';
+          serverUpdateResponse = await request.put(resourcePath)
+            .set('Authorization', authHeaderUser)
+            .send(updatedServer)
+            .expect(200);
+
+          expect(serverUpdateResponse.body.server.server.name).to.be('appServer');
+          expect(serverUpdateResponse.body.server.server.url).to.be('newServerUrl');
+          expect(serverUpdateResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
+          expect(serverUpdateResponse.body.server.server.lastConnection).to.be.empty();
+          expect(serverUpdateResponse.body.server.token).to.be.ok();
+        });
+      });
+
       describe('create application user success', () => {
         let userCreationResponse;
 
@@ -166,6 +189,28 @@ describe('Integration Tests', () =>{
                   expect(fileFindResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
                 });
               });
+
+              describe('update file success', async () => {
+                let fileUpdateResponse;
+
+                it('returns file', async () => {
+                  let serverToken = serverCreationResponse.body.server.token.token;
+                  let authHeaderServer = util.format('Bearer %s', serverToken);
+                  let resourcePath = util.format('/api/files/%s', filePostResponse.body.file.id);
+                  let updatedFile = filePostResponse.body.file;
+                  updatedFile.filename = 'newfilename';
+
+                  fileUpdateResponse = await request.put(resourcePath)
+                    .set('Authorization', authHeaderServer)
+                    .send(updatedFile)
+                    .expect(200);
+
+                  expect(fileUpdateResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
+                  expect(fileUpdateResponse.body.file.resource).to.be.ok();
+                  expect(fileUpdateResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+                  expect(fileUpdateResponse.body.file.filename).to.be('newfilename');
+                });
+              });
             });
           });
 
@@ -200,6 +245,23 @@ describe('Integration Tests', () =>{
                 expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
               });
 
+              describe('retrieve file success', async () => {
+                let fileFindResponse;
+
+                it('returns file', async () => {
+                  let serverToken = serverCreationResponse.body.server.token.token;
+                  let authHeaderServer = util.format('Bearer %s', serverToken);
+                  let resourcePath = util.format('/api/files/%s', fileUploadResponse.body.file.id);
+                  fileFindResponse = await request.get(resourcePath)
+                    .set('Authorization', authHeaderServer)
+                    .expect(200);
+
+                  expect(fileFindResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
+                  expect(fileFindResponse.body.file.resource).to.be.ok();
+                  expect(fileFindResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+                });
+              });
+
               describe('retrieve all files success', async () => {
                 let fileFindResponse;
 
@@ -219,20 +281,25 @@ describe('Integration Tests', () =>{
                 });
               });
 
-              describe('retrieve file success', async () => {
-                let fileFindResponse;
+              describe('update file success', async () => {
+                let fileUpdateResponse;
 
                 it('returns file', async () => {
                   let serverToken = serverCreationResponse.body.server.token.token;
                   let authHeaderServer = util.format('Bearer %s', serverToken);
-                  let resourcePath = util.format('/api/files/%s', fileUploadResponse.body.file.id);
-                  fileFindResponse = await request.get(resourcePath)
+                  let resourcePath = util.format('/api/files/%s', filePostResponse.body.file.id);
+                  let updatedFile = filePostResponse.body.file;
+                  updatedFile.filename = 'newfilename';
+
+                  fileUpdateResponse = await request.put(resourcePath)
                     .set('Authorization', authHeaderServer)
+                    .send(updatedFile)
                     .expect(200);
 
-                  expect(fileFindResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
-                  expect(fileFindResponse.body.file.resource).to.be.ok();
-                  expect(fileFindResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+                  expect(fileUpdateResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
+                  expect(fileUpdateResponse.body.file.resource).to.be.ok();
+                  expect(fileUpdateResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+                  expect(fileUpdateResponse.body.file.filename).to.be('newfilename');
                 });
               });
             });
@@ -252,7 +319,6 @@ describe('Integration Tests', () =>{
               .expect(200);
 
             expect(serverFindResponse.body.server.server.name).to.be('appServer');
-            expect(serverFindResponse.body.server.server.url).to.be('serverUrl');
             expect(serverFindResponse.body.server.token).to.be.ok();
             expect(serverFindResponse.body.server.server.lastConnection).to.not.be.empty();
             expect(serverFindResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
@@ -272,7 +338,6 @@ describe('Integration Tests', () =>{
             expect(serverFindResponse.body.servers).to.be.an.array;
             expect(serverFindResponse.body.servers.length).to.be(1);
             expect(serverFindResponse.body.servers[0].name).to.be('appServer');
-            expect(serverFindResponse.body.servers[0].url).to.be('serverUrl');
             expect(serverFindResponse.body.servers[0].lastConnection).to.not.be.empty();
             expect(serverFindResponse.body.servers[0].createdBy).to.be(adminUserCreationResponse.body.user.user.id);
           });

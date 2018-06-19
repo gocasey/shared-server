@@ -130,6 +130,7 @@ describe('FileController Tests', () => {
           filename: 'newName',
           size: 5678,
           resource: 'newRemoteFileUri',
+          owner: 'serverId',
         },
       };
     }
@@ -139,7 +140,7 @@ describe('FileController Tests', () => {
     describe('success', () => {
       before(() => {
         mockFileService.updateFile.resolves({ id: 123, filename: 'newName', _rev: 'rev', size: 5678,
-          updatedTime: '2018-04-09', createdTime: '2018-04-09', resource: 'newRemoteFileUri' });
+          updatedTime: '2018-04-09', createdTime: '2018-04-09', resource: 'newRemoteFileUri', owner: 'serverId' });
       });
 
       it('calls file service', async () => {
@@ -152,7 +153,7 @@ describe('FileController Tests', () => {
         let mockFileRequest = getMockFileRequest();
         await fileController.updateFile(mockFileRequest, mockResponse, function() {});
         expect(mockFileService.updateFile.getCall(0).args[0]).to.be.eql({ id: 123, filename: 'newName', _rev: 'rev',
-                                                                          size: 5678, resource: 'newRemoteFileUri' });
+                                                                          size: 5678, resource: 'newRemoteFileUri', owner: 'serverId' });
       });
 
       it('saves file in response', async () => {
@@ -166,6 +167,7 @@ describe('FileController Tests', () => {
         expect(mockResponse.file.resource).to.be('newRemoteFileUri');
         expect(mockResponse.file.updatedTime).to.be('2018-04-09');
         expect(mockResponse.file.createdTime).to.be('2018-04-09');
+        expect(mockResponse.file.owner).to.be('serverId');
       });
 
       it('calls next with no error', async () => {
@@ -193,7 +195,7 @@ describe('FileController Tests', () => {
         let mockFileRequest = getMockFileRequest();
         await fileController.updateFile(mockFileRequest, mockResponse, function() {});
         expect(mockFileService.updateFile.getCall(0).args[0]).to.be.eql({ id: 123, filename: 'newName', _rev: 'rev',
-                                                                          size: 5678, resource: 'newRemoteFileUri' });
+                                                                          size: 5678, resource: 'newRemoteFileUri', owner: 'serverId' });
       });
 
       it('calls next with error', async () => {
