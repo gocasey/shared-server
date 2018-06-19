@@ -36,7 +36,7 @@ describe('Integration Tests', () =>{
       expect(adminUserCreationResponse.body.user.token).to.be.ok();
     });
 
-    describe('create server success', () => {
+    describe('create server with admin user token', () => {
       let serverCreationResponse;
 
       it('returns server', async () => {
@@ -52,7 +52,7 @@ describe('Integration Tests', () =>{
         expect(serverCreationResponse.body.server.token).to.be.ok();
       });
 
-      describe('retrieve single server success', () => {
+      describe('retrieve single server with admin user token', () => {
         let serverFindResponse;
 
         it('returns server', async () => {
@@ -72,7 +72,7 @@ describe('Integration Tests', () =>{
         });
       });
 
-      describe('retrieve all servers success', () => {
+      describe('retrieve all servers with admin user token', () => {
         let serverFindResponse;
 
         it('returns all servers', async () => {
@@ -91,7 +91,7 @@ describe('Integration Tests', () =>{
         });
       });
 
-      describe('update server success', () => {
+      describe('update server with admin user token', () => {
         let serverUpdateResponse;
 
         it('returns server', async () => {
@@ -114,7 +114,7 @@ describe('Integration Tests', () =>{
         });
       });
 
-      describe('create application user success', () => {
+      describe('create application user with server token', () => {
         let userCreationResponse;
 
         it('returns application user', async () => {
@@ -128,7 +128,7 @@ describe('Integration Tests', () =>{
           expect(userCreationResponse.body.user.applicationOwner).to.be('appServer');
         });
 
-        describe('create application user token success', async () => {
+        describe('create application user token with server token', async () => {
           let userTokenCreationResponse;
 
           it('returns application user token', async () => {
@@ -142,7 +142,7 @@ describe('Integration Tests', () =>{
             expect(userTokenCreationResponse.body.token.token).to.be.ok();
           });
 
-          describe('video upload success', async () => {
+          describe('video upload with application user token', async () => {
             let fileUploadResponse;
 
             it('returns file', async () => {
@@ -158,7 +158,7 @@ describe('Integration Tests', () =>{
               expect(fileUploadResponse.body.file.owner).to.be.empty;
             });
 
-            describe('set file ownership success', async () => {
+            describe('set file ownership with server token', async () => {
               let filePostResponse;
 
               it('returns file', async () => {
@@ -173,7 +173,7 @@ describe('Integration Tests', () =>{
                 expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
               });
 
-              describe('retrieve file success', async () => {
+              describe('retrieve file with server token', async () => {
                 let fileFindResponse;
 
                 it('returns file', async () => {
@@ -190,7 +190,23 @@ describe('Integration Tests', () =>{
                 });
               });
 
-              describe('update file success', async () => {
+              describe('retrieve file with application user token', async () => {
+                let fileFindResponse;
+
+                it('returns unauthorized', async () => {
+                  let userToken = userTokenCreationResponse.body.token.token;
+                  let authHeaderUser = util.format('Bearer %s', userToken);
+                  let resourcePath = util.format('/api/files/%s', fileUploadResponse.body.file.id);
+                  fileFindResponse = await request.get(resourcePath)
+                    .set('Authorization', authHeaderUser)
+                    .expect(401);
+
+                  expect(fileFindResponse.body.code).to.be(401);
+                  expect(fileFindResponse.body.message).to.be('Server Unauthorized');
+                });
+              });
+
+              describe('update file with server token', async () => {
                 let fileUpdateResponse;
 
                 it('returns file', async () => {
@@ -211,10 +227,30 @@ describe('Integration Tests', () =>{
                   expect(fileUpdateResponse.body.file.filename).to.be('newfilename');
                 });
               });
+
+              describe('update file with application user token', async () => {
+                let fileUpdateResponse;
+
+                it('returns unauthorized', async () => {
+                  let userToken = userTokenCreationResponse.body.token.token;
+                  let authHeaderUser = util.format('Bearer %s', userToken);
+                  let resourcePath = util.format('/api/files/%s', filePostResponse.body.file.id);
+                  let updatedFile = filePostResponse.body.file;
+                  updatedFile.filename = 'newfilename';
+
+                  fileUpdateResponse = await request.put(resourcePath)
+                    .set('Authorization', authHeaderUser)
+                    .send(updatedFile)
+                    .expect(401);
+
+                  expect(fileUpdateResponse.body.code).to.be(401);
+                  expect(fileUpdateResponse.body.message).to.be('Server Unauthorized');
+                });
+              });
             });
           });
 
-          describe('image upload success', async () => {
+          describe('image upload with application user token', async () => {
             let fileUploadResponse;
 
             it('returns file', async () => {
@@ -230,7 +266,7 @@ describe('Integration Tests', () =>{
               expect(fileUploadResponse.body.file.owner).to.be.empty;
             });
 
-            describe('set file ownership success', async () => {
+            describe('set file ownership with server token', async () => {
               let filePostResponse;
 
               it('returns file', async () => {
@@ -245,7 +281,7 @@ describe('Integration Tests', () =>{
                 expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
               });
 
-              describe('retrieve file success', async () => {
+              describe('retrieve file with server token', async () => {
                 let fileFindResponse;
 
                 it('returns file', async () => {
@@ -262,7 +298,7 @@ describe('Integration Tests', () =>{
                 });
               });
 
-              describe('retrieve all files success', async () => {
+              describe('retrieve all files with server token', async () => {
                 let fileFindResponse;
 
                 it('returns all files', async () => {
@@ -281,7 +317,7 @@ describe('Integration Tests', () =>{
                 });
               });
 
-              describe('update file success', async () => {
+              describe('update file with server token', async () => {
                 let fileUpdateResponse;
 
                 it('returns file', async () => {
@@ -305,7 +341,7 @@ describe('Integration Tests', () =>{
             });
           });
 
-          describe('retrieve single server', async () => {
+          describe('retrieve single server with application user token', async () => {
             let serverFindResponse;
 
             it('returns unauthorized', async () => {
@@ -313,19 +349,71 @@ describe('Integration Tests', () =>{
               let authHeaderUser = util.format('Bearer %s', userToken);
               let serverId = serverCreationResponse.body.server.server.id;
               let resourcePath = util.format('/api/servers/%s', serverId);
-              serverFindResponse = await request.post(resourcePath)
+              serverFindResponse = await request.get(resourcePath)
                 .set('Authorization', authHeaderUser)
                 .expect(401);
-
-              console.log(serverFindResponse.body);
 
               expect(serverFindResponse.body.code).to.be(401);
               expect(serverFindResponse.body.message).to.be('User Unauthorized');
             });
           });
+
+          describe('retrieve all servers with application user token', async () => {
+            let serverFindResponse;
+
+            it('returns unauthorized', async () => {
+              let userToken = userTokenCreationResponse.body.token.token;
+              let authHeaderUser = util.format('Bearer %s', userToken);
+              serverFindResponse = await request.get('/api/servers')
+                .set('Authorization', authHeaderUser)
+                .expect(401);
+
+              expect(serverFindResponse.body.code).to.be(401);
+              expect(serverFindResponse.body.message).to.be('User Unauthorized');
+            });
+          });
+
+          describe('update server with application user token', async () => {
+            let serverUpdateResponse;
+
+            it('returns unauthorized', async () => {
+              let userToken = userTokenCreationResponse.body.token.token;
+              let authHeaderUser = util.format('Bearer %s', userToken);
+              let serverId = serverCreationResponse.body.server.server.id;
+              let resourcePath = util.format('/api/servers/%s', serverId);
+              let updatedServer = serverCreationResponse.body.server.server;
+              updatedServer.url = 'newServerUrl';
+              serverUpdateResponse = await request.put(resourcePath)
+                .set('Authorization', authHeaderUser)
+                .send(updatedServer)
+                .expect(401);
+
+              expect(serverUpdateResponse.body.code).to.be(401);
+              expect(serverUpdateResponse.body.message).to.be('User Unauthorized');
+            });
+          });
+
+          describe('update server token with application user token', async () => {
+            let serverPostResponse;
+
+            it('returns unauthorized', async () => {
+              let userToken = userTokenCreationResponse.body.token.token;
+              let authHeaderUser = util.format('Bearer %s', userToken);
+              let serverId = serverCreationResponse.body.server.server.id;
+              let resourcePath = util.format('/api/servers/%s', serverId);
+              let updatedServer = serverCreationResponse.body.server.server;
+              serverPostResponse = await request.post(resourcePath)
+                .set('Authorization', authHeaderUser)
+                .send(updatedServer)
+                .expect(401);
+
+              expect(serverPostResponse.body.code).to.be(401);
+              expect(serverPostResponse.body.message).to.be('User Unauthorized');
+            });
+          });
         });
 
-        describe('retrieve single server success', async () => {
+        describe('retrieve single server with admin user token', async () => {
           let serverFindResponse;
 
           it('updates server last connection', async () => {
@@ -344,7 +432,7 @@ describe('Integration Tests', () =>{
           });
         });
 
-        describe('retrieve all servers success', async () => {
+        describe('retrieve all servers with admin user token', async () => {
           let serverFindResponse;
 
           it('updates server last connection', async () => {
