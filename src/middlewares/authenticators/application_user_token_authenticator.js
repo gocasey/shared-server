@@ -5,7 +5,7 @@ const BaseHttpError = require('../../errors/base_http_error.js');
 
 function ApplicationUserTokenAuthenticator(logger, postgrePool) {
   let _userTokenGenerationFactory = new UserTokenGenerationFactory(logger);
-  let _userTokenService = new UserTokenService(logger, postgrePool, _userTokenGenerationFactory.getAdminUserTokenGenerationService());
+  let _userTokenService = new UserTokenService(logger, postgrePool, _userTokenGenerationFactory.getApplicationUserTokenGenerationService());
   let _userService = new UserService(logger, postgrePool);
 
   function getTokenFromHeader(req) {

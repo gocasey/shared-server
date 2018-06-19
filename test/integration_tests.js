@@ -304,6 +304,25 @@ describe('Integration Tests', () =>{
               });
             });
           });
+
+          describe('retrieve single server', async () => {
+            let serverFindResponse;
+
+            it('returns unauthorized', async () => {
+              let userToken = userTokenCreationResponse.body.token.token;
+              let authHeaderUser = util.format('Bearer %s', userToken);
+              let serverId = serverCreationResponse.body.server.server.id;
+              let resourcePath = util.format('/api/servers/%s', serverId);
+              serverFindResponse = await request.post(resourcePath)
+                .set('Authorization', authHeaderUser)
+                .expect(401);
+
+              console.log(serverFindResponse.body);
+
+              expect(serverFindResponse.body.code).to.be(401);
+              expect(serverFindResponse.body.message).to.be('User Unauthorized');
+            });
+          });
         });
 
         describe('retrieve single server success', async () => {
