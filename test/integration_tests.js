@@ -149,6 +149,23 @@ describe('Integration Tests', () =>{
                 expect(filePostResponse.body.file.resource).to.be.ok();
                 expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
               });
+
+              describe('retrieve file success', async () => {
+                let fileFindResponse;
+
+                it('returns file', async () => {
+                  let serverToken = serverCreationResponse.body.server.token.token;
+                  let authHeaderServer = util.format('Bearer %s', serverToken);
+                  let resourcePath = util.format('/api/files/%s', fileUploadResponse.body.file.id);
+                  fileFindResponse = await request.get(resourcePath)
+                    .set('Authorization', authHeaderServer)
+                    .expect(200);
+
+                  expect(fileFindResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
+                  expect(fileFindResponse.body.file.resource).to.be.ok();
+                  expect(fileFindResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+                });
+              });
             });
           });
 
@@ -181,6 +198,23 @@ describe('Integration Tests', () =>{
 
                 expect(filePostResponse.body.file.resource).to.be.ok();
                 expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+              });
+
+              describe('retrieve file success', async () => {
+                let fileFindResponse;
+
+                it('returns file', async () => {
+                  let serverToken = serverCreationResponse.body.server.token.token;
+                  let authHeaderServer = util.format('Bearer %s', serverToken);
+                  let resourcePath = util.format('/api/files/%s', fileUploadResponse.body.file.id);
+                  fileFindResponse = await request.get(resourcePath)
+                    .set('Authorization', authHeaderServer)
+                    .expect(200);
+
+                  expect(fileFindResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
+                  expect(fileFindResponse.body.file.resource).to.be.ok();
+                  expect(fileFindResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+                });
               });
             });
           });
