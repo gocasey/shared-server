@@ -200,6 +200,25 @@ describe('Integration Tests', () =>{
                 expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
               });
 
+              describe('retrieve all files success', async () => {
+                let fileFindResponse;
+
+                it('returns all files', async () => {
+                  let serverToken = serverCreationResponse.body.server.token.token;
+                  let authHeaderServer = util.format('Bearer %s', serverToken);
+                  fileFindResponse = await request.get('/api/files')
+                    .set('Authorization', authHeaderServer)
+                    .expect(200);
+
+                  expect(fileFindResponse.body.files).to.be.an.array;
+                  expect(fileFindResponse.body.files.length).to.be(2);
+                  expect(fileFindResponse.body.files[0].resource).to.be.ok();
+                  expect(fileFindResponse.body.files[0].owner).to.be(serverCreationResponse.body.server.server.id);
+                  expect(fileFindResponse.body.files[1].resource).to.be.ok();
+                  expect(fileFindResponse.body.files[1].owner).to.be(serverCreationResponse.body.server.server.id);
+                });
+              });
+
               describe('retrieve file success', async () => {
                 let fileFindResponse;
 
