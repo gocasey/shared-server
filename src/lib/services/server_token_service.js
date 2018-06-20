@@ -66,7 +66,7 @@ function ServerTokenService(logger, postgrePool) {
     let serverId;
     try {
       serverId = await _serverTokenGenerationService.getServerIdFromToken(token);
-    } catch (err){
+    } catch (err) {
       return null;
     }
     let serverToken = await _serverTokenModel.findByServerId(serverId);

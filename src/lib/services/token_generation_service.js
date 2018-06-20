@@ -13,9 +13,9 @@ function TokenGenerationService(logger) {
     let token;
     try {
       if (expiration) {
-        token = await jwt.sign({data: data}, 'secret', {expiresIn: expiration});
+        token = await jwt.sign({ data: data }, 'secret', { expiresIn: expiration });
       } else {
-        token = await jwt.sign({data: data}, 'secret');
+        token = await jwt.sign({ data: data }, 'secret');
       }
     } catch (err) {
       _logger.error('Token generation failed');

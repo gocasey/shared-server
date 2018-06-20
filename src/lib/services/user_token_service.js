@@ -55,7 +55,7 @@ function UserTokenService(logger, postgrePool, tokenGenerationService) {
     let userId;
     try {
       userId = await _tokenGenerationService.getUserIdFromToken(token);
-    } catch (err){
+    } catch (err) {
       return null;
     }
     let userToken = await _userTokenModel.findByUserId(userId);
