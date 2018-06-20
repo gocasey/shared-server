@@ -1,5 +1,6 @@
 const ApplicationUserRegistrationSchemaValidator = require('../schema_validators/application_user_registration_schema_validator.js');
 const ApplicationUserCredentialsSchemaValidator = require('../schema_validators/application_user_credentials_schema_validator.js');
+const ApplicationUserTokenSchemaValidator = require('../schema_validators/application_user_token_schema_validator.js');
 const ServerTokenAuthenticator = require('../../middlewares/authenticators/server_token_authenticator.js');
 const ApplicationUserTokenAuthenticator = require('../../middlewares/authenticators/application_user_token_authenticator.js');
 const PasswordAuthenticator = require('../authenticators/password_authenticator.js');
@@ -13,6 +14,7 @@ const AdminUserResponseBuilder = require('../response_builders/admin_user_respon
 function UsersRouter(app, logger, postgrePool) {
   let _applicationUserCredentialsSchemaValidator = new ApplicationUserCredentialsSchemaValidator(logger);
   let _applicationUserRegistrationSchemaValidator = new ApplicationUserRegistrationSchemaValidator(logger);
+  let _applicationUserTokenSchemaValidator = new ApplicationUserTokenSchemaValidator(logger);
   let _serverTokenAuthenticator = new ServerTokenAuthenticator(logger, postgrePool);
   let _applicationUserTokenAuthenticator = new ApplicationUserTokenAuthenticator(logger, postgrePool);
   let _passwordAuthenticator = new PasswordAuthenticator(logger, postgrePool);
@@ -33,6 +35,7 @@ function UsersRouter(app, logger, postgrePool) {
   );
 
   app.post('/api/token_check',
+    _applicationUserTokenSchemaValidator.validateRequest,
     _serverTokenAuthenticator.authenticateFromHeader,
     _serverController.updateLastConnection,
     _applicationUserTokenAuthenticator.authenticateFromBody,
