@@ -35,8 +35,7 @@ function ApplicationUserTokenAuthenticator(logger, postgrePool) {
     let userAuthenticated;
     try {
       userAuthenticated = await authenticate(token);
-    }
-    catch (error) {
+    } catch (error) {
       return next(error);
     }
     res.userAuthenticated = userAuthenticated;
@@ -48,8 +47,7 @@ function ApplicationUserTokenAuthenticator(logger, postgrePool) {
     let userAuthenticated;
     try {
       userAuthenticated = await authenticate(token);
-    }
-    catch (error) {
+    } catch (error) {
       return next(error);
     }
     res.userAuthenticated = userAuthenticated;

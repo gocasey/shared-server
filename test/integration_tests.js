@@ -142,7 +142,7 @@ describe('Integration Tests', () =>{
             expect(userTokenCreationResponse.body.token.token).to.be.ok();
           });
 
-          describe('token check with application user token', async() => {
+          describe('token check with application user token', async () => {
             let tokenCheckResponse;
 
             it('returns token', async () => {
@@ -158,7 +158,7 @@ describe('Integration Tests', () =>{
             });
           });
 
-          describe('token check with server token', async() => {
+          describe('token check with server token', async () => {
             let tokenCheckResponse;
 
             it('returns unauthorized', async () => {
