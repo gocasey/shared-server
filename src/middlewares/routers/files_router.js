@@ -21,13 +21,6 @@ function FilesRouter(app, logger, postgrePool) {
     _fileFindResponseBuilder.buildSetResponse
   );
 
-  // Usuario sube archivo en json
-  app.post('/api/files/upload',
-    _applicationUserTokenAuthenticator.authenticateFromHeader,
-    _fileController.createFileFromJson,
-    _fileCreationResponseBuilder.buildResponse
-  );
-
   // Usuario sube archivo en formato multipart
   app.post('/api/files/upload_multipart',
     _applicationUserTokenAuthenticator.authenticateFromHeader,
