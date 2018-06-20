@@ -14,32 +14,47 @@ function ApplicationUserTokenAuthenticator(logger, postgrePool) {
     } else return null;
   }
 
-  function getTokenFromQuerystring(req) {
-    if (req.query && req.query.token) {
-      return req.query.token;
+  function getTokenFromBody(req) {
+    if (req.body && req.body.token) {
+      return req.body.token;
     } else return null;
   }
 
-  async function authenticate(res, next, token) {
+  async function authenticate(token) {
     if (token) {
       let userId = await _userTokenService.validateToken(token);
       if (userId) {
-        res.userAuthenticated = await _userService.findUser(userId);
-        return next();
+        return await _userService.findUser(userId);
       }
     }
-    let error = new BaseHttpError('User Unauthorized', 401);
-    return next(error);
+    throw new BaseHttpError('User Unauthorized', 401);
   }
 
   this.authenticateFromHeader = async (req, res, next) => {
     let token = getTokenFromHeader(req);
-    await authenticate(res, next, token);
+    let userAuthenticated;
+    try {
+      userAuthenticated = await authenticate(token);
+    }
+    catch (error) {
+      return next(error);
+    }
+    res.userAuthenticated = userAuthenticated;
+    return next();
   };
 
-  this.authenticateFromQuerystring = async (req, res, next) => {
-    let token = getTokenFromQuerystring(req);
-    await authenticate(res, next, token);
+  this.authenticateFromBody = async (req, res, next) => {
+    let token = getTokenFromBody(req);
+    let userAuthenticated;
+    try {
+      userAuthenticated = await authenticate(token);
+    }
+    catch (error) {
+      return next(error);
+    }
+    res.userAuthenticated = userAuthenticated;
+    res.token = await _userTokenService.retrieveToken(userAuthenticated);
+    return next();
   };
 }
 

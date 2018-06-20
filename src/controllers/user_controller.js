@@ -10,16 +10,6 @@ function UserController(logger, postgrePool) {
   let _userTokenGenerationServiceFactory = new UserTokenGenerationServiceFactory(logger);
   let _userOwnershipService = new UserOwnershipService(logger, postgrePool);
 
-  this.generateTokenForApplicationUser = async (req, res, next) => {
-    let tokenGenerationService = _userTokenGenerationServiceFactory.getApplicationUserTokenGenerationService();
-    await generateToken(req, res, next, tokenGenerationService);
-  };
-
-  this.generateTokenForAdminUser = async (req, res, next) => {
-    let tokenGenerationService = _userTokenGenerationServiceFactory.getAdminUserTokenGenerationService();
-    await generateToken(req, res, next, tokenGenerationService);
-  };
-
   async function generateToken(req, res, next, tokenGenerationService) {
     let userTokenService = new UserTokenService(_logger, _postgrePool, tokenGenerationService);
     let user = res.user;
@@ -31,6 +21,16 @@ function UserController(logger, postgrePool) {
       _logger.error('An error occurred while generating the token for username: %s', user.username);
       return next(err);
     }
+  };
+
+  this.generateTokenForApplicationUser = async (req, res, next) => {
+    let tokenGenerationService = _userTokenGenerationServiceFactory.getApplicationUserTokenGenerationService();
+    await generateToken(req, res, next, tokenGenerationService);
+  };
+
+  this.generateTokenForAdminUser = async (req, res, next) => {
+    let tokenGenerationService = _userTokenGenerationServiceFactory.getAdminUserTokenGenerationService();
+    await generateToken(req, res, next, tokenGenerationService);
   };
 
   this.createUser = async (req, res, next) => {

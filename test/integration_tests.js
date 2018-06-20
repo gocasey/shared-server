@@ -142,6 +142,38 @@ describe('Integration Tests', () =>{
             expect(userTokenCreationResponse.body.token.token).to.be.ok();
           });
 
+          describe('token check with application user token', async() => {
+            let tokenCheckResponse;
+
+            it('returns token', async () => {
+              let serverToken = serverCreationResponse.body.server.token.token;
+              let authHeaderServer = util.format('Bearer %s', serverToken);
+              tokenCheckResponse = await request.post('/api/token_check')
+                .set('Authorization', authHeaderServer)
+                .send({ token: userTokenCreationResponse.body.token.token })
+                .expect(200);
+
+              expect(tokenCheckResponse.body.token.expiresAt).to.be.ok();
+              expect(tokenCheckResponse.body.token.token).to.be.ok();
+            });
+          });
+
+          describe('token check with server token', async() => {
+            let tokenCheckResponse;
+
+            it('returns unauthorized', async () => {
+              let serverToken = serverCreationResponse.body.server.token.token;
+              let authHeaderServer = util.format('Bearer %s', serverToken);
+              tokenCheckResponse = await request.post('/api/token_check')
+                .set('Authorization', authHeaderServer)
+                .send({ token: serverToken })
+                .expect(401);
+
+              expect(tokenCheckResponse.body.code).to.be(401);
+              expect(tokenCheckResponse.body.message).to.be('User Unauthorized');
+            });
+          });
+
           describe('video upload with application user token', async () => {
             let fileUploadResponse;
 

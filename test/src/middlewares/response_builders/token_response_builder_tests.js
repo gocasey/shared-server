@@ -30,7 +30,7 @@ describe('TokenResponseBuilder Tests', function() {
 
     beforeEach(function() {
       mockLogger.debug.resetHistory();
-      tokenResponseBuilder.buildResponse(mockRequest, mockResponse);
+      tokenResponseBuilder.buildResponse(mockRequest, mockResponse, 201);
     });
 
     it('passes status and response', function() {

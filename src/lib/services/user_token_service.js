@@ -15,6 +15,21 @@ function UserTokenService(logger, postgrePool, tokenGenerationService) {
     return userToken;
   }
 
+  this.retrieveToken = async (user) => {
+    let dbToken = await _userTokenModel.findByUser(user);
+    if (dbToken) {
+      let decodedToken = await _tokenGenerationService.validateToken(dbToken.token, user);
+      let userToken = {
+        token: decodedToken.token,
+        tokenExpiration: decodedToken.expiresAt,
+      };
+      return userToken;
+    } else {
+      _logger.error('Token for user with name: \'%s\' was not found', user.username);
+      throw new BaseHttpError('User does not have token', 500);
+    }
+  };
+
   this.generateToken = async (user) => {
     let userToken = await _userTokenModel.findByUser(user);
     if (userToken) {
