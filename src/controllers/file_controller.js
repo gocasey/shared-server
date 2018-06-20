@@ -8,22 +8,6 @@ function FileController(logger, postgrePool) {
   let _logger = logger;
   let _fileService = new FileService(logger, postgrePool);
 
-  this.createFileFromJson = async (req, res, next) => {
-    let fileDataToCreate = {
-      encodedFile: req.body.file,
-      name: req.body.metadata.name,
-    };
-    let fileUploaded;
-    try {
-      fileUploaded = await _fileService.createFileAndUpload(fileDataToCreate);
-    } catch (err) {
-      _logger.error('An error occurred while creating the file');
-      return next(err);
-    }
-    res.file = fileUploaded;
-    return next();
-  };
-
   this.createFileFromMultipart = async (req, res, next) => {
     let filesDirectory = config.TEMP_FILES_DIRECTORY;
     if (!fs.existsSync(filesDirectory)) {
@@ -36,8 +20,15 @@ function FileController(logger, postgrePool) {
     });
     let upload = multer({ storage: storageOpts });
     upload.single('file')(req, res, async (err) => {
-      if (err) next(err);
+      if (err) {
+        _logger.error('The request is invalid');
+        _logger.debug('Error when validating multipart request: %s', err);
+        let error = new BaseHttpError('The request is invalid', 400);
+        return next(error);
+      }
       else {
+        _logger.info('The request was validated successfully');
+        _logger.debug('Request received: %j', req.file);
         let fileUploaded;
         try {
           fileUploaded = await _fileService.loadFileAndUpload(req.file.path);
