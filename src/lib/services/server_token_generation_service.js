@@ -14,9 +14,8 @@ function ServerTokenGenerationService(logger) {
 
   this.generateToken = async (server) => {
     let serverData = getServerData(server);
-    let serverExpiration = '12h';
     try {
-      let token = await _tokenGenerationService.generateToken(serverData, serverExpiration);
+      let token = await _tokenGenerationService.generateToken(serverData);
       _logger.info('Token created for server: \'%s\'', server.name);
       return token;
     } catch (err) {

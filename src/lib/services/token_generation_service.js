@@ -10,14 +10,19 @@ function TokenGenerationService(logger) {
 
   this.generateToken = async (data, expiration) => {
     // replace hardcoded secret with private key
+    let token;
     try {
-      let token = await jwt.sign({ data: data }, 'secret', { expiresIn: expiration } );
-      _logger.info('Token created successfully');
-      return this.decodeToken(token);
+      if (expiration) {
+        token = await jwt.sign({data: data}, 'secret', {expiresIn: expiration});
+      } else {
+        token = await jwt.sign({data: data}, 'secret');
+      }
     } catch (err) {
       _logger.error('Token generation failed');
       throw err;
     }
+    _logger.info('Token created successfully');
+    return this.decodeToken(token);
   };
 
   async function decodeToken(token) {
