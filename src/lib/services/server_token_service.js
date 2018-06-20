@@ -63,7 +63,12 @@ function ServerTokenService(logger, postgrePool) {
   };
 
   this.validateToken = async (token) => {
-    let serverId = await _serverTokenGenerationService.getServerIdFromToken(token);
+    let serverId;
+    try {
+      serverId = await _serverTokenGenerationService.getServerIdFromToken(token);
+    } catch (err){
+      return null;
+    }
     let serverToken = await _serverTokenModel.findByServerId(serverId);
     if ((serverToken) && (token === serverToken.token)) {
       if (_serverTokenGenerationService.validatePermissions(token)) {
