@@ -77,7 +77,6 @@ function FileModel(logger, postgrePool) {
     return getBusinessFile(response.rows[0]);
   };
 
-
   this.create = async (file) => {
     let query = 'INSERT INTO files(file_name, resource, size) VALUES ($1, $2, $3) RETURNING *;';
     let values = [file.file_name, file.resource, file.size];
@@ -112,22 +111,6 @@ function FileModel(logger, postgrePool) {
   };
 
   this.update = async (file) => {
-    let dbFile = await findByFileIdReturnAllParams(file.id);
-    if (dbFile) {
-      if (dbFile._rev === file._rev) {
-        _logger.info('The integrity check for file with id: \'%s\' was successful. Proceeding with update.', file.id);
-        return await executeUpdate(file);
-      } else {
-        _logger.error('The integrity check for file with id: \'%s\' failed. Aborting update.', file.id);
-        throw new Error('Error updating');
-      }
-    } else {
-      _logger.error('Update cannot be completed, file with id: \'%s\' does not exist', file.id);
-      throw new Error('File does not exist');
-    }
-  };
-
-  this.updateOwner = async (fileIdserverId) => {
     let dbFile = await findByFileIdReturnAllParams(file.id);
     if (dbFile) {
       if (dbFile._rev === file._rev) {
