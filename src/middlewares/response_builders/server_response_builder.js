@@ -3,7 +3,11 @@ const pjson = require('../../../package.json');
 function ServerResponseBuilder(logger) {
   let _logger = logger;
 
-  this.buildSingleResponse = function(req, res) {
+  function emptyIfNull(o) {
+    return (o === null || o === undefined) ? '' : o;
+  }
+
+  this.buildSingleResponse = function(req, res, successStatusCode) {
     let server = res.server;
     let serverToken = res.serverToken;
 
@@ -12,12 +16,15 @@ function ServerResponseBuilder(logger) {
     response.server.server.id = server.id;
     response.server.server.name = server.name;
     response.server.server._rev = server._rev;
+    response.server.server.createdBy = server.createdBy;
     response.server.server.createdTime = server.createdTime;
+    response.server.server.lastConnection = emptyIfNull(server.lastConnection);
+    response.server.server.url = server.url;
     response.server.token.expiresAt = serverToken.tokenExpiration;
     response.server.token.token = serverToken.token;
 
     _logger.debug('Response: %j', response);
-    res.status(201).json(response);
+    res.status(successStatusCode).json(response);
   };
 
   function getBasicSingleResponse() {
@@ -30,9 +37,10 @@ function ServerResponseBuilder(logger) {
           id: '',
           _rev: '',
           name: '',
-          // createdBy: '',
+          createdBy: '',
           createdTime: '',
-          // lastConnection: 0
+          lastConnection: '',
+          url: '',
         },
         token: {
           expiresAt: 0,
@@ -53,7 +61,10 @@ function ServerResponseBuilder(logger) {
       serverResponse.id = server.id;
       serverResponse.name = server.name;
       serverResponse._rev = server._rev;
+      serverResponse.createdBy = server.createdBy;
       serverResponse.createdTime = server.createdTime;
+      serverResponse.lastConnection = emptyIfNull(server.lastConnection);
+      serverResponse.url = server.url;
       response.servers.push(serverResponse);
     });
 

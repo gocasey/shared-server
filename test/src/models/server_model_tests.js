@@ -41,8 +41,8 @@ describe('ServerModel Tests', () => {
   describe('#getAllServers', () => {
     describe('servers found', () => {
       before(() => {
-        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev', created_time: '2018-04-09' },
-                                         { server_id: 456, server_name: 'name1', _rev: 'rev1', created_time: '2018-04-10' }] });
+        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev', created_time: '2018-04-09', url: 'url1' },
+                                         { server_id: 456, server_name: 'name1', _rev: 'rev1', created_time: '2018-04-10', url: 'url2' }] });
       });
 
       it('returns servers', async () => {
@@ -53,10 +53,12 @@ describe('ServerModel Tests', () => {
         expect(servers[0].name).to.be('name');
         expect(servers[0]._rev).to.be('rev');
         expect(servers[0].createdTime).to.be('2018-04-09');
+        expect(servers[0].url).to.be('url1');
         expect(servers[1].id).to.be(456);
         expect(servers[1].name).to.be('name1');
         expect(servers[1]._rev).to.be('rev1');
         expect(servers[1].createdTime).to.be('2018-04-10');
+        expect(servers[1].url).to.be('url2');
       });
 
       it('logs success', async () => {
@@ -114,7 +116,7 @@ describe('ServerModel Tests', () => {
   describe('#findByServerId', () => {
     describe('server found', () => {
       before(() => {
-        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev', created_time: '2018-04-09' }] });
+        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev', created_time: '2018-04-09', url: 'url' }] });
       });
 
       it('returns server', async () => {
@@ -124,6 +126,7 @@ describe('ServerModel Tests', () => {
         expect(server.name).to.be('name');
         expect(server._rev).to.be('rev');
         expect(server.createdTime).to.be('2018-04-09');
+        expect(server.url).to.be('url');
       });
 
       it('logs success', async () => {
@@ -184,7 +187,7 @@ describe('ServerModel Tests', () => {
   describe('#findByServerName', () => {
     describe('server found', () => {
       before(() => {
-        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev', created_time: '2018-04-09' }] });
+        mockPool.query.resolves({ rows: [{ server_id: 123, server_name: 'name', _rev: 'rev', created_time: '2018-04-09', url: 'url' }] });
       });
 
       it('returns server', async () => {
@@ -194,6 +197,7 @@ describe('ServerModel Tests', () => {
         expect(server.name).to.be('name');
         expect(server._rev).to.be('rev');
         expect(server.createdTime).to.be('2018-04-09');
+        expect(server.url).to.be('url');
       });
 
       it('logs success', async () => {
@@ -256,6 +260,7 @@ describe('ServerModel Tests', () => {
       id: 123,
       name: 'newName',
       _rev: 'oldRev',
+      url: 'newUrl',
     };
 
     let dbServerFound = {
@@ -263,6 +268,7 @@ describe('ServerModel Tests', () => {
       server_name: 'name',
       _rev: 'oldRev',
       created_time: '2018-04-09',
+      url: 'oldUrl',
     };
 
     let dbServerFoundModified = {
@@ -270,6 +276,7 @@ describe('ServerModel Tests', () => {
       server_name: 'anotherName',
       _rev: 'anotherRev',
       created_time: '2018-04-09',
+      url: 'anotherUrl',
     };
 
     let dbServerUpdated = {
@@ -277,6 +284,7 @@ describe('ServerModel Tests', () => {
       server_name: 'newName',
       _rev: 'newRev',
       created_time: '2018-04-09',
+      url: 'newUrl',
     };
 
     describe('server found', () => {
@@ -298,7 +306,7 @@ describe('ServerModel Tests', () => {
           it('passes correct values to update query', async () => {
             await serverModel.update(mockServerToUpdate);
             expect(mockPool.query.calledTwice);
-            expect(mockPool.query.getCall(1).args[1]).to.eql(['newName', 'newRev', 123]);
+            expect(mockPool.query.getCall(1).args[1]).to.eql(['newName', 'newRev', 'newUrl', 123]);
           });
 
           it('returns updated server', async () => {
@@ -306,6 +314,7 @@ describe('ServerModel Tests', () => {
             expect(server.id).to.be(123);
             expect(server.name).to.be('newName');
             expect(server._rev).to.be('newRev');
+            expect(server.url).to.be('newUrl');
             expect(server.createdTime).to.be('2018-04-09');
           });
         });
@@ -320,7 +329,7 @@ describe('ServerModel Tests', () => {
               await serverModel.update(mockServerToUpdate);
             } catch (err) {}
             expect(mockPool.query.calledTwice);
-            expect(mockPool.query.getCall(1).args[1]).to.eql(['newName', 'newRev', 123]);
+            expect(mockPool.query.getCall(1).args[1]).to.eql(['newName', 'newRev', 'newUrl', 123]);
           });
 
           it('returns error', async () => {
@@ -416,19 +425,25 @@ describe('ServerModel Tests', () => {
   describe('#create', () => {
     let mockServer = {
       name: 'name',
+      createdBy: 'adminUserId',
+      url: 'url',
     };
 
     let mockDbServer = {
       server_name: 'name',
       server_id: 123,
+      created_by: 'adminUserId',
       created_time: '2018-04-09',
+      url: 'url',
     };
 
     let mockDbServerUpdated = {
       server_name: 'name',
       server_id: 123,
       _rev: 'newRev',
+      created_by: 'adminUserId',
       created_time: '2018-04-09',
+      url: 'url',
     };
 
     describe('insert success', () => {
@@ -443,7 +458,7 @@ describe('ServerModel Tests', () => {
 
         it('passes correct values to insert query', async () => {
           await serverModel.create(mockServer);
-          expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+          expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'adminUserId', 'url']);
         });
 
         it('passes correct values to update query', async () => {
@@ -457,6 +472,7 @@ describe('ServerModel Tests', () => {
           expect(server.id).to.be(123);
           expect(server.name).to.be('name');
           expect(server._rev).to.be('newRev');
+          expect(server.url).to.be('url');
           expect(server.createdTime).to.be('2018-04-09');
         });
       });
@@ -497,7 +513,7 @@ describe('ServerModel Tests', () => {
           await serverModel.create(mockServer);
         } catch (err) {}
         expect(mockPool.query.calledOnce);
-        expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+        expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'adminUserId', 'url']);
       });
 
       it('returns error', async () => {

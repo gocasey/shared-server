@@ -35,9 +35,10 @@ describe('TokenGenerationService Tests', function() {
     mockLogger.error.resetHistory();
   });
 
-  let mockOwner = {
+  let mockData = {
     id: 'id',
     name: 'name',
+    is_admin: false,
   };
 
   describe('#decodeToken', function() {
@@ -56,21 +57,20 @@ describe('TokenGenerationService Tests', function() {
       });
 
       it('returns token', async function() {
-        let token = await tokenGenerationService.generateToken(mockOwner);
+        let token = await tokenGenerationService.generateToken(mockData);
         expect(token).to.be.ok();
         expect(token.token).to.be('token');
         expect(token.expiresAt).to.be('12345678');
       });
 
       it('logs success', async function() {
-        await tokenGenerationService.generateToken(mockOwner);
+        await tokenGenerationService.generateToken(mockData);
         expect(mockLogger.info.calledOnce);
-        expect(mockLogger.info.getCall(0).args[0]).to.be('Token was created successfully for owner name: \'%s\'');
-        expect(mockLogger.info.getCall(0).args[1]).to.be('name');
+        expect(mockLogger.info.getCall(0).args[0]).to.be('Token created successfully');
       });
 
       it('does not log error', async function() {
-        await tokenGenerationService.generateToken(mockOwner);
+        await tokenGenerationService.generateToken(mockData);
         expect(mockLogger.error.notCalled);
       });
     });
@@ -84,7 +84,7 @@ describe('TokenGenerationService Tests', function() {
       it('returns error', async function() {
         let err;
         try {
-          await tokenGenerationService.generateToken(mockOwner);
+          await tokenGenerationService.generateToken(mockData);
         } catch (ex) {
           err = ex;
         }
@@ -94,16 +94,17 @@ describe('TokenGenerationService Tests', function() {
 
       it('logs failure', async function() {
         try {
-          await tokenGenerationService.generateToken(mockOwner);
+          await tokenGenerationService.generateToken(mockData);
         } catch (err) { }
         expect(mockLogger.error.calledOnce);
-        expect(mockLogger.error.getCall(0).args[0]).to.be('Token generation for owner name \'%s\' failed');
-        expect(mockLogger.error.getCall(0).args[1]).to.be('name');
+        expect(mockLogger.error.getCall(0).args[0]).to.be('Token generation failed');
       });
     });
   });
 
   describe('#validateToken', function() {
+    let validateFunction;
+
     describe('jwt verify success', function() {
       let idDecoded;
       let nameDecoded;
@@ -113,17 +114,19 @@ describe('TokenGenerationService Tests', function() {
           idDecoded = 'id';
           nameDecoded = 'name';
           mockJwt.verify.resolves({ data: { id: idDecoded, name: nameDecoded } });
+          validateFunction = () => {
+ return true;
+};
         });
 
         it('logs success', async function() {
-          await tokenGenerationService.validateToken('token', mockOwner);
+          await tokenGenerationService.validateToken('token', validateFunction);
           expect(mockLogger.info.calledOnce);
-          expect(mockLogger.info.getCall(0).args[0]).to.be('Token was validated successfully for owner name: \'%s\'');
-          expect(mockLogger.info.getCall(0).args[1]).to.be(mockOwner.name);
+          expect(mockLogger.info.getCall(0).args[0]).to.be('Token was validated successfully');
         });
 
         it('does not log error', async function() {
-          await tokenGenerationService.validateToken('token', mockOwner);
+          await tokenGenerationService.validateToken('token', validateFunction);
           expect(mockLogger.error.notCalled);
         });
       });
@@ -133,12 +136,15 @@ describe('TokenGenerationService Tests', function() {
           idDecoded = 'id';
           nameDecoded = 'another_name';
           mockJwt.verify.resolves({ data: { id: idDecoded, name: nameDecoded } });
+          validateFunction = () => {
+ return false;
+};
         });
 
         it('returns error', async function() {
           let err;
           try {
-            await tokenGenerationService.validateToken('token', mockOwner);
+            await tokenGenerationService.validateToken('token', validateFunction);
           } catch (ex) {
             err = ex;
           }
@@ -148,32 +154,33 @@ describe('TokenGenerationService Tests', function() {
 
         it('logs failure', async function() {
           try {
-            await tokenGenerationService.validateToken('token', mockOwner);
+            await tokenGenerationService.validateToken('token', validateFunction);
           } catch (err) { }
           expect(mockLogger.error.calledOnce);
-          expect(mockLogger.error.getCall(0).args[0]).to.be('Token could not be validated for owner name: \'%s\'');
-          expect(mockLogger.error.getCall(0).args[1]).to.be('name');
+          expect(mockLogger.error.getCall(0).args[0]).to.be('Token could not be validated');
         });
       });
     });
 
     describe('jwt verify error', function() {
-      beforeEach(function() {
+      before(function() {
         mockJwt.verify.rejects(new Error('jwt error'));
       });
 
       it('returns error', async function() {
-        let functionSpy = sinon.spy(tokenGenerationService.validateToken);
+        let err;
         try {
-          await functionSpy('token', mockOwner);
-          throw new Error('Exception was not thrown');
-        } catch (err) { }
-        expect(functionSpy.threw(new Error('jwt expired')));
+          await tokenGenerationService.validateToken('token', validateFunction);
+        } catch (ex) {
+          err = ex;
+        }
+        expect(err).to.be.ok();
+        expect(err.message).to.be('jwt error');
       });
 
       it('logs failure', async function() {
         try {
-          await tokenGenerationService.validateToken('token', mockOwner);
+          await tokenGenerationService.validateToken('token', validateFunction);
         } catch (err) { }
         expect(mockLogger.error.calledOnce);
         expect(mockLogger.error.getCall(0).args[0]).to.be('Token could not be validated due to a failure: %s');

@@ -14,11 +14,12 @@ function FileModel(logger, postgrePool) {
       updatedTime: dbFile.updated_time,
       createdTime: dbFile.created_time,
       resource: dbFile.resource,
+      owner: dbFile.owner,
     };
   };
 
   async function findByFileIdReturnAllParams(fileId) {
-    let query = 'SELECT file_id, file_name, _rev, size, resource, updated_time, created_time FROM files WHERE file_id = $1;';
+    let query = 'SELECT file_id, file_name, _rev, size, resource, updated_time, created_time, owner FROM files WHERE file_id = $1;';
     let values = [fileId];
     let response;
     try {
@@ -35,6 +36,27 @@ function FileModel(logger, postgrePool) {
       return response.rows[0];
     }
   }
+
+  this.findByServerId = async (serverId) => {
+    let query = 'SELECT file_id, file_name, _rev, size, resource, updated_time, created_time, owner FROM files WHERE owner = $1;';
+    let values = [serverId];
+    let response;
+    try {
+      response = await executeQuery(query, values);
+    } catch (err) {
+      _logger.error('Error looking for files for server_id:\'%s\' in the database', serverId);
+      throw err;
+    }
+    if (response.rows.length == 0) {
+      _logger.info('No files found for server_id:\'%s\'', serverId);
+      return [];
+    } else {
+      _logger.info('Files found for server_id:\'%s\'', response.rows);
+      return response.rows.map( (file) => {
+        return getBusinessFile(file);
+      } );
+    }
+  };
 
   this.findByFileId = async (fileId) => {
     let dbFile = await findByFileIdReturnAllParams(fileId);
@@ -55,7 +77,6 @@ function FileModel(logger, postgrePool) {
     return getBusinessFile(response.rows[0]);
   };
 
-
   this.create = async (file) => {
     let query = 'INSERT INTO files(file_name, resource, size) VALUES ($1, $2, $3) RETURNING *;';
     let values = [file.file_name, file.resource, file.size];
@@ -75,8 +96,8 @@ function FileModel(logger, postgrePool) {
 
   async function executeUpdate(file) {
     let currentRev = integrityValidator.createHash(file);
-    let query = 'UPDATE files SET _rev=$1, file_name=$2, size=$3, resource=$4 WHERE file_id=$5 RETURNING *;';
-    let values = [currentRev, file.filename, file.size, file.resource, file.id];
+    let query = 'UPDATE files SET _rev=$1, file_name=$2, size=$3, resource=$4, owner=$5 WHERE file_id=$6 RETURNING *;';
+    let values = [currentRev, file.filename, file.size, file.resource, file.owner, file.id];
     let response;
     try {
       response = await executeQuery(query, values);

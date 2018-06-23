@@ -1,11 +1,11 @@
 const ServerTokenModel = require('../../models/server_token_model.js');
-const TokenGenerationService = require('./token_generation_service');
+const ServerTokenGenerationService = require('./server_token_generation_service.js');
 const BaseHttpError = require('../../errors/base_http_error.js');
 
 function ServerTokenService(logger, postgrePool) {
   let _logger = logger;
   let _serverTokenModel = new ServerTokenModel(logger, postgrePool);
-  let _tokenGenerationService = new TokenGenerationService(logger);
+  let _serverTokenGenerationService = new ServerTokenGenerationService(logger);
 
   function getOwnerFromServer(server) {
     return {
@@ -16,7 +16,7 @@ function ServerTokenService(logger, postgrePool) {
 
   async function generateNewTokenForServer(server) {
     let owner = getOwnerFromServer(server);
-    let token = await _tokenGenerationService.generateToken(owner);
+    let token = await _serverTokenGenerationService.generateToken(owner);
     await _serverTokenModel.createOrUpdate(server, token);
     let serverToken = {
       token: token.token,
@@ -28,7 +28,7 @@ function ServerTokenService(logger, postgrePool) {
   this.retrieveToken = async (server) => {
     let dbToken = await _serverTokenModel.findByServer(server);
     if (dbToken) {
-      let decodedToken = _tokenGenerationService.decodeToken(dbToken.token);
+      let decodedToken = await _serverTokenGenerationService.validateToken(dbToken.token, server);
       let serverToken = {
         token: decodedToken.token,
         tokenExpiration: decodedToken.expiresAt,
@@ -45,7 +45,7 @@ function ServerTokenService(logger, postgrePool) {
     if (token) {
       let owner = getOwnerFromServer(server);
       try {
-        let validatedToken = await _tokenGenerationService.validateToken(token.token, owner);
+        let validatedToken = await _serverTokenGenerationService.validateToken(token.token, owner);
         _logger.info('Server with name: \'%s\' already has a valid token, skipping token generation', server.name);
         let serverToken = {
           token: validatedToken.token,
@@ -60,6 +60,28 @@ function ServerTokenService(logger, postgrePool) {
       _logger.info('Server with name: \'%s\' does not have a token, generating one', server.name);
       return await generateNewTokenForServer(server);
     }
+  };
+
+  this.validateToken = async (token) => {
+    let serverId;
+    try {
+      serverId = await _serverTokenGenerationService.getServerIdFromToken(token);
+    } catch (err) {
+      return null;
+    }
+    let serverToken = await _serverTokenModel.findByServerId(serverId);
+    if ((serverToken) && (token === serverToken.token)) {
+      if (_serverTokenGenerationService.validatePermissions(token)) {
+        _logger.info('Token was validated successfully for server_id:\'%s\'', serverId);
+        return serverId;
+      } else {
+        _logger.error('Token does not have the required permissions');
+      }
+    } else {
+      _logger.debug('Token was validated for server_id:\'%s\' but does not match the token saved in the database for that server', serverId);
+      _logger.error('Token contains inconsistent data');
+    }
+    return null;
   };
 }
 

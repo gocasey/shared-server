@@ -42,7 +42,7 @@ describe('UserModel Tests', () => {
     describe('user found', () => {
       before(() => {
         mockPool.query.resolves({ rows:
-            [{ user_id: 123, username: 'name', password: 'pass', _rev: 'rev', app_owner: 'appOwner' }] });
+            [{ user_id: 123, username: 'name', password: 'pass', _rev: 'rev' }] });
       });
 
       it('returns user', async () => {
@@ -52,7 +52,6 @@ describe('UserModel Tests', () => {
         expect(user.username).to.be('name');
         expect(user.password).to.be('pass');
         expect(user._rev).to.be('rev');
-        expect(user.applicationOwner).to.be('appOwner');
       });
 
       it('logs success', async () => {
@@ -112,7 +111,6 @@ describe('UserModel Tests', () => {
     let mockUser = {
       username: 'name',
       password: 'newPass',
-      applicationOwner: 'appOwner',
       _rev: 'oldRev',
     };
 
@@ -120,7 +118,6 @@ describe('UserModel Tests', () => {
       user_id: 123,
       username: 'name',
       password: 'oldPass',
-      app_owner: 'appOwner',
       _rev: 'oldRev',
     };
 
@@ -128,7 +125,6 @@ describe('UserModel Tests', () => {
       user_id: 123,
       username: 'name',
       password: 'oldPass',
-      app_owner: 'appOwner',
       _rev: 'anotherRev',
     };
 
@@ -136,7 +132,6 @@ describe('UserModel Tests', () => {
       user_id: 123,
       username: 'name',
       password: 'newPass',
-      app_owner: 'appOwner',
       _rev: 'newRev',
     };
 
@@ -167,7 +162,6 @@ describe('UserModel Tests', () => {
             expect(user.user_id).to.be(123);
             expect(user.username).to.be('name');
             expect(user.password).to.be('newPass');
-            expect(user.applicationOwner).to.be('appOwner');
             expect(user._rev).to.be('newRev');
           });
         });
@@ -281,14 +275,12 @@ describe('UserModel Tests', () => {
     let mockUser = {
       username: 'name',
       password: 'pass',
-      applicationOwner: 'appOwner',
     };
 
     let mockDbUser = {
       username: 'name',
       password: 'pass',
       user_id: 123,
-      app_owner: 'appOwner',
     };
 
     let mockDbUserUpdated = {
@@ -296,7 +288,6 @@ describe('UserModel Tests', () => {
       password: 'pass',
       user_id: 123,
       _rev: 'newRev',
-      app_owner: 'appOwner',
     };
 
     describe('insert success', () => {
@@ -311,7 +302,7 @@ describe('UserModel Tests', () => {
 
         it('passes correct values to insert query', async () => {
           await userModel.create(mockUser);
-          expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'pass', 'appOwner']);
+          expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'pass']);
         });
 
         it('passes correct values to update query', async () => {
@@ -325,7 +316,6 @@ describe('UserModel Tests', () => {
           expect(user.user_id).to.be(123);
           expect(user.username).to.be('name');
           expect(user.password).to.be('pass');
-          expect(user.applicationOwner).to.be('appOwner');
           expect(user._rev).to.be('newRev');
         });
       });
@@ -366,7 +356,7 @@ describe('UserModel Tests', () => {
           await userModel.create(mockUser);
         } catch (err) { }
         expect(mockPool.query.calledOnce);
-        expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'pass', 'appOwner']);
+        expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'pass']);
       });
 
       it('returns error', async function() {

@@ -1,15 +1,16 @@
 const pg = require('pg');
-const connectionString = process.env.DATABASE_URL || 'postgres://pqjyeqaijafusn:e98fa09f1a4e049674037a98dc4c1f3a956702400f306f9395a280923f38d7c0' +
-  '@ec2-54-163-240-54.compute-1.amazonaws.com:5432/dbhchlmki72u4a?ssl=true';
+const config = require('config');
+
 const client = new pg.Client({
-  connectionString: connectionString,
+  connectionString: config.DATABASE_URL,
 });
 
 const serversTokensTableCleanupQuery = `DROP TABLE IF EXISTS servers_tokens;`;
 const usersTokensTableCleanupQuery = `DROP TABLE IF EXISTS users_tokens;`;
-const usersTableCleanupQuery = `DROP TABLE IF EXISTS users;`;
-const serversTableCleanupQuery = `DROP TABLE IF EXISTS servers;`;
-const filesTableCleanupQuery = `DROP TABLE IF EXISTS files;`;
+const usersOwnershipTableCleanupQuery = `DROP TABLE IF EXISTS users_ownership;`;
+const usersTableCleanupQuery = `DROP TABLE IF EXISTS users CASCADE;`;
+const serversTableCleanupQuery = `DROP TABLE IF EXISTS servers CASCADE;`;
+const filesTableCleanupQuery = `DROP TABLE IF EXISTS files CASCADE;`;
 
 const createTimestampFunction = `CREATE OR REPLACE FUNCTION trigger_set_timestamp()
 RETURNS TRIGGER AS $$
@@ -19,20 +20,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;`
 
-const serversTableCreationQuery = `CREATE TABLE servers (
-  server_id serial PRIMARY KEY,
-  server_name varchar(100) UNIQUE NOT NULL,
-  _rev varchar(500),
-  created_time timestamp NOT NULL DEFAULT NOW(),
-  updated_time timestamp NOT NULL DEFAULT NOW()
-);`
-
 const usersTableCreationQuery = `CREATE TABLE users (
   user_id serial PRIMARY KEY,
   username varchar(100) UNIQUE NOT NULL,
   password varchar(100) NOT NULL,
+  _rev varchar(500)
+);`
+
+const serversTableCreationQuery = `CREATE TABLE servers (
+  server_id serial PRIMARY KEY,
+  server_name varchar(100) UNIQUE NOT NULL,
   _rev varchar(500),
-  app_owner varchar(100) REFERENCES servers(server_name) ON UPDATE CASCADE
+  created_by integer REFERENCES users,
+  created_time timestamp NOT NULL DEFAULT NOW(),
+  updated_time timestamp NOT NULL DEFAULT NOW(),
+  last_connection timestamp,
+  url varchar(500)
+);`
+
+const usersOwnershipCreationQuery = `CREATE TABLE users_ownership (
+  id serial PRIMARY KEY,
+  user_id integer UNIQUE REFERENCES users,
+  server_id integer REFERENCES servers
 );`
 
 const usersTokensTableCreationQuery = `CREATE TABLE users_tokens (
@@ -54,7 +63,8 @@ const filesTableCreationQuery = `CREATE TABLE files (
   updated_time timestamp NOT NULL DEFAULT NOW(),
   size bigint,
   file_name varchar(200),
-  resource varchar(500)
+  resource varchar(500),
+  owner integer REFERENCES servers
 );`
 
 const filesUpdateTimeTrigger = `CREATE TRIGGER set_timestamp
@@ -69,9 +79,9 @@ EXECUTE PROCEDURE trigger_set_timestamp();`
 
 client.connect();
 
-const cleanupQueries = [serversTokensTableCleanupQuery, usersTokensTableCleanupQuery, usersTableCleanupQuery,
-                        serversTableCleanupQuery, filesTableCleanupQuery];
-const creationQueries = [ createTimestampFunction, serversTableCreationQuery, usersTableCreationQuery, usersTokensTableCreationQuery,
+const cleanupQueries = [serversTokensTableCleanupQuery, usersTokensTableCleanupQuery, usersOwnershipTableCleanupQuery,
+                        usersTableCleanupQuery, serversTableCleanupQuery, filesTableCleanupQuery];
+const creationQueries = [ createTimestampFunction, usersTableCreationQuery, serversTableCreationQuery, usersOwnershipCreationQuery, usersTokensTableCreationQuery,
                           serversTokensTableCreationQuery, filesTableCreationQuery, filesUpdateTimeTrigger, serversUpdateTimeTrigger];
 const queriesToRun = cleanupQueries.concat(creationQueries);
 

@@ -1,5 +1,6 @@
 const ServerService = require('../lib/services/server_service.js');
 const ServerTokenService = require('../lib/services/server_token_service.js');
+const BaseHttpError = require('../errors/base_http_error.js');
 
 function ServerController(logger, postgrePool) {
   let _logger = logger;
@@ -9,12 +10,14 @@ function ServerController(logger, postgrePool) {
   this.createServer = async (req, res, next) => {
     let serverData = {
       name: req.body.name,
+      url: req.body.url,
+      createdBy: res.userAuthenticated.user_id,
     };
     let serverCreated;
     try {
       serverCreated = await _serverService.createServer(serverData);
     } catch (err) {
-      _logger.error('An error ocurred while creating server with name: %s', req.body.name);
+      _logger.error('An error occurred while creating server with name: %s', req.body.name);
       return next(err);
     }
     res.server = serverCreated;
@@ -26,7 +29,7 @@ function ServerController(logger, postgrePool) {
     try {
       serverFound = await _serverService.findServer(req.params.serverId);
     } catch (err) {
-      _logger.error('An error ocurred while finding server with id: %s', req.params.serverId);
+      _logger.error('An error occurred while finding server with id: %s', req.params.serverId);
       return next(err);
     }
     res.server = serverFound;
@@ -38,7 +41,7 @@ function ServerController(logger, postgrePool) {
     try {
       servers = await _serverService.getAllServers();
     } catch (err) {
-      _logger.error('An error ocurred while retrieving all the servers');
+      _logger.error('An error occurred while retrieving all the servers');
       return next(err);
     }
     res.servers = servers;
@@ -50,12 +53,13 @@ function ServerController(logger, postgrePool) {
       id: req.params.serverId,
       name: req.body.name,
       _rev: req.body._rev,
+      url: req.body.url,
     };
     let serverUpdated;
     try {
       serverUpdated = await _serverService.updateServer(serverDataToUpdate);
     } catch (err) {
-      _logger.error('An error ocurred while updating server with id: %s', serverDataToUpdate.id);
+      _logger.error('An error occurred while updating server with id: %s', serverDataToUpdate.id);
       return next(err);
     }
     res.server = serverUpdated;
@@ -68,7 +72,7 @@ function ServerController(logger, postgrePool) {
     try {
       token = await _serverTokenService.generateToken(server);
     } catch (err) {
-      _logger.error('An error ocurred while generating the token for server name: %s', server.name);
+      _logger.error('An error occurred while generating the token for server name: %s', server.name);
       return next(err);
     }
     res.serverToken = token;
@@ -81,10 +85,36 @@ function ServerController(logger, postgrePool) {
     try {
       token = await _serverTokenService.retrieveToken(server);
     } catch (err) {
-      _logger.error('An error ocurred while retrieving the token for server name: %s', server.name);
+      _logger.error('An error occurred while retrieving the token for server name: %s', server.name);
       return next(err);
     }
     res.serverToken = token;
+    return next();
+  };
+
+  this.updateLastConnection = async (req, res, next) => {
+    try {
+      await _serverService.updateLastConnection(res.serverAuthenticated);
+    } catch (err) {
+      _logger.error('An error occurred while updating server last connection for server_id: %s', res.serverAuthenticated.id);
+      return next(err);
+    }
+    return next();
+  };
+
+  this.checkApplicationOwner = async (req, res, next) => {
+    let serverOwner;
+    try {
+      serverOwner = await _serverService.findServerByName(req.body.applicationOwner);
+    } catch (err) {
+      _logger.error('An error occurred while finding server with name: %s', req.body.applicationOwner);
+      return next(err);
+    }
+    if (! serverOwner) {
+      _logger.error('Application owner: \'%s\' does not exist', req.body.applicationOwner);
+      throw new BaseHttpError('Application owner does not exist', 422);
+    }
+    res.serverOwner = serverOwner;
     return next();
   };
 }

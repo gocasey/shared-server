@@ -43,6 +43,22 @@ function ServerService(logger, postgrePool) {
     }
   };
 
+  this.findServerByName = async (serverName) => {
+    let server;
+    try {
+      server = await _serverModel.findByServerName(serverName);
+    } catch (findErr) {
+      _logger.error('An error happened while looking for the server with name: \'%s\'', serverName);
+      throw new BaseHttpError('Server find error', 500);
+    }
+    if (server) {
+      return server;
+    } else {
+      _logger.error('The server with name: \'%s\' was not found', serverName);
+      throw new BaseHttpError('Server does not exist', 404);
+    }
+  };
+
   this.getAllServers = async () => {
     try {
       return await _serverModel.getAllServers();
@@ -57,6 +73,19 @@ function ServerService(logger, postgrePool) {
       return await _serverModel.update(serverData);
     } catch (updateErr) {
       _logger.error('An error happened while updating the server with id: \'%s\'', serverData.id);
+      if (updateErr.message == 'Server does not exist') {
+        throw new BaseHttpError(updateErr.message, 404);
+      } else if (updateErr.message == 'Integrity check error') {
+        throw new BaseHttpError(updateErr.message, 409);
+      } else throw new BaseHttpError('Server update error', 500);
+    }
+  };
+
+  this.updateLastConnection = async (server) => {
+    try {
+      return await _serverModel.updateLastConnection(server);
+    } catch (updateErr) {
+      _logger.error('An error happened while updating the server with id: \'%s\'', server.id);
       if (updateErr.message == 'Server does not exist') {
         throw new BaseHttpError(updateErr.message, 404);
       } else if (updateErr.message == 'Integrity check error') {

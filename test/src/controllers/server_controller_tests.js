@@ -50,14 +50,19 @@ describe('ServerController Tests', () => {
     let mockServerRequest = {
       body: {
         name: 'name',
+        url: 'url',
       },
     };
 
-    let mockResponse = {};
+    let mockResponse = {
+      userAuthenticated: {
+        user_id: 456,
+      },
+    };
 
     describe('success', () => {
       before(() => {
-        mockServerService.createServer.resolves({ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09' });
+        mockServerService.createServer.resolves({ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09', createdBy: 456, url: 'url' });
       });
 
       it('calls server service', async () => {
@@ -67,7 +72,7 @@ describe('ServerController Tests', () => {
 
       it('passes correct params to server service', async () => {
         await serverController.createServer(mockServerRequest, mockResponse, function() {});
-        expect(mockServerService.createServer.getCall(0).args[0]).to.be.eql(mockServerRequest.body);
+        expect(mockServerService.createServer.getCall(0).args[0]).to.be.eql({ name: 'name', url: 'url', createdBy: 456 });
       });
 
       it('saves server in response', async () => {
@@ -77,6 +82,8 @@ describe('ServerController Tests', () => {
         expect(mockResponse.server.name).to.be('name');
         expect(mockResponse.server._rev).to.be('rev');
         expect(mockResponse.server.createdTime).to.be('2018-04-09');
+        expect(mockResponse.server.createdBy).to.be(456);
+        expect(mockResponse.server.url).to.be('url');
       });
 
       it('calls next with no error', async () => {
@@ -100,7 +107,7 @@ describe('ServerController Tests', () => {
 
       it('passes correct params to server service', async () => {
         await serverController.createServer(mockServerRequest, mockResponse, function() {});
-        expect(mockServerService.createServer.getCall(0).args[0]).to.be.eql(mockServerRequest.body);
+        expect(mockServerService.createServer.getCall(0).args[0]).to.be.eql({ name: 'name', createdBy: 456, url: 'url' });
       });
 
       it('calls next with error', async () => {
@@ -123,7 +130,7 @@ describe('ServerController Tests', () => {
 
     describe('success', () => {
       before(() => {
-        mockServerService.findServer.resolves({ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09' });
+        mockServerService.findServer.resolves({ id: 123, name: 'name', _rev: 'rev', createdTime: '2018-04-09', url: 'url' });
       });
 
       it('calls server service', async () => {
@@ -143,6 +150,7 @@ describe('ServerController Tests', () => {
         expect(mockResponse.server.name).to.be('name');
         expect(mockResponse.server._rev).to.be('rev');
         expect(mockResponse.server.createdTime).to.be('2018-04-09');
+        expect(mockResponse.server.url).to.be('url');
       });
 
       it('calls next with no error', async () => {
@@ -243,6 +251,7 @@ describe('ServerController Tests', () => {
       body: {
         name: 'newName',
         _rev: 'oldRev',
+        url: 'newUrl',
       },
     };
 
@@ -250,7 +259,7 @@ describe('ServerController Tests', () => {
 
     describe('success', () => {
       before(() => {
-        mockServerService.updateServer.resolves({ id: 123, name: 'newName', _rev: 'newRev', createdTime: '2018-04-09' });
+        mockServerService.updateServer.resolves({ id: 123, name: 'newName', _rev: 'newRev', createdTime: '2018-04-09', url: 'newUrl' });
       });
 
       it('calls server service', async () => {
@@ -260,7 +269,7 @@ describe('ServerController Tests', () => {
 
       it('passes correct params to server service', async () => {
         await serverController.updateServer(mockServerRequest, mockResponse, function() {});
-        expect(mockServerService.updateServer.getCall(0).args[0]).to.be.eql({ id: 123, name: 'newName', _rev: 'oldRev' });
+        expect(mockServerService.updateServer.getCall(0).args[0]).to.be.eql({ id: 123, name: 'newName', _rev: 'oldRev', url: 'newUrl' });
       });
 
       it('saves server in response', async () => {
@@ -270,6 +279,7 @@ describe('ServerController Tests', () => {
         expect(mockResponse.server.name).to.be('newName');
         expect(mockResponse.server._rev).to.be('newRev');
         expect(mockResponse.server.createdTime).to.be('2018-04-09');
+        expect(mockResponse.server.url).to.be('newUrl');
       });
 
       it('calls next with no error', async () => {
@@ -293,7 +303,7 @@ describe('ServerController Tests', () => {
 
       it('passes correct params to server service', async () => {
         await serverController.updateServer(mockServerRequest, mockResponse, function() {});
-        expect(mockServerService.updateServer.getCall(0).args[0]).to.be.eql({ id: 123, name: 'newName', _rev: 'oldRev' });
+        expect(mockServerService.updateServer.getCall(0).args[0]).to.be.eql({ id: 123, name: 'newName', _rev: 'oldRev', url: 'newUrl' });
       });
 
       it('calls next with error', async () => {

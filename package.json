@@ -8,12 +8,14 @@
   },
   "scripts": {
     "lint": "eslint src test",
-    "test": "mocha --recursive --timeout 5000",
-    "db_init": "node ./config/db_creation.js",
+    "test": "NODE_ENV=test mocha --recursive --exit --timeout 15000",
+    "test_db_init": "NODE_ENV=test node ./config/db_creation.js",
+    "test_db_cleanup": "NODE_ENV=test node ./config/db_cleanup.js",
+    "prod_db_init": "NODE_ENV=production node ./config/db_creation.js",
     "coverage": "nyc npm test",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
-    "start": "node ./src/app.js",
-    "debug": "NODE_ENV=development node --inspect-brk=34939 src/server.js"
+    "start": "NODE_ENV=production node ./src/app.js",
+    "debug": "NODE_ENV=test node ./src/app.js"
   },
   "dependencies": {
     "@google-cloud/storage": "^1.6.0",

@@ -10,15 +10,30 @@ function UserTokenModel(logger, postgrePool) {
       if (response.rows.length == 0) {
         _logger.info('Token for username:\'%s\' not found', user.username);
         return;
-      } else if (response.rows.length > 1) {
-        _logger.warn('More than a token found for username: \'%s\'', user.username);
-        return response.rows[0];
       } else {
         _logger.info('Token for username:\'%s\' found', user.username);
         return response.rows[0];
       }
     } catch (err) {
       _logger.error('Error looking for token for username:\'%s\' in the database', user.username);
+      throw err;
+    }
+  };
+
+  this.findByUserId = async (userId) => {
+    let query = 'SELECT token_id, user_id, token FROM users_tokens WHERE user_id = $1;';
+    let values = [userId];
+    try {
+      let response = await executeQuery(query, values);
+      if (response.rows.length == 0) {
+        _logger.info('Token for user_id:\'%s\' not found', userId);
+        return;
+      } else {
+        _logger.info('Token for user_id:\'%s\' found', userId);
+        return response.rows[0];
+      }
+    } catch (err) {
+      _logger.error('Error looking for token for user_id:\'%s\' in the database', userId);
       throw err;
     }
   };

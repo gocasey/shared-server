@@ -10,12 +10,15 @@ function ServerModel(logger, postgrePool) {
       id: dbServer.server_id,
       name: dbServer.server_name,
       _rev: dbServer._rev,
+      createdBy: dbServer.created_by,
       createdTime: dbServer.created_time,
+      lastConnection: dbServer.last_connection,
+      url: dbServer.url,
     };
   };
 
   async function findByServerNameReturnAllParams(serverName) {
-    let query = 'SELECT server_id, server_name, _rev, created_time FROM servers WHERE server_name = $1;';
+    let query = 'SELECT server_id, server_name, _rev, created_by, created_time, last_connection, url FROM servers WHERE server_name = $1;';
     let values = [serverName];
     try {
       let res = await executeQuery(query, values);
@@ -33,7 +36,7 @@ function ServerModel(logger, postgrePool) {
   }
 
   async function findByServerIdReturnAllParams(serverId) {
-    let query = 'SELECT server_id, server_name, _rev, created_time FROM servers WHERE server_id = $1;';
+    let query = 'SELECT server_id, server_name, _rev, created_by, created_time, last_connection, url FROM servers WHERE server_id = $1;';
     let values = [serverId];
     try {
       let res = await executeQuery(query, values);
@@ -61,7 +64,7 @@ function ServerModel(logger, postgrePool) {
   };
 
   this.getAllServers = async () => {
-    let query = 'SELECT server_id, server_name, _rev, created_time FROM servers;';
+    let query = 'SELECT server_id, server_name, _rev, created_by, created_time, last_connection, url FROM servers;';
     try {
       let res = await executeQuery(query);
       if (res.rows.length == 0) {
@@ -79,8 +82,23 @@ function ServerModel(logger, postgrePool) {
     }
   };
 
+  this.updateLastConnection = async (server) => {
+    let query = 'UPDATE servers SET last_connection=NOW() ' +
+      'WHERE server_id=$1 RETURNING server_id, server_name, _rev, created_by, created_time, last_connection, url;';
+    let values = [server.id];
+    try {
+      let res = await executeQuery(query, values);
+      _logger.info('Last connection for server with name: \'%s\' updated successfully', server.name);
+      _logger.debug('Last connection for server updated in db: %j', res.rows[0]);
+      return getBusinessServer(res.rows[0]);
+    } catch (err) {
+      _logger.error('Error updating last connection for server with name:\'%s\' to database', server.name);
+      throw err;
+    }
+  };
+
   async function updateServerRev(serverName, rev) {
-    let query = 'UPDATE servers SET _rev=$1 WHERE server_name=$2 RETURNING server_id, server_name, _rev, created_time;';
+    let query = 'UPDATE servers SET _rev=$1 WHERE server_name=$2 RETURNING server_id, server_name, _rev, created_by, created_time, last_connection, url;';
     let values = [rev, serverName];
     try {
       let res = await executeQuery(query, values);
@@ -94,8 +112,9 @@ function ServerModel(logger, postgrePool) {
 
 
   this.create = async (server) => {
-    let query = 'INSERT INTO servers(server_name) VALUES ($1) RETURNING server_id, server_name, created_time;';
-    let values = [server.name];
+    let query = 'INSERT INTO servers(server_name, created_by, url) VALUES ($1, $2, $3) ' +
+      'RETURNING server_id, server_name, created_by, created_time, last_connection, url;';
+    let values = [server.name, server.createdBy, server.url];
     let response;
     try {
       response = await executeQuery(query, values);
@@ -112,8 +131,9 @@ function ServerModel(logger, postgrePool) {
 
   async function executeUpdate(server) {
     let currentRev = integrityValidator.createHash(server);
-    let query = 'UPDATE servers SET server_name=$1, _rev=$2 WHERE server_id=$3 RETURNING server_id, server_name, _rev, created_time;';
-    let values = [server.name, currentRev, server.id];
+    let query = 'UPDATE servers SET server_name=$1, _rev=$2, url=$3 ' +
+      'WHERE server_id=$4 RETURNING server_id, server_name, _rev, created_by, created_time, last_connection, url;';
+    let values = [server.name, currentRev, server.url, server.id];
     try {
       let res = await executeQuery(query, values);
       _logger.info('Server with name: \'%s\' updated successfully', server.name);

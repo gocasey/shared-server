@@ -9,7 +9,7 @@ const mockLogger = {
 describe('FileResponseBuilder Tests', function() {
   let fileResponseBuilder = new FileResponseBuilder(mockLogger);
 
-  describe('#buildResponse', function() {
+  describe('#buildSingleResponse', function() {
     let mockRequest = {};
     let passedStatusCode;
     let returnedResponse;
@@ -22,6 +22,7 @@ describe('FileResponseBuilder Tests', function() {
         updatedTime: '2018-04-09',
         createdTime: '2018-04-09',
         resource: 'remoteFileUri',
+        owner: 'serverId',
       },
       status: function(statusCode) {
         passedStatusCode = statusCode;
@@ -35,14 +36,14 @@ describe('FileResponseBuilder Tests', function() {
 
     beforeEach(function() {
       mockLogger.debug.resetHistory();
-      fileResponseBuilder.buildResponse(mockRequest, mockResponse);
+      fileResponseBuilder.buildSingleResponse(mockRequest, mockResponse, 200);
     });
 
     it('returns status and response', function() {
       expect(passedStatusCode).to.be(200);
       expect(returnedResponse).to.be.eql({ metadata: { version: '1.0.0' },
         file: { id: '123', filename: 'name', _rev: 'rev', size: 1234,
-                updatedTime: '2018-04-09', createdTime: '2018-04-09', resource: 'remoteFileUri' } });
+                updatedTime: '2018-04-09', createdTime: '2018-04-09', resource: 'remoteFileUri', owner: 'serverId' } });
     });
 
     it('logs response', function() {
@@ -50,7 +51,7 @@ describe('FileResponseBuilder Tests', function() {
       expect(mockLogger.debug.getCall(0).args[0]).to.be('Response: %j');
       expect(mockLogger.debug.getCall(0).args[1]).to.be.eql({ metadata: { version: '1.0.0' },
         file: { id: '123', filename: 'name', _rev: 'rev', size: 1234,
-                updatedTime: '2018-04-09', createdTime: '2018-04-09', resource: 'remoteFileUri' } });
+                updatedTime: '2018-04-09', createdTime: '2018-04-09', resource: 'remoteFileUri', owner: 'serverId' } });
     });
   });
 });

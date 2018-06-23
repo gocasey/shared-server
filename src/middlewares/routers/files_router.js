@@ -1,32 +1,58 @@
 const FileController = require('../../controllers/file_controller.js');
-const FileResponseBuilder = require('../../middlewares/response_builders/file_response_builder.js');
+const ServerController = require('../../controllers/server_controller.js');
+const FileCreationResponseBuilder = require('../../middlewares/response_builders/file_creation_response_builder.js');
+const FileFindResponseBuilder = require('../../middlewares/response_builders/file_find_response_builder.js');
+const AdminTokenAuthenticator = require('../../middlewares/authenticators/admin_token_authenticator.js');
+const ApplicationUserTokenAuthenticator = require('../authenticators/application_user_token_authenticator.js');
 
 function FilesRouter(app, logger, postgrePool) {
+  let _adminTokenAuthenticator = new AdminTokenAuthenticator(logger, postgrePool);
+  let _applicationUserTokenAuthenticator = new ApplicationUserTokenAuthenticator(logger, postgrePool);
   let _fileController = new FileController(logger, postgrePool);
-  let _fileResponseBuilder = new FileResponseBuilder(logger);
+  let _serverController = new ServerController(logger, postgrePool);
+  let _fileCreationResponseBuilder = new FileCreationResponseBuilder(logger);
+  let _fileFindResponseBuilder = new FileFindResponseBuilder(logger);
 
-  // Usuario sube archivo en json
-  app.post('/api/files/upload',
-    _fileController.createFileFromJson,
-    _fileResponseBuilder.buildResponse
+  // Consulta de archivos de un server
+  app.get('/api/files',
+    _adminTokenAuthenticator.authenticateFromHeader,
+    _serverController.updateLastConnection,
+    _fileController.findServerFiles,
+    _fileFindResponseBuilder.buildSetResponse
   );
 
-  // Usuario sube archivo en json
+  // Usuario sube archivo en formato multipart
   app.post('/api/files/upload_multipart',
+    _applicationUserTokenAuthenticator.authenticateFromHeader,
     _fileController.createFileFromMultipart,
-    _fileResponseBuilder.buildResponse
+    _fileCreationResponseBuilder.buildResponse
+  );
+
+  // Alta de archivo para server
+  app.post('/api/files',
+    _adminTokenAuthenticator.authenticateFromHeader,
+    _serverController.updateLastConnection,
+    _fileController.assignOwnership,
+    _fileFindResponseBuilder.buildResponse
   );
 
   // Consulta de archivo
   app.get('/api/files/:fileId',
+    _adminTokenAuthenticator.authenticateFromHeader,
+    _serverController.updateLastConnection,
     _fileController.findFile,
-    _fileResponseBuilder.buildResponse
+    _fileController.checkOwnership,
+    _fileFindResponseBuilder.buildResponse
   );
 
   // Actualizacion de archivo
   app.put('/api/files/:fileId',
+    _adminTokenAuthenticator.authenticateFromHeader,
+    _serverController.updateLastConnection,
+    _fileController.findFile,
+    _fileController.checkOwnership,
     _fileController.updateFile,
-    _fileResponseBuilder.buildResponse
+    _fileFindResponseBuilder.buildResponse
   );
 }
 

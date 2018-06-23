@@ -14,7 +14,7 @@ describe('TokenResponseBuilder Tests', function() {
     let passedStatusCode;
     let returnedResponse;
     let mockResponse = {
-      data: {
+      token: {
         token: 'token',
         tokenExpiration: 123456789,
       },
@@ -30,7 +30,7 @@ describe('TokenResponseBuilder Tests', function() {
 
     beforeEach(function() {
       mockLogger.debug.resetHistory();
-      tokenResponseBuilder.buildResponse(mockRequest, mockResponse);
+      tokenResponseBuilder.buildResponse(mockRequest, mockResponse, 201);
     });
 
     it('passes status and response', function() {

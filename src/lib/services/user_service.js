@@ -27,7 +27,6 @@ function UserService(logger, postgrePool) {
     let userData = {
       username: body.username,
       password: hash(body.password),
-      applicationOwner: body.applicationOwner,
     };
     let err;
     try {
@@ -47,10 +46,25 @@ function UserService(logger, postgrePool) {
         _logger.error('There is already a user with username: \'%s\'', userData.username);
         throw new BaseHttpError('Username already exists', 409);
       } else {
-        // check that applicationOwner does not actually exist
-        _logger.error('Application owner: \'%s\' does not exist', userData.applicationOwner);
-        throw new BaseHttpError('Application owner does not exist', 422);
+        _logger.debug('Unknown error on user creation. User: \'%j\'', userData);
+        throw new BaseHttpError('User creation error', 500);
       }
+    }
+  };
+
+  this.findUser = async (userId) => {
+    let user;
+    try {
+      user = await _userModel.findByUserId(userId);
+    } catch (findErr) {
+      _logger.error('An error happened while looking for the user with id: \'%s\'', userId);
+      throw new BaseHttpError('User find error', 500);
+    }
+    if (user) {
+      return user;
+    } else {
+      _logger.error('The user with id: \'%s\' was not found', userId);
+      throw new BaseHttpError('User does not exist', 404);
     }
   };
 }
