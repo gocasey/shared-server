@@ -2,11 +2,11 @@ const FileController = require('../../controllers/file_controller.js');
 const ServerController = require('../../controllers/server_controller.js');
 const FileCreationResponseBuilder = require('../../middlewares/response_builders/file_creation_response_builder.js');
 const FileFindResponseBuilder = require('../../middlewares/response_builders/file_find_response_builder.js');
-const ServerTokenAuthenticator = require('../../middlewares/authenticators/server_token_authenticator.js');
+const AdminTokenAuthenticator = require('../../middlewares/authenticators/admin_token_authenticator.js');
 const ApplicationUserTokenAuthenticator = require('../authenticators/application_user_token_authenticator.js');
 
 function FilesRouter(app, logger, postgrePool) {
-  let _serverTokenAuthenticator = new ServerTokenAuthenticator(logger, postgrePool);
+  let _adminTokenAuthenticator = new AdminTokenAuthenticator(logger, postgrePool);
   let _applicationUserTokenAuthenticator = new ApplicationUserTokenAuthenticator(logger, postgrePool);
   let _fileController = new FileController(logger, postgrePool);
   let _serverController = new ServerController(logger, postgrePool);
@@ -15,7 +15,7 @@ function FilesRouter(app, logger, postgrePool) {
 
   // Consulta de archivos de un server
   app.get('/api/files',
-    _serverTokenAuthenticator.authenticateFromHeader,
+    _adminTokenAuthenticator.authenticateFromHeader,
     _serverController.updateLastConnection,
     _fileController.findServerFiles,
     _fileFindResponseBuilder.buildSetResponse
@@ -30,7 +30,7 @@ function FilesRouter(app, logger, postgrePool) {
 
   // Alta de archivo para server
   app.post('/api/files',
-    _serverTokenAuthenticator.authenticateFromHeader,
+    _adminTokenAuthenticator.authenticateFromHeader,
     _serverController.updateLastConnection,
     _fileController.assignOwnership,
     _fileFindResponseBuilder.buildResponse
@@ -38,7 +38,7 @@ function FilesRouter(app, logger, postgrePool) {
 
   // Consulta de archivo
   app.get('/api/files/:fileId',
-    _serverTokenAuthenticator.authenticateFromHeader,
+    _adminTokenAuthenticator.authenticateFromHeader,
     _serverController.updateLastConnection,
     _fileController.findFile,
     _fileController.checkOwnership,
@@ -47,7 +47,7 @@ function FilesRouter(app, logger, postgrePool) {
 
   // Actualizacion de archivo
   app.put('/api/files/:fileId',
-    _serverTokenAuthenticator.authenticateFromHeader,
+    _adminTokenAuthenticator.authenticateFromHeader,
     _serverController.updateLastConnection,
     _fileController.findFile,
     _fileController.checkOwnership,

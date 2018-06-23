@@ -20,7 +20,7 @@ function ServerTokenAuthenticator(logger, postgrePool) {
         return next();
       }
     }
-    let error = new BaseHttpError('Server Unauthorized', 401);
+    let error = new BaseHttpError('Unauthorized', 401);
     return next(error);
   }
 

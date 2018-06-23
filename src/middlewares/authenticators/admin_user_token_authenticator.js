@@ -22,7 +22,7 @@ function AdminUserTokenAuthenticator(logger, postgrePool) {
         return next();
       }
     }
-    let error = new BaseHttpError('User Unauthorized', 401);
+    let error = new BaseHttpError('Unauthorized', 401);
     return next(error);
   }
 

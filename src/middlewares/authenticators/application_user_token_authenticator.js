@@ -27,7 +27,7 @@ function ApplicationUserTokenAuthenticator(logger, postgrePool) {
         return await _userService.findUser(userId);
       }
     }
-    throw new BaseHttpError('User Unauthorized', 401);
+    throw new BaseHttpError('Unauthorized', 401);
   }
 
   this.authenticateFromHeader = async (req, res, next) => {

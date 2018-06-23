@@ -170,7 +170,7 @@ describe('Integration Tests', () =>{
                 .expect(401);
 
               expect(tokenCheckResponse.body.code).to.be(401);
-              expect(tokenCheckResponse.body.message).to.be('User Unauthorized');
+              expect(tokenCheckResponse.body.message).to.be('Unauthorized');
             });
           });
 
@@ -234,7 +234,7 @@ describe('Integration Tests', () =>{
                     .expect(401);
 
                   expect(fileFindResponse.body.code).to.be(401);
-                  expect(fileFindResponse.body.message).to.be('Server Unauthorized');
+                  expect(fileFindResponse.body.message).to.be('Unauthorized');
                 });
               });
 
@@ -276,7 +276,7 @@ describe('Integration Tests', () =>{
                     .expect(401);
 
                   expect(fileUpdateResponse.body.code).to.be(401);
-                  expect(fileUpdateResponse.body.message).to.be('Server Unauthorized');
+                  expect(fileUpdateResponse.body.message).to.be('Unauthorized');
                 });
               });
             });
@@ -386,7 +386,7 @@ describe('Integration Tests', () =>{
                 .expect(401);
 
               expect(serverFindResponse.body.code).to.be(401);
-              expect(serverFindResponse.body.message).to.be('User Unauthorized');
+              expect(serverFindResponse.body.message).to.be('Unauthorized');
             });
           });
 
@@ -401,7 +401,7 @@ describe('Integration Tests', () =>{
                 .expect(401);
 
               expect(serverFindResponse.body.code).to.be(401);
-              expect(serverFindResponse.body.message).to.be('User Unauthorized');
+              expect(serverFindResponse.body.message).to.be('Unauthorized');
             });
           });
 
@@ -421,7 +421,7 @@ describe('Integration Tests', () =>{
                 .expect(401);
 
               expect(serverUpdateResponse.body.code).to.be(401);
-              expect(serverUpdateResponse.body.message).to.be('User Unauthorized');
+              expect(serverUpdateResponse.body.message).to.be('Unauthorized');
             });
           });
 
@@ -440,7 +440,7 @@ describe('Integration Tests', () =>{
                 .expect(401);
 
               expect(serverPostResponse.body.code).to.be(401);
-              expect(serverPostResponse.body.message).to.be('User Unauthorized');
+              expect(serverPostResponse.body.message).to.be('Unauthorized');
             });
           });
         });
