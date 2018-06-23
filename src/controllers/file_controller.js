@@ -25,8 +25,7 @@ function FileController(logger, postgrePool) {
         _logger.debug('Error when validating multipart request: %s', err);
         let error = new BaseHttpError('The request is invalid', 400);
         return next(error);
-      }
-      else {
+      } else {
         _logger.info('The request was validated successfully');
         _logger.debug('Request received: %j', req.file);
         let fileUploaded;
