@@ -29,11 +29,23 @@ describe('Integration Tests', () =>{
     let adminUserCreationResponse;
 
     it('returns admin user', async () => {
-      adminUserCreationResponse = await request.post('/api/admin-user')
+      adminUserCreationResponse = await request.post('/api/admin_user')
         .send({ username: 'adminUser', password: 'pass' })
         .expect(201);
       expect(adminUserCreationResponse.body.user.user.username).to.be('adminUser');
       expect(adminUserCreationResponse.body.user.token).to.be.ok();
+    });
+
+    describe('retrieve admin user token', () => {
+      let adminTokenCreationResponse;
+
+      it('returns application user token', async () => {
+        adminTokenCreationResponse = await request.post('/api/admin_token')
+          .send({ username: 'adminUser', password: 'pass' })
+          .expect(201);
+        expect(adminTokenCreationResponse.body.token.expiresAt).to.be.ok();
+        expect(adminTokenCreationResponse.body.token.token).to.be.ok();
+      });
     });
 
     describe('create server with admin user token', () => {

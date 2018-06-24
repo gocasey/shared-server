@@ -34,6 +34,13 @@ function UsersRouter(app, logger, postgrePool) {
     _tokenCreateResponseBuilder.buildResponse
   );
 
+  app.post('/api/admin_token',
+    _applicationUserCredentialsSchemaValidator.validateRequest,
+    _passwordAuthenticator.authenticate,
+    _userController.generateTokenForAdminUser,
+    _tokenCreateResponseBuilder.buildResponse
+  );
+
   app.post('/api/token_check',
     _applicationUserTokenSchemaValidator.validateRequest,
     _serverTokenAuthenticator.authenticateFromHeader,
@@ -52,7 +59,7 @@ function UsersRouter(app, logger, postgrePool) {
     _applicationUserResponseBuilder.buildResponse
   );
 
-  app.post('/api/admin-user',
+  app.post('/api/admin_user',
     _userController.createUser,
     _userController.generateTokenForAdminUser,
     _adminUserResponseBuilder.buildResponse
