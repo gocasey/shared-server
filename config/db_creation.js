@@ -24,6 +24,7 @@ const usersTableCreationQuery = `CREATE TABLE users (
   user_id serial PRIMARY KEY,
   username varchar(100) UNIQUE NOT NULL,
   password varchar(100) NOT NULL,
+  last_connection timestamp,
   _rev varchar(500)
 );`
 

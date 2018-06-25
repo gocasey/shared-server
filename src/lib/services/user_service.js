@@ -67,6 +67,37 @@ function UserService(logger, postgrePool) {
       throw new BaseHttpError('User does not exist', 404);
     }
   };
+
+  this.updateLastConnection = async (user) => {
+    try {
+      return await _userModel.updateLastConnection(user);
+    } catch (updateErr) {
+      _logger.error('An error happened while updating the user with id: \'%s\'', user.user_id);
+      if (updateErr.message == 'User does not exist') {
+        throw new BaseHttpError(updateErr.message, 404);
+      } else if (updateErr.message == 'Integrity check error') {
+        throw new BaseHttpError(updateErr.message, 409);
+      } else throw new BaseHttpError('User update error', 500);
+    }
+  };
+
+  this.getTotalUsersCountByServer = async () => {
+    try{
+      return await _userModel.getTotalUsersCountByServer();
+    } catch (countError){
+      _logger.error('There was an error retrieving the total users count by server');
+      throw new BaseHttpError('Stats error', 500);
+    }
+  };
+
+  this.getActiveUsersCountByServer = async () => {
+    try{
+      return await _userModel.getActiveUsersCountByServer();
+    } catch (countError){
+      _logger.error('There was an error retrieving the active users count by server');
+      throw new BaseHttpError('Stats error', 500);
+    }
+  };
 }
 
 module.exports = UserService;

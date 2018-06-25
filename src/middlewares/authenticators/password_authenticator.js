@@ -5,14 +5,15 @@ function PasswordAuthenticator(logger, postgrePool) {
   let _userService = new UserService(logger, postgrePool);
 
   this.authenticate = async (req, res, next) => {
+    let user;
     try {
-      let user = await _userService.authenticateWithPassword(req.body.username, req.body.password);
-      res.user = user;
-      next();
+      user = await _userService.authenticateWithPassword(req.body.username, req.body.password);
     } catch (err) {
       let error = new BaseHttpError('Wrong password.', 401);
-      next(error);
+      return next(error);
     }
+    res.user = user;
+    return next();
   };
 }
 

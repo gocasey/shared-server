@@ -1,5 +1,6 @@
 const FileController = require('../../controllers/file_controller.js');
 const ServerController = require('../../controllers/server_controller.js');
+const UserController = require('../../controllers/user_controller.js');
 const FileCreationResponseBuilder = require('../../middlewares/response_builders/file_creation_response_builder.js');
 const FileFindResponseBuilder = require('../../middlewares/response_builders/file_find_response_builder.js');
 const AdminTokenAuthenticator = require('../../middlewares/authenticators/admin_token_authenticator.js');
@@ -10,6 +11,7 @@ function FilesRouter(app, logger, postgrePool) {
   let _applicationUserTokenAuthenticator = new ApplicationUserTokenAuthenticator(logger, postgrePool);
   let _fileController = new FileController(logger, postgrePool);
   let _serverController = new ServerController(logger, postgrePool);
+  let _userController = new UserController(logger, postgrePool);
   let _fileCreationResponseBuilder = new FileCreationResponseBuilder(logger);
   let _fileFindResponseBuilder = new FileFindResponseBuilder(logger);
 
@@ -24,6 +26,7 @@ function FilesRouter(app, logger, postgrePool) {
   // Usuario sube archivo en formato multipart
   app.post('/api/files/upload_multipart',
     _applicationUserTokenAuthenticator.authenticateFromHeader,
+    _userController.updateLastConnection,
     _fileController.createFileFromMultipart,
     _fileCreationResponseBuilder.buildResponse
   );
