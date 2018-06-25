@@ -14,7 +14,7 @@ function UserStatsResponseBuilder(logger) {
     _logger.debug('Total users count by server: %j', totalUsersCountByServer);
     _logger.debug('Active users count by server: %j', activeUsersCountByServer);
 
-    if (totalUsersCountByServer.length != activeUsersCountByServer.length){
+    if (totalUsersCountByServer.length != activeUsersCountByServer.length) {
       _logger.error('The stats were not created correctly');
       let error = new BaseHttpError(500, 'Stats error');
       return next(error);
@@ -24,7 +24,7 @@ function UserStatsResponseBuilder(logger) {
       let serverStatsResponse = getSingleServerStatsResponse();
       let singleServerTotalCount = totalUsersCountByServer[i];
       let singleServerActiveCount = activeUsersCountByServer[i];
-      if (singleServerTotalCount.server_id != singleServerActiveCount.server_id){
+      if (singleServerTotalCount.server_id != singleServerActiveCount.server_id) {
         _logger.error('The stats were not created correctly');
         let error = new BaseHttpError(500, 'Stats error');
         return next(error);
@@ -39,7 +39,7 @@ function UserStatsResponseBuilder(logger) {
     res.status(200).json(response);
   };
 
-  function getSingleServerStatsResponse(){
+  function getSingleServerStatsResponse() {
     return {
       id: '',
       total_users: '',

@@ -3,22 +3,22 @@ const UserService = require('../lib/services/user_service.js');
 function StatsController(logger, postgrePool) {
   let _userService = new UserService(logger, postgrePool);
 
-  this.getTotalUsersCountByServer = async(req, res, next) => {
+  this.getTotalUsersCountByServer = async (req, res, next) => {
     let totalUsersCountByServer;
-    try{
+    try {
       totalUsersCountByServer = await _userService.getTotalUsersCountByServer();
-    } catch (err){
+    } catch (err) {
       return next(err);
     }
     res.totalUsersCountByServer = totalUsersCountByServer;
     return next();
   };
 
-  this.getActiveUsersCountByServer = async(req, res, next) => {
+  this.getActiveUsersCountByServer = async (req, res, next) => {
     let activeUsersCountByServer;
-    try{
+    try {
       activeUsersCountByServer = await _userService.getActiveUsersCountByServer();
-    } catch (err){
+    } catch (err) {
       return next(err);
     }
     res.activeUsersCountByServer = activeUsersCountByServer;

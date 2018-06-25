@@ -82,18 +82,18 @@ function UserService(logger, postgrePool) {
   };
 
   this.getTotalUsersCountByServer = async () => {
-    try{
+    try {
       return await _userModel.getTotalUsersCountByServer();
-    } catch (countError){
+    } catch (countError) {
       _logger.error('There was an error retrieving the total users count by server');
       throw new BaseHttpError('Stats error', 500);
     }
   };
 
   this.getActiveUsersCountByServer = async () => {
-    try{
+    try {
       return await _userModel.getActiveUsersCountByServer();
-    } catch (countError){
+    } catch (countError) {
       _logger.error('There was an error retrieving the active users count by server');
       throw new BaseHttpError('Stats error', 500);
     }

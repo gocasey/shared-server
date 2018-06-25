@@ -140,7 +140,7 @@ function UserModel(logger, postgrePool) {
     }
   };
 
-  this.getTotalUsersCountByServer = async() => {
+  this.getTotalUsersCountByServer = async () => {
     let query = 'SELECT s.server_id, COUNT(uo.server_id) FROM servers AS s ' +
                 'LEFT JOIN users_ownership AS uo ON s.server_id = uo.server_id ' +
                 'GROUP BY s.server_id ORDER BY s.server_id ASC;';
@@ -159,7 +159,7 @@ function UserModel(logger, postgrePool) {
     }
   };
 
-  this.getActiveUsersCountByServer = async() => {
+  this.getActiveUsersCountByServer = async () => {
     let query = 'SELECT s.server_id, COUNT(active_users.server_id) FROM servers AS s ' +
       'LEFT JOIN ( SELECT * FROM users_ownership AS uo ' +
       'INNER JOIN users AS u ON u.user_id = uo.user_id ' +
