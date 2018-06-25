@@ -493,6 +493,24 @@ describe('Integration Tests', () =>{
             expect(serverFindResponse.body.servers[0].createdBy).to.be(adminUserCreationResponse.body.user.user.id);
           });
         });
+
+        describe('retrieve user stats with admin user token', async () => {
+          let userStatsResponse;
+
+          it('returns user stats', async () => {
+            let adminUserToken = adminUserCreationResponse.body.user.token.token;
+            let authHeaderUser = util.format('Bearer %s', adminUserToken);
+            userStatsResponse = await request.get('/api/stats/users')
+              .set('Authorization', authHeaderUser)
+              .expect(200);
+
+            expect(userStatsResponse.body.servers_stats).to.be.an.array;
+            expect(userStatsResponse.body.servers_stats.length).to.be(1);
+            expect(userStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
+            expect(userStatsResponse.body.servers_stats[0].total_users).to.be('1');
+            expect(userStatsResponse.body.servers_stats[0].active_users).to.be('1');
+          });
+        });
       });
     });
   });

@@ -53,6 +53,17 @@ function UserController(logger, postgrePool) {
     }
     return next();
   };
+
+  this.updateLastConnection = async (req, res, next) => {
+    let user = res.user || res.userAuthenticated;
+    try {
+      await _userService.updateLastConnection(user);
+    } catch (err) {
+      _logger.error('An error occurred while updating user last connection for user_id: %s', user.user_id);
+      return next(err);
+    }
+    return next();
+  };
 }
 
 module.exports = UserController;

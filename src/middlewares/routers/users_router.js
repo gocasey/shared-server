@@ -31,6 +31,7 @@ function UsersRouter(app, logger, postgrePool) {
     _serverController.updateLastConnection,
     _passwordAuthenticator.authenticate,
     _userController.generateTokenForApplicationUser,
+    _userController.updateLastConnection,
     _tokenCreateResponseBuilder.buildResponse
   );
 
@@ -38,6 +39,7 @@ function UsersRouter(app, logger, postgrePool) {
     _applicationUserCredentialsSchemaValidator.validateRequest,
     _passwordAuthenticator.authenticate,
     _userController.generateTokenForAdminUser,
+    _userController.updateLastConnection,
     _tokenCreateResponseBuilder.buildResponse
   );
 
@@ -46,6 +48,7 @@ function UsersRouter(app, logger, postgrePool) {
     _serverTokenAuthenticator.authenticateFromHeader,
     _serverController.updateLastConnection,
     _applicationUserTokenAuthenticator.authenticateFromBody,
+    _userController.updateLastConnection,
     _tokenFindResponseBuilder.buildResponse
   );
 
@@ -62,6 +65,7 @@ function UsersRouter(app, logger, postgrePool) {
   app.post('/api/admin_user',
     _userController.createUser,
     _userController.generateTokenForAdminUser,
+    _userController.updateLastConnection,
     _adminUserResponseBuilder.buildResponse
   );
 }
