@@ -56,11 +56,11 @@ describe('Integration Tests', () =>{
         let authHeaderUser = util.format('Bearer %s', adminUserToken);
         serverCreationResponse = await request.post('/api/servers')
           .set('Authorization', authHeaderUser)
-          .send({ name: 'appServer', url: 'serverUrl' })
+          .send({ name: 'appServer', url: 'https://app-server-stories.herokuapp.com' })
           .expect(201);
 
         expect(serverCreationResponse.body.server.server.name).to.be('appServer');
-        expect(serverCreationResponse.body.server.server.url).to.be('serverUrl');
+        expect(serverCreationResponse.body.server.server.url).to.be('https://app-server-stories.herokuapp.com');
         expect(serverCreationResponse.body.server.token).to.be.ok();
       });
 
@@ -77,7 +77,7 @@ describe('Integration Tests', () =>{
             .expect(200);
 
           expect(serverFindResponse.body.server.server.name).to.be('appServer');
-          expect(serverFindResponse.body.server.server.url).to.be('serverUrl');
+          expect(serverFindResponse.body.server.server.url).to.be('https://app-server-stories.herokuapp.com');
           expect(serverFindResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
           expect(serverFindResponse.body.server.server.lastConnection).to.be.empty();
           expect(serverFindResponse.body.server.token).to.be.ok();
@@ -98,7 +98,7 @@ describe('Integration Tests', () =>{
           expect(serverFindResponse.body.servers.length).to.be(1);
           expect(serverFindResponse.body.servers[0].lastConnection).to.be.empty();
           expect(serverFindResponse.body.servers[0].name).to.be('appServer');
-          expect(serverFindResponse.body.servers[0].url).to.be('serverUrl');
+          expect(serverFindResponse.body.servers[0].url).to.be('https://app-server-stories.herokuapp.com');
           expect(serverFindResponse.body.servers[0].createdBy).to.be(adminUserCreationResponse.body.user.user.id);
         });
       });
@@ -112,14 +112,14 @@ describe('Integration Tests', () =>{
           let authHeaderUser = util.format('Bearer %s', adminUserToken);
           let resourcePath = util.format('/api/servers/%s', serverId);
           let updatedServer = serverCreationResponse.body.server.server;
-          updatedServer.url = 'newServerUrl';
+          updatedServer.url = 'https://app-server-stories.herokuapp.com';
           serverUpdateResponse = await request.put(resourcePath)
             .set('Authorization', authHeaderUser)
             .send(updatedServer)
             .expect(200);
 
           expect(serverUpdateResponse.body.server.server.name).to.be('appServer');
-          expect(serverUpdateResponse.body.server.server.url).to.be('newServerUrl');
+          expect(serverUpdateResponse.body.server.server.url).to.be('https://app-server-stories.herokuapp.com');
           expect(serverUpdateResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
           expect(serverUpdateResponse.body.server.server.lastConnection).to.be.empty();
           expect(serverUpdateResponse.body.server.token).to.be.ok();
@@ -426,7 +426,7 @@ describe('Integration Tests', () =>{
               let serverId = serverCreationResponse.body.server.server.id;
               let resourcePath = util.format('/api/servers/%s', serverId);
               let updatedServer = serverCreationResponse.body.server.server;
-              updatedServer.url = 'newServerUrl';
+              updatedServer.url = 'https://app-server-stories.herokuapp.com';
               serverUpdateResponse = await request.put(resourcePath)
                 .set('Authorization', authHeaderUser)
                 .send(updatedServer)
@@ -509,6 +509,34 @@ describe('Integration Tests', () =>{
             expect(userStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
             expect(userStatsResponse.body.servers_stats[0].total_users).to.be('1');
             expect(userStatsResponse.body.servers_stats[0].active_users).to.be('1');
+          });
+        });
+
+        describe('retrieve stories stats with admin user token', async () => {
+          let storiesStatsResponse;
+
+          it('returns stories stats', async () => {
+            let adminUserToken = adminUserCreationResponse.body.user.token.token;
+            let authHeaderUser = util.format('Bearer %s', adminUserToken);
+            storiesStatsResponse = await request.get('/api/stats/stories')
+              .set('Authorization', authHeaderUser)
+              .expect(200);
+
+            expect(storiesStatsResponse.body.servers_stats).to.be.an.array;
+          });
+        });
+
+        describe('retrieve requests stats with admin user token', async () => {
+          let requestsStatsResponse;
+
+          it('returns requests stats', async () => {
+            let adminUserToken = adminUserCreationResponse.body.user.token.token;
+            let authHeaderUser = util.format('Bearer %s', adminUserToken);
+            requestsStatsResponse = await request.get('/api/stats/requests?minutes=45')
+              .set('Authorization', authHeaderUser)
+              .expect(200);
+
+            expect(requestsStatsResponse.body.servers_stats).to.be.an.array;
           });
         });
       });

@@ -8,14 +8,14 @@ const client = new pg.Client({
 const cleanupQuery = `TRUNCATE servers, users, files, servers_tokens, users_tokens, users_ownership;`
 
 async function cleanupTables() {
-  client.connect();
+  await client.connect();
   try {
     await client.query(cleanupQuery);
   }
   catch(err){
     console.error(err);
   }
-  client.end();
+  await client.end();
 }
 
 module.exports = cleanupTables;

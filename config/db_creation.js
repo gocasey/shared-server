@@ -78,8 +78,6 @@ BEFORE UPDATE ON servers
 FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();`
 
-client.connect();
-
 const cleanupQueries = [serversTokensTableCleanupQuery, usersTokensTableCleanupQuery, usersOwnershipTableCleanupQuery,
                         usersTableCleanupQuery, serversTableCleanupQuery, filesTableCleanupQuery];
 const creationQueries = [ createTimestampFunction, usersTableCreationQuery, serversTableCreationQuery, usersOwnershipCreationQuery, usersTokensTableCreationQuery,
@@ -89,6 +87,7 @@ const queriesToRun = cleanupQueries.concat(creationQueries);
 runQueries();
 
 async function runQueries(){
+  await client.connect();
   for (let index = 0; index < queriesToRun.length; index++) {
     try {
       let res = await client.query(queriesToRun[index]);
@@ -98,5 +97,5 @@ async function runQueries(){
       console.log('Error executing query: %j', err);
     }
   }
-  client.end();
+  await client.end();
 }
