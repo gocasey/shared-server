@@ -2,6 +2,7 @@ const request = require('request-promise-native');
 const url = require('url');
 const config = require('config');
 const UserService = require('../lib/services/user_service.js');
+const BaseHttpError = require('../errors/base_http_error.js');
 
 function StatsController(logger, postgrePool) {
   let _logger = logger;
