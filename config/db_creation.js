@@ -36,7 +36,8 @@ const serversTableCreationQuery = `CREATE TABLE servers (
   created_time timestamp NOT NULL DEFAULT NOW(),
   updated_time timestamp NOT NULL DEFAULT NOW(),
   last_connection timestamp,
-  url varchar(500)
+  url varchar(500),
+  is_active BOOLEAN DEFAULT TRUE
 );`
 
 const usersOwnershipCreationQuery = `CREATE TABLE users_ownership (
@@ -65,7 +66,8 @@ const filesTableCreationQuery = `CREATE TABLE files (
   size bigint,
   file_name varchar(200),
   resource varchar(500),
-  owner integer REFERENCES servers
+  owner integer REFERENCES servers,
+  is_active BOOLEAN DEFAULT TRUE
 );`
 
 const filesUpdateTimeTrigger = `CREATE TRIGGER set_timestamp

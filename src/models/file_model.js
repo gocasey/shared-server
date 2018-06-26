@@ -19,7 +19,8 @@ function FileModel(logger, postgrePool) {
   };
 
   async function findByFileIdReturnAllParams(fileId) {
-    let query = 'SELECT file_id, file_name, _rev, size, resource, updated_time, created_time, owner FROM files WHERE file_id = $1;';
+    let query = 'SELECT file_id, file_name, _rev, size, resource, updated_time, created_time, owner FROM files ' +
+      'WHERE file_id = $1 AND is_active=TRUE;';
     let values = [fileId];
     let response;
     try {
@@ -38,7 +39,8 @@ function FileModel(logger, postgrePool) {
   }
 
   this.findByServerId = async (serverId) => {
-    let query = 'SELECT file_id, file_name, _rev, size, resource, updated_time, created_time, owner FROM files WHERE owner = $1;';
+    let query = 'SELECT file_id, file_name, _rev, size, resource, updated_time, created_time, owner FROM files ' +
+      'WHERE owner = $1 AND is_active=TRUE;';
     let values = [serverId];
     let response;
     try {
@@ -96,7 +98,8 @@ function FileModel(logger, postgrePool) {
 
   async function executeUpdate(file) {
     let currentRev = integrityValidator.createHash(file);
-    let query = 'UPDATE files SET _rev=$1, file_name=$2, size=$3, resource=$4, owner=$5 WHERE file_id=$6 RETURNING *;';
+    let query = 'UPDATE files SET _rev=$1, file_name=$2, size=$3, resource=$4, owner=$5 ' +
+      'WHERE file_id=$6 AND is_active=TRUE RETURNING *;';
     let values = [currentRev, file.filename, file.size, file.resource, file.owner, file.id];
     let response;
     try {
