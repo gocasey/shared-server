@@ -56,13 +56,16 @@ function UserTokenModel(logger, postgrePool) {
   };
 
   async function executeQuery(query, values) {
+    const client = await _postgrePool.connect();
     try {
-      let response = await _postgrePool.query(query, values);
+      let response = await client.query(query, values);
       _logger.debug('Postgre response: %j', response);
       return response;
     } catch (err) {
       _logger.error('DB error: %j', err.message);
       throw err;
+    } finally {
+      client.release();
     }
   }
 }

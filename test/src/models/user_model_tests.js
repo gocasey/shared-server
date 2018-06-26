@@ -10,8 +10,15 @@ const mockLogger = {
   debug: sinon.stub(),
 };
 
-const mockPool = {
+const mockClient = {
   query: sinon.stub(),
+  release: sinon.stub(),
+};
+
+const mockPool = {
+  connect: () => {
+    return mockClient;
+  },
 };
 
 const mockIntegrityValidator = {
@@ -19,6 +26,7 @@ const mockIntegrityValidator = {
 };
 
 function createUserModel() {
+  mockClient.release.returns();
   mockIntegrityValidator.createHash.returns('newRev');
   let mocks = { '../../src/utils/integrity_validator.js': function() {
  return mockIntegrityValidator;
@@ -35,13 +43,13 @@ describe('UserModel Tests', () => {
     mockLogger.error.resetHistory();
     mockLogger.warn.resetHistory();
     mockLogger.debug.resetHistory();
-    mockPool.query.resetHistory();
+    mockClient.query.resetHistory();
   });
 
   describe('#findByUsername', () => {
     describe('user found', () => {
       before(() => {
-        mockPool.query.resolves({ rows:
+        mockClient.query.resolves({ rows:
             [{ user_id: 123, username: 'name', password: 'pass', _rev: 'rev' }] });
       });
 
@@ -64,7 +72,7 @@ describe('UserModel Tests', () => {
 
     describe('user not found', () => {
       before(() => {
-        mockPool.query.resolves({ rows: [] } );
+        mockClient.query.resolves({ rows: [] } );
       });
 
       it('returns null', async () => {
@@ -82,7 +90,7 @@ describe('UserModel Tests', () => {
 
     describe('db error', () => {
       before(() => {
-        mockPool.query.rejects(new Error('DB error'));
+        mockClient.query.rejects(new Error('DB error'));
       });
 
       it('returns error', async () => {
@@ -138,23 +146,23 @@ describe('UserModel Tests', () => {
     describe('user found', () => {
       describe('user not modified', () => {
         before(() => {
-          mockPool.query.onFirstCall().resolves({ rows: [dbUserFound] });
+          mockClient.query.onFirstCall().resolves({ rows: [dbUserFound] });
         });
 
         describe('update success', () => {
           before(() => {
-            mockPool.query.onSecondCall().resolves({ rows: [dbUserUpdated] });
+            mockClient.query.onSecondCall().resolves({ rows: [dbUserUpdated] });
           });
 
           it('passes correct values to find query', async () => {
             await userModel.update(mockUser);
-            expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+            expect(mockClient.query.getCall(0).args[1]).to.eql(['name']);
           });
 
           it('passes correct values to update query', async () => {
             await userModel.update(mockUser);
-            expect(mockPool.query.calledTwice);
-            expect(mockPool.query.getCall(1).args[1]).to.eql(['newPass', 'newRev', 'name']);
+            expect(mockClient.query.calledTwice);
+            expect(mockClient.query.getCall(1).args[1]).to.eql(['newPass', 'newRev', 'name']);
           });
 
           it('returns updated user', async () => {
@@ -169,15 +177,15 @@ describe('UserModel Tests', () => {
 
         describe('db error on update', () => {
           before(() => {
-            mockPool.query.onSecondCall().rejects(new Error('DB error on update'));
+            mockClient.query.onSecondCall().rejects(new Error('DB error on update'));
           });
 
           it('passes correct values to update query', async () => {
             try {
               await userModel.update(mockUser);
             } catch (err) { }
-            expect(mockPool.query.calledTwice);
-            expect(mockPool.query.getCall(1).args[1]).to.eql(['newPass', 'newRev', 'name']);
+            expect(mockClient.query.calledTwice);
+            expect(mockClient.query.getCall(1).args[1]).to.eql(['newPass', 'newRev', 'name']);
           });
 
           it('returns error', async () => {
@@ -195,15 +203,15 @@ describe('UserModel Tests', () => {
 
       describe('user modified', () => {
         before(() => {
-          mockPool.query.onFirstCall().resolves({ rows: [dbUserFoundModified] });
+          mockClient.query.onFirstCall().resolves({ rows: [dbUserFoundModified] });
         });
 
         it('passes correct values to find query', async () => {
           try {
             await userModel.update(mockUser);
           } catch (err) { }
-          expect(mockPool.query.calledOnce);
-          expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+          expect(mockClient.query.calledOnce);
+          expect(mockClient.query.getCall(0).args[1]).to.eql(['name']);
         });
 
         it('returns error', async () => {
@@ -221,15 +229,15 @@ describe('UserModel Tests', () => {
 
     describe('user not found', () => {
       before(() => {
-        mockPool.query.onFirstCall().resolves({ rows: [] });
+        mockClient.query.onFirstCall().resolves({ rows: [] });
       });
 
       it('passes correct values to find query', async () => {
         try {
           await userModel.update(mockUser);
         } catch (err) { }
-        expect(mockPool.query.calledOnce);
-        expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+        expect(mockClient.query.calledOnce);
+        expect(mockClient.query.getCall(0).args[1]).to.eql(['name']);
       });
 
       it('returns error', async function() {
@@ -246,15 +254,15 @@ describe('UserModel Tests', () => {
 
     describe('db failure on find', () => {
       before(() => {
-        mockPool.query.onFirstCall().rejects(new Error('db failure on find'));
+        mockClient.query.onFirstCall().rejects(new Error('db failure on find'));
       });
 
       it('passes correct values to find query', async () => {
         try {
           await userModel.update(mockUser);
         } catch (err) { }
-        expect(mockPool.query.calledOnce);
-        expect(mockPool.query.getCall(0).args[1]).to.eql(['name']);
+        expect(mockClient.query.calledOnce);
+        expect(mockClient.query.getCall(0).args[1]).to.eql(['name']);
       });
 
       it('returns error', async () => {
@@ -292,23 +300,23 @@ describe('UserModel Tests', () => {
 
     describe('insert success', () => {
       before(() => {
-        mockPool.query.onFirstCall().resolves({ rows: [mockDbUser] });
+        mockClient.query.onFirstCall().resolves({ rows: [mockDbUser] });
       });
 
       describe('update success', () => {
         before(() => {
-          mockPool.query.onSecondCall().resolves({ rows: [mockDbUserUpdated] });
+          mockClient.query.onSecondCall().resolves({ rows: [mockDbUserUpdated] });
         });
 
         it('passes correct values to insert query', async () => {
           await userModel.create(mockUser);
-          expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'pass']);
+          expect(mockClient.query.getCall(0).args[1]).to.eql(['name', 'pass']);
         });
 
         it('passes correct values to update query', async () => {
           await userModel.create(mockUser);
-          expect(mockPool.query.calledTwice);
-          expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name']);
+          expect(mockClient.query.calledTwice);
+          expect(mockClient.query.getCall(1).args[1]).to.eql(['newRev', 'name']);
         });
 
         it('returns updated user', async () => {
@@ -322,15 +330,15 @@ describe('UserModel Tests', () => {
 
       describe('db error on update', () => {
         before(() => {
-          mockPool.query.onSecondCall().rejects(new Error('DB error'));
+          mockClient.query.onSecondCall().rejects(new Error('DB error'));
         });
 
         it('passes correct values to update query', async () => {
           try {
             await userModel.create(mockUser);
           } catch (err) { }
-          expect(mockPool.query.calledTwice);
-          expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name']);
+          expect(mockClient.query.calledTwice);
+          expect(mockClient.query.getCall(1).args[1]).to.eql(['newRev', 'name']);
         });
 
         it('returns error', async () => {
@@ -348,15 +356,15 @@ describe('UserModel Tests', () => {
 
     describe('insert failure', () => {
       before(() => {
-        mockPool.query.onFirstCall().rejects(new Error('db error on insert'));
+        mockClient.query.onFirstCall().rejects(new Error('db error on insert'));
       });
 
       it('passes correct values to insert query', async () => {
         try {
           await userModel.create(mockUser);
         } catch (err) { }
-        expect(mockPool.query.calledOnce);
-        expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'pass']);
+        expect(mockClient.query.calledOnce);
+        expect(mockClient.query.getCall(0).args[1]).to.eql(['name', 'pass']);
       });
 
       it('returns error', async function() {

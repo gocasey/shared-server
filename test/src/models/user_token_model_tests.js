@@ -9,8 +9,15 @@ const mockLogger = {
   debug: sinon.stub(),
 };
 
-const mockPool = {
+const mockClient = {
   query: sinon.stub(),
+  release: sinon.stub(),
+};
+
+const mockPool = {
+  connect: () => {
+    return mockClient;
+  },
 };
 
 const userTokenModel = new UserTokenModel(mockLogger, mockPool);
@@ -21,7 +28,7 @@ describe('UserTokenModel Tests', () => {
     mockLogger.error.resetHistory();
     mockLogger.warn.resetHistory();
     mockLogger.debug.resetHistory();
-    mockPool.query.resetHistory();
+    mockClient.query.resetHistory();
   });
 
   let mockUser = {
@@ -35,10 +42,14 @@ describe('UserTokenModel Tests', () => {
     token: 'token',
   };
 
+  before(()=>{
+    mockClient.release.returns();
+  });
+
   describe('#findByUser', () => {
     describe('token found', () => {
       before(() => {
-        mockPool.query.resolves({ rows: [mockToken] });
+        mockClient.query.resolves({ rows: [mockToken] });
       });
 
       it('returns token', async () => {
@@ -59,7 +70,7 @@ describe('UserTokenModel Tests', () => {
 
     describe('token not found', () => {
       before(() => {
-        mockPool.query.resolves({ rows: [] });
+        mockClient.query.resolves({ rows: [] });
       });
 
       it('does not return token', async () => {
@@ -77,7 +88,7 @@ describe('UserTokenModel Tests', () => {
 
     describe('db error', () => {
       before(() => {
-        mockPool.query.rejects(new Error('DB error'));
+        mockClient.query.rejects(new Error('DB error'));
       });
 
       it('returns error', async () => {
@@ -107,7 +118,7 @@ describe('UserTokenModel Tests', () => {
   describe('#createOrUpdate', () => {
     describe('success', () => {
       before(() => {
-        mockPool.query.resolves({ rows: [mockToken] });
+        mockClient.query.resolves({ rows: [mockToken] });
       });
 
       it('returns token', async () => {
@@ -122,7 +133,7 @@ describe('UserTokenModel Tests', () => {
 
     describe('db error', () => {
       before(() => {
-        mockPool.query.rejects(new Error('DB error'));
+        mockClient.query.rejects(new Error('DB error'));
       });
 
       it('returns error', async () => {
