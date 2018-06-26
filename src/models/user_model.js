@@ -163,7 +163,9 @@ function UserModel(logger, postgrePool) {
     let query = 'SELECT s.server_id, COUNT(active_users.server_id) FROM servers AS s ' +
       'LEFT JOIN ( SELECT * FROM users_ownership AS uo ' +
       'INNER JOIN users AS u ON u.user_id = uo.user_id ' +
-      'WHERE DATE_PART(\'minute\', NOW() - u.last_connection) < 60 ) AS active_users ' +
+      'WHERE DATE_PART(\'day\', NOW() - u.last_connection) * 24 * 60  + ' +
+      'DATE_PART(\'hour\', NOW() - u.last_connection) * 60 + ' +
+      'DATE_PART(\'minute\', NOW() - u.last_connection) < 60 ) AS active_users ' +
       'ON active_users.server_id = s.server_id ' +
       'GROUP BY s.server_id ORDER BY s.server_id ASC;';
     try {
