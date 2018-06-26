@@ -43,24 +43,26 @@ function StatsController(logger, postgrePool) {
       body: {},
       forever: true,
       resolveWithFullResponse: true,
-      timeout: 5000,
+      timeout: 15000,
     };
   }
 
   async function getStatsCountByServer(req, res, next, statsApiEndpoint) {
     let servers = res.servers;
     let serversStats = [];
-    try {
-      await Promise.all(servers.map(async (server) => {
-        let singleServerStats = await getSingleServerStats(server, statsApiEndpoint);
-        let singleServerStatsResponse = getSingleServerStatsResponse();
-        singleServerStatsResponse.id = server.id;
-        singleServerStatsResponse.stats = singleServerStats.stats;
-        serversStats.push(singleServerStatsResponse);
-      }));
-    } catch (err) {
-      return next(err);
-    }
+    servers.map(async (server) => {
+      let singleServerStatsResponse = getSingleServerStatsResponse();
+      singleServerStatsResponse.id = server.id;
+      let singleServerStats;
+      try {
+        singleServerStats = await getSingleServerStats(server, statsApiEndpoint);
+      } catch (err) {
+        _logger.error('Error returning stats from the app server: %j', err);
+        singleServerStats.stats = [];
+      }
+      singleServerStatsResponse.stats = singleServerStats.stats;
+      serversStats.push(singleServerStatsResponse);
+    });
     res.serversStats = serversStats;
     return next();
   }
