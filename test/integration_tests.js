@@ -568,6 +568,7 @@ describe('Integration Tests', () =>{
               .expect(200);
 
             expect(storiesStatsResponse.body.servers_stats).to.be.an.array;
+            expect(storiesStatsResponse.body.servers_stats).to.not.be.empty;
           });
         });
 
@@ -582,6 +583,7 @@ describe('Integration Tests', () =>{
               .expect(200);
 
             expect(requestsStatsResponse.body.servers_stats).to.be.an.array;
+            expect(requestsStatsResponse.body.servers_stats).to.not.be.empty;
           });
         });
       });
@@ -643,6 +645,51 @@ describe('Integration Tests', () =>{
 
           expect(serverFindResponse.body.code).to.be(404);
           expect(serverFindResponse.body.message).to.be('Server does not exist');
+        });
+      });
+
+      describe('retrieve user stats with admin user token after delete', async () => {
+        let userStatsResponse;
+
+        it('returns no stats', async () => {
+          let adminUserToken = adminUserCreationResponse.body.user.token.token;
+          let authHeaderUser = util.format('Bearer %s', adminUserToken);
+          userStatsResponse = await request.get('/api/stats/users')
+            .set('Authorization', authHeaderUser)
+            .expect(200);
+
+          expect(userStatsResponse.body.servers_stats).to.be.an.array;
+          expect(userStatsResponse.body.servers_stats).to.be.empty;
+        });
+      });
+
+      describe('retrieve stories stats with admin user token after delete', async () => {
+        let storiesStatsResponse;
+
+        it('returns no stats', async () => {
+          let adminUserToken = adminUserCreationResponse.body.user.token.token;
+          let authHeaderUser = util.format('Bearer %s', adminUserToken);
+          storiesStatsResponse = await request.get('/api/stats/stories')
+            .set('Authorization', authHeaderUser)
+            .expect(200);
+
+          expect(storiesStatsResponse.body.servers_stats).to.be.an.array;
+          expect(storiesStatsResponse.body.servers_stats).to.be.empty;
+        });
+      });
+
+      describe('retrieve requests stats with admin user token after delete', async () => {
+        let requestsStatsResponse;
+
+        it('returns requests stats', async () => {
+          let adminUserToken = adminUserCreationResponse.body.user.token.token;
+          let authHeaderUser = util.format('Bearer %s', adminUserToken);
+          requestsStatsResponse = await request.get('/api/stats/requests?minutes=45')
+            .set('Authorization', authHeaderUser)
+            .expect(200);
+
+          expect(requestsStatsResponse.body.servers_stats).to.be.an.array;
+          expect(requestsStatsResponse.body.servers_stats).to.be.empty;
         });
       });
     });

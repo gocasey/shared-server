@@ -143,6 +143,7 @@ function UserModel(logger, postgrePool) {
   this.getTotalUsersCountByServer = async () => {
     let query = 'SELECT s.server_id, COUNT(uo.server_id) FROM servers AS s ' +
                 'LEFT JOIN users_ownership AS uo ON s.server_id = uo.server_id ' +
+                'WHERE s.is_active=TRUE ' +
                 'GROUP BY s.server_id ORDER BY s.server_id ASC;';
     try {
       let res = await executeQuery(query);
@@ -167,6 +168,7 @@ function UserModel(logger, postgrePool) {
       'DATE_PART(\'hour\', NOW() - u.last_connection) * 60 + ' +
       'DATE_PART(\'minute\', NOW() - u.last_connection) < 60 ) AS active_users ' +
       'ON active_users.server_id = s.server_id ' +
+      'WHERE s.is_active=TRUE ' +
       'GROUP BY s.server_id ORDER BY s.server_id ASC;';
     try {
       let res = await executeQuery(query);
