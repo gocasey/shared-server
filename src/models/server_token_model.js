@@ -3,7 +3,7 @@ function ServerTokenModel(logger, postgrePool) {
   let _postgrePool = postgrePool;
 
   this.findByServer = async (server) => {
-    let query = 'SELECT token_id, server_id, token FROM servers_tokens WHERE server_id = $1;';
+    let query = 'SELECT token_id, server_id, token FROM servers_tokens WHERE server_id = $1 and is_active=TRUE;';
     let values = [server.id];
     try {
       let res = await executeQuery(query, values);
@@ -24,7 +24,7 @@ function ServerTokenModel(logger, postgrePool) {
   };
 
   this.findByServerId = async (serverId) => {
-    let query = 'SELECT token_id, server_id, token FROM servers_tokens WHERE server_id = $1;';
+    let query = 'SELECT token_id, server_id, token FROM servers_tokens WHERE server_id = $1 and is_active=TRUE;';
     let values = [serverId];
     try {
       let response = await executeQuery(query, values);
@@ -55,6 +55,29 @@ function ServerTokenModel(logger, postgrePool) {
     } catch (err) {
       _logger.error('Error creating token for server name:\'%s\' to database', server.name);
       throw err;
+    }
+  };
+
+  async function executeLogicDelete(serverId) {
+    let query = 'UPDATE servers_tokens SET is_active=FALSE WHERE server_id=$1;';
+    let values = [serverId];
+    try {
+      await executeQuery(query, values);
+    } catch (err) {
+      _logger.error('Error executing logic delete for token for server id:\'%s\'', serverId);
+      throw err;
+    }
+    _logger.info('Logic delete for token for server id: \'%s\' executed successfully', serverId);
+    return;
+  };
+
+  this.delete = async (serverId) => {
+    let dbServerToken = await this.findByServerId(serverId);
+    if (dbServerToken) {
+      return executeLogicDelete(serverId);
+    } else {
+      _logger.error('Delete token cannot be completed, server with id: \'%s\' does not have a token', serverId);
+      throw new Error('Server token does not exist');
     }
   };
 

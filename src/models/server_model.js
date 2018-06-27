@@ -163,6 +163,29 @@ function ServerModel(logger, postgrePool) {
     }
   };
 
+  async function executeLogicDelete(serverId) {
+    let query = 'UPDATE servers SET is_active=FALSE WHERE server_id=$1;';
+    let values = [serverId];
+    try {
+      await executeQuery(query, values);
+    } catch (err) {
+      _logger.error('Error executing logic delete for server id:\'%s\'', serverId);
+      throw err;
+    }
+    _logger.info('Logic delete for server id: \'%s\' executed successfully', serverId);
+    return;
+  };
+
+  this.delete = async (serverId) => {
+    let dbServer = await findByServerIdReturnAllParams(serverId);
+    if (dbServer) {
+      return executeLogicDelete(serverId);
+    } else {
+      _logger.error('Delete cannot be completed, server with id: \'%s\' does not exist', serverId);
+      throw new Error('Server does not exist');
+    }
+  };
+
   async function executeQuery(query, values) {
     const client = await _postgrePool.connect();
     try {

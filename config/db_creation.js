@@ -55,7 +55,8 @@ const usersTokensTableCreationQuery = `CREATE TABLE users_tokens (
 const serversTokensTableCreationQuery = `CREATE TABLE servers_tokens (
   token_id serial PRIMARY KEY,
   token varchar(500),
-  server_id integer UNIQUE REFERENCES servers
+  server_id integer UNIQUE REFERENCES servers,
+  is_active BOOLEAN DEFAULT TRUE
 );`
 
 const filesTableCreationQuery = `CREATE TABLE files (

@@ -51,6 +51,17 @@ function FileService(logger, postgrePool) {
     }
   };
 
+  this.deleteFile = async (fileId) => {
+    try {
+      return await _fileModel.delete(fileId);
+    } catch (deleteErr) {
+      _logger.error('An error happened while deleting the file with id: \'%s\'', fileId);
+      if (deleteErr.message == 'File does not exist') {
+        throw new BaseHttpError(deleteErr.message, 404);
+      } else throw new BaseHttpError('File delete error', 500);
+    }
+  };
+
   this.findFile = async (fileId) => {
     let file;
     try {

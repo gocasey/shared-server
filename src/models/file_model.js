@@ -53,7 +53,7 @@ function FileModel(logger, postgrePool) {
       _logger.info('No files found for server_id:\'%s\'', serverId);
       return [];
     } else {
-      _logger.info('Files found for server_id:\'%s\'', response.rows);
+      _logger.info('Files found for server_id:\'%s\' %j', serverId, response.rows);
       return response.rows.map( (file) => {
         return getBusinessFile(file);
       } );
@@ -125,6 +125,29 @@ function FileModel(logger, postgrePool) {
       }
     } else {
       _logger.error('Update cannot be completed, file with id: \'%s\' does not exist', file.id);
+      throw new Error('File does not exist');
+    }
+  };
+
+  async function executeLogicDelete(fileId) {
+    let query = 'UPDATE files SET is_active=FALSE WHERE file_id=$1;';
+    let values = [fileId];
+    try {
+      await executeQuery(query, values);
+    } catch (err) {
+      _logger.error('Error executing logic delete for file id:\'%s\'', fileId);
+      throw err;
+    }
+    _logger.info('Logic delete for file id: \'%s\' executed successfully', fileId);
+    return;
+  };
+
+  this.delete = async (fileId) => {
+    let dbFile = await findByFileIdReturnAllParams(fileId);
+    if (dbFile) {
+      return executeLogicDelete(fileId);
+    } else {
+      _logger.error('Delete cannot be completed, file with id: \'%s\' does not exist', fileId);
       throw new Error('File does not exist');
     }
   };

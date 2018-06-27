@@ -81,6 +81,17 @@ function ServerService(logger, postgrePool) {
     }
   };
 
+  this.deleteServer = async (serverId) => {
+    try {
+      return await _serverModel.delete(serverId);
+    } catch (deleteErr) {
+      _logger.error('An error happened while deleting the server with id: \'%s\'', serverId);
+      if (deleteErr.message == 'Server does not exist') {
+        throw new BaseHttpError(deleteErr.message, 404);
+      } else throw new BaseHttpError('Server delete error', 500);
+    }
+  };
+
   this.updateLastConnection = async (server) => {
     try {
       return await _serverModel.updateLastConnection(server);

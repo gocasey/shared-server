@@ -83,6 +83,17 @@ function ServerTokenService(logger, postgrePool) {
     }
     return null;
   };
+
+  this.deleteToken = async (serverId) => {
+    try {
+      return await _serverTokenModel.delete(serverId);
+    } catch (deleteErr) {
+      _logger.error('An error happened while deleting the token for server with id: \'%s\'', serverId);
+      if (deleteErr.message == 'Server token does not exist') {
+        throw new BaseHttpError(deleteErr.message, 404);
+      } else throw new BaseHttpError('Server token delete error', 500);
+    }
+  };
 }
 
 module.exports = ServerTokenService;

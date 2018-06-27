@@ -1,10 +1,12 @@
 const ServerService = require('../lib/services/server_service.js');
+const FileService = require('../lib/services/file_service.js');
 const ServerTokenService = require('../lib/services/server_token_service.js');
 const BaseHttpError = require('../errors/base_http_error.js');
 
 function ServerController(logger, postgrePool) {
   let _logger = logger;
   let _serverService = new ServerService(logger, postgrePool);
+  let _fileService = new FileService(logger, postgrePool);
   let _serverTokenService = new ServerTokenService(logger, postgrePool);
 
   this.createServer = async (req, res, next) => {
@@ -66,6 +68,46 @@ function ServerController(logger, postgrePool) {
     return next();
   };
 
+  this.deleteServer = async (req, res, next) => {
+    try {
+      await _serverService.deleteServer(req.params.serverId);
+    } catch (err) {
+      _logger.error('An error occurred while deleting server with id: %s', req.params.serverId);
+      return next(err);
+    }
+    return next();
+  };
+
+  async function findServerFiles(serverId){
+    let filesFound;
+    try {
+      filesFound = await _fileService.findServerFiles(serverId);
+    } catch (err) {
+      _logger.error('An error occurred while finding the files of server_id: %s', serverId);
+      throw err;
+    }
+    return filesFound;
+  };
+
+  this.deleteFilesOwnedByServer = async (req, res, next) => {
+    let filesFound;
+    try {
+      filesFound = await findServerFiles(req.params.serverId);
+    } catch (err) {
+      _logger.error('An error occurred while deleting files owned by server with id: %s', req.params.serverId);
+      return next(err);
+    }
+    filesFound.map(async(serverFile) => {
+      try {
+        await _fileService.deleteFile(serverFile.id);
+      } catch (err){
+        _logger.error('An error occurred while deleting file with id: %s', serverFile.id);
+        _logger.debug('Error occurred deleting file: %s', err);
+      }
+    });
+    return next();
+  };
+
   this.generateToken = async (req, res, next) => {
     let server = res.server;
     let token;
@@ -92,12 +134,25 @@ function ServerController(logger, postgrePool) {
     return next();
   };
 
-  this.updateLastConnection = async (req, res, next) => {
+  this.deleteToken = async (req, res, next) => {
     try {
-      await _serverService.updateLastConnection(res.serverAuthenticated);
+      await _serverTokenService.deleteToken(req.params.serverId);
     } catch (err) {
-      _logger.error('An error occurred while updating server last connection for server_id: %s', res.serverAuthenticated.id);
+      _logger.error('An error occurred while deleting token for server with id: %s', req.params.serverId);
       return next(err);
+    }
+    return next();
+  };
+
+  this.updateLastConnection = async (req, res, next) => {
+    let serverAuthenticated = res.serverAuthenticated;
+    if (serverAuthenticated) {
+      try {
+        await _serverService.updateLastConnection(serverAuthenticated);
+      } catch (err) {
+        _logger.error('An error occurred while updating server last connection for server_id: %s', serverAuthenticated.id);
+        return next(err);
+      }
     }
     return next();
   };

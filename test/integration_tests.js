@@ -382,6 +382,51 @@ describe('Integration Tests', () =>{
                   expect(fileUpdateResponse.body.file.filename).to.be('newfilename');
                 });
               });
+
+              describe('delete file with server token', async () => {
+                it('returns status code 204', async () => {
+                  let serverToken = serverCreationResponse.body.server.token.token;
+                  let authHeaderServer = util.format('Bearer %s', serverToken);
+                  let resourcePath = util.format('/api/files/%s', filePostResponse.body.file.id);
+
+                  await request.delete(resourcePath)
+                    .set('Authorization', authHeaderServer)
+                    .expect(204);
+                });
+              });
+
+              describe('retrieve all files with server token after delete', async () => {
+                let fileFindResponse;
+
+                it('returns all files', async () => {
+                  let serverToken = serverCreationResponse.body.server.token.token;
+                  let authHeaderServer = util.format('Bearer %s', serverToken);
+                  fileFindResponse = await request.get('/api/files')
+                    .set('Authorization', authHeaderServer)
+                    .expect(200);
+
+                  expect(fileFindResponse.body.files).to.be.an.array;
+                  expect(fileFindResponse.body.files.length).to.be(1);
+                  expect(fileFindResponse.body.files[0].resource).to.be.ok();
+                  expect(fileFindResponse.body.files[0].owner).to.be(serverCreationResponse.body.server.server.id);
+                });
+              });
+
+              describe('retrieve deleted file with server token', async () => {
+                let fileFindResponse;
+
+                it('returns status code 404', async () => {
+                  let serverToken = serverCreationResponse.body.server.token.token;
+                  let authHeaderServer = util.format('Bearer %s', serverToken);
+                  let resourcePath = util.format('/api/files/%s', filePostResponse.body.file.id);
+                  fileFindResponse = await request.get(resourcePath)
+                    .set('Authorization', authHeaderServer)
+                    .expect(404);
+
+                  expect(fileFindResponse.body.code).to.be(404);
+                  expect(fileFindResponse.body.message).to.be('File does not exist');
+                });
+              });
             });
           });
 
@@ -538,6 +583,67 @@ describe('Integration Tests', () =>{
 
             expect(requestsStatsResponse.body.servers_stats).to.be.an.array;
           });
+        });
+      });
+
+      describe('delete server with admin user token', () => {
+
+        it('returns status code 204', async () => {
+          let adminUserToken = adminUserCreationResponse.body.user.token.token;
+          let serverId = serverCreationResponse.body.server.server.id;
+          let authHeaderUser = util.format('Bearer %s', adminUserToken);
+          let resourcePath = util.format('/api/servers/%s', serverId);
+
+          await request.delete(resourcePath)
+            .set('Authorization', authHeaderUser)
+            .expect(204);
+        });
+      });
+
+      describe('retrieve all files with server token after delete', async () => {
+        let fileFindResponse;
+
+        it('returns unauthorized', async () => {
+          let serverToken = serverCreationResponse.body.server.token.token;
+          let authHeaderServer = util.format('Bearer %s', serverToken);
+          fileFindResponse = await request.get('/api/files')
+            .set('Authorization', authHeaderServer)
+            .expect(401);
+
+          expect(fileFindResponse.body.code).to.be(401);
+          expect(fileFindResponse.body.message).to.be('Unauthorized');
+        });
+      });
+
+      describe('retrieve all servers with admin user token after delete', () => {
+        let serverFindResponse;
+
+        it('returns no servers', async () => {
+          let adminUserToken = adminUserCreationResponse.body.user.token.token;
+          let authHeaderUser = util.format('Bearer %s', adminUserToken);
+          serverFindResponse = await request.get('/api/servers')
+            .set('Authorization', authHeaderUser)
+            .expect(200);
+
+          expect(serverFindResponse.body.servers).to.be.an.array;
+          expect(serverFindResponse.body.servers).to.be.empty;
+        });
+      });
+
+      describe('retrieve deleted server with admin user token', () => {
+        let serverFindResponse;
+
+        it('returns server', async () => {
+          let adminUserToken = adminUserCreationResponse.body.user.token.token;
+          let serverId = serverCreationResponse.body.server.server.id;
+          let authHeaderUser = util.format('Bearer %s', adminUserToken);
+          let resourcePath = util.format('/api/servers/%s', serverId);
+          serverFindResponse = await request.get(resourcePath)
+            .set('Authorization', authHeaderUser)
+            .expect(404);
+
+          expect(serverFindResponse.body.code).to.be(404);
+          expect(serverFindResponse.body.message).to.be('Server does not exist');
         });
       });
     });

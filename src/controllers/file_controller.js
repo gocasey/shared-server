@@ -65,6 +65,16 @@ function FileController(logger, postgrePool) {
     return await updateFile(res, next, fileDataToUpdate);
   };
 
+  this.deleteFile = async (req, res, next) => {
+    try {
+      await _fileService.deleteFile(req.params.fileId);
+    } catch (err) {
+      _logger.error('An error occurred while deleting file with id: %s', req.params.fileId);
+      return next(err);
+    }
+    return next();
+  };
+
   this.findFile = async (req, res, next) => {
     let fileFound;
     try {
