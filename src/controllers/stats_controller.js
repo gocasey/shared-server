@@ -49,8 +49,7 @@ function StatsController(logger, postgrePool) {
 
   async function getStatsCountByServer(req, res, next, statsApiEndpoint) {
     let servers = res.servers;
-    let serversStats = [];
-    servers.map(async (server) => {
+    let serversStats = await Promise.all(servers.map(async (server) => {
       let singleServerStatsResponse = getSingleServerStatsResponse();
       singleServerStatsResponse.id = server.id;
       let singleServerStats;
@@ -61,8 +60,8 @@ function StatsController(logger, postgrePool) {
         singleServerStats.stats = [];
       }
       singleServerStatsResponse.stats = singleServerStats.stats;
-      serversStats.push(singleServerStatsResponse);
-    });
+      return singleServerStatsResponse;
+    }));
     res.serversStats = serversStats;
     return next();
   }
