@@ -78,7 +78,7 @@ function ServerController(logger, postgrePool) {
     return next();
   };
 
-  async function findServerFiles(serverId){
+  async function findServerFiles(serverId) {
     let filesFound;
     try {
       filesFound = await _fileService.findServerFiles(serverId);
@@ -97,10 +97,10 @@ function ServerController(logger, postgrePool) {
       _logger.error('An error occurred while deleting files owned by server with id: %s', req.params.serverId);
       return next(err);
     }
-    filesFound.map(async(serverFile) => {
+    filesFound.map(async (serverFile) => {
       try {
         await _fileService.deleteFile(serverFile.id);
-      } catch (err){
+      } catch (err) {
         _logger.error('An error occurred while deleting file with id: %s', serverFile.id);
         _logger.debug('Error occurred deleting file: %s', err);
       }

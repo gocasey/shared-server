@@ -587,7 +587,6 @@ describe('Integration Tests', () =>{
       });
 
       describe('delete server with admin user token', () => {
-
         it('returns status code 204', async () => {
           let adminUserToken = adminUserCreationResponse.body.user.token.token;
           let serverId = serverCreationResponse.body.server.server.id;
