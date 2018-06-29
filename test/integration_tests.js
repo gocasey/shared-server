@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const dbCleanup = require('../config/db_cleanup.js');
 let request;
 
-describe.skip('Integration Tests', () =>{
+describe('Integration Tests', () =>{
   let mockLogger = {
     debug: sinon.stub(),
     error: sinon.stub(),
