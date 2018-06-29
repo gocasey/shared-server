@@ -75,7 +75,7 @@ function FileService(logger, postgrePool) {
     }
     try {
       return await _google.deleteRemoteFile(deletedFile.filename);
-    } catch (err){
+    } catch (err) {
       throw new BaseHttpError('Remote file delete error', 500);
     }
   };

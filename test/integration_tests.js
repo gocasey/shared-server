@@ -14,7 +14,7 @@ describe.skip('Integration Tests', () =>{
     info: sinon.stub(),
   };
 
-  before(async() => {
+  before(async () => {
     let mocks = {
       './utils/logger.js': function() {
         return mockLogger;
@@ -28,21 +28,21 @@ describe.skip('Integration Tests', () =>{
     await dbCleanup();
   });
 
-  async function createAdminUser(username, pass){
+  async function createAdminUser(username, pass) {
     let adminUserCreationResponse = await request.post('/api/admin_user')
         .send({ username: username, password: pass })
         .expect(201);
     return adminUserCreationResponse;
   }
 
-  async function getAdminUserToken(username, pass){
+  async function getAdminUserToken(username, pass) {
     let adminTokenCreationResponse = await request.post('/api/admin_token')
       .send({ username: username, password: pass })
       .expect(201);
     return adminTokenCreationResponse;
   }
 
-  async function getUserStats(authToken, statusCode){
+  async function getUserStats(authToken, statusCode) {
     let authHeader = util.format('Bearer %s', authToken);
     let userStatsResponse = await request.get('/api/stats/users')
       .set('Authorization', authHeader)
@@ -50,7 +50,7 @@ describe.skip('Integration Tests', () =>{
     return userStatsResponse;
   }
 
-  async function createServer(authToken, name, url){
+  async function createServer(authToken, name, url) {
     let authHeader = util.format('Bearer %s', authToken);
     let serverCreationResponse = await request.post('/api/servers')
       .set('Authorization', authHeader)
@@ -59,7 +59,7 @@ describe.skip('Integration Tests', () =>{
     return serverCreationResponse;
   }
 
-  async function getServer(authToken, serverId, statusCode){
+  async function getServer(authToken, serverId, statusCode) {
     let authHeader = util.format('Bearer %s', authToken);
     let resourcePath = util.format('/api/servers/%s', serverId);
     let serverFindResponse = await request.get(resourcePath)
@@ -68,7 +68,7 @@ describe.skip('Integration Tests', () =>{
     return serverFindResponse;
   }
 
-  async function getAllServers(authToken, statusCode){
+  async function getAllServers(authToken, statusCode) {
     let authHeader = util.format('Bearer %s', authToken);
     let serverFindResponse = await request.get('/api/servers')
       .set('Authorization', authHeader)
@@ -76,7 +76,7 @@ describe.skip('Integration Tests', () =>{
     return serverFindResponse;
   }
 
-  async function getFiles(authToken, statusCode){
+  async function getFiles(authToken, statusCode) {
     let authHeader = util.format('Bearer %s', authToken);
     let fileFindResponse = await request.get('/api/files')
       .set('Authorization', authHeader)
@@ -84,7 +84,7 @@ describe.skip('Integration Tests', () =>{
     return fileFindResponse;
   }
 
-  async function updateServer(authToken, serverId, updatedServer, statusCode){
+  async function updateServer(authToken, serverId, updatedServer, statusCode) {
     let authHeader = util.format('Bearer %s', authToken);
     let resourcePath = util.format('/api/servers/%s', serverId);
     let serverFindResponse = await request.put(resourcePath)
@@ -94,7 +94,7 @@ describe.skip('Integration Tests', () =>{
     return serverFindResponse;
   }
 
-  async function updateServerToken(authToken, serverId, updatedServer, statusCode){
+  async function updateServerToken(authToken, serverId, updatedServer, statusCode) {
     let authHeader = util.format('Bearer %s', authToken);
     let resourcePath = util.format('/api/servers/%s', serverId);
     let serverPostResponse = await request.post(resourcePath)
@@ -104,7 +104,7 @@ describe.skip('Integration Tests', () =>{
     return serverPostResponse;
   }
 
-  async function deleteServer(authToken, serverId){
+  async function deleteServer(authToken, serverId) {
     let authHeaderUser = util.format('Bearer %s', authToken);
     let resourcePath = util.format('/api/servers/%s', serverId);
     await request.delete(resourcePath)
@@ -112,7 +112,7 @@ describe.skip('Integration Tests', () =>{
       .expect(204);
   }
 
-  async function createApplicationUser(authToken, username, password, applicationOwner){
+  async function createApplicationUser(authToken, username, password, applicationOwner) {
     let authHeader = util.format('Bearer %s', authToken);
     let userCreationResponse = await request.post('/api/user')
       .set('Authorization', authHeader)
@@ -121,7 +121,7 @@ describe.skip('Integration Tests', () =>{
     return userCreationResponse;
   }
 
-  async function createApplicationUserToken(authToken, username, password){
+  async function createApplicationUserToken(authToken, username, password) {
     let authHeader = util.format('Bearer %s', authToken);
     let userTokenCreationResponse = await request.post('/api/token')
       .set('Authorization', authHeader)
@@ -130,7 +130,7 @@ describe.skip('Integration Tests', () =>{
     return userTokenCreationResponse;
   }
 
-  async function validateUserToken(authToken, token, statusCode){
+  async function validateUserToken(authToken, token, statusCode) {
     let authHeader = util.format('Bearer %s', authToken);
     let tokenCheckResponse = await request.post('/api/token_check')
       .set('Authorization', authHeader)
@@ -139,7 +139,7 @@ describe.skip('Integration Tests', () =>{
     return tokenCheckResponse;
   }
 
-  async function uploadFile(authToken, filename, filepath){
+  async function uploadFile(authToken, filename, filepath) {
     let authHeader = util.format('Bearer %s', authToken);
     let fileUploadResponse = await request.post('/api/files/upload_multipart')
       .set('Authorization', authHeader)
@@ -149,7 +149,7 @@ describe.skip('Integration Tests', () =>{
     return fileUploadResponse;
   }
 
-  async function getFile(authToken, fileId, statusCode){
+  async function getFile(authToken, fileId, statusCode) {
     let authHeader = util.format('Bearer %s', authToken);
     let resourcePath = util.format('/api/files/%s', fileId);
     let fileFindResponse = await request.get(resourcePath)
@@ -158,7 +158,7 @@ describe.skip('Integration Tests', () =>{
     return fileFindResponse;
   }
 
-  async function setFileOwnership(authToken, fileData){
+  async function setFileOwnership(authToken, fileData) {
     let authHeader = util.format('Bearer %s', authToken);
     let filePostResponse = await request.post('/api/files')
       .set('Authorization', authHeader)
@@ -167,7 +167,7 @@ describe.skip('Integration Tests', () =>{
     return filePostResponse;
   }
 
-  async function updateFile(authToken, fileId, updatedFile, statusCode){
+  async function updateFile(authToken, fileId, updatedFile, statusCode) {
     let authHeader = util.format('Bearer %s', authToken);
     let resourcePath = util.format('/api/files/%s', fileId);
     let fileUpdateResponse = await request.put(resourcePath)
@@ -177,7 +177,7 @@ describe.skip('Integration Tests', () =>{
     return fileUpdateResponse;
   }
 
-  async function deleteFile(authToken, fileId){
+  async function deleteFile(authToken, fileId) {
     let authHeaderServer = util.format('Bearer %s', authToken);
     let resourcePath = util.format('/api/files/%s', fileId);
     await request.delete(resourcePath)
@@ -185,7 +185,7 @@ describe.skip('Integration Tests', () =>{
       .expect(204);
   }
 
-  async function getUserStats(authToken){
+  async function getUserStats(authToken) {
     let authHeaderUser = util.format('Bearer %s', authToken);
     let userStatsResponse = await request.get('/api/stats/users')
       .set('Authorization', authHeaderUser)
@@ -193,7 +193,7 @@ describe.skip('Integration Tests', () =>{
     return userStatsResponse;
   }
 
-  async function getStoriesStats(authToken){
+  async function getStoriesStats(authToken) {
     let authHeaderUser = util.format('Bearer %s', authToken);
     let storiesStatsResponse = await request.get('/api/stats/stories')
       .set('Authorization', authHeaderUser)
@@ -201,7 +201,7 @@ describe.skip('Integration Tests', () =>{
     return storiesStatsResponse;
   }
 
-  async function getRequestsStats(authToken){
+  async function getRequestsStats(authToken) {
     let authHeaderUser = util.format('Bearer %s', authToken);
     let requestsStatsResponse = await request.get('/api/stats/requests?minutes=45')
       .set('Authorization', authHeaderUser)
@@ -209,7 +209,7 @@ describe.skip('Integration Tests', () =>{
     return requestsStatsResponse;
   }
 
-  it('create admin user success', async() => {
+  it('create admin user success', async () => {
     let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
     expect(adminUserCreationResponse.body.user.user.username).to.be('adminuser');
     expect(adminUserCreationResponse.body.user.token).to.be.ok();
@@ -410,7 +410,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    let filePostResponse = await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
     expect(filePostResponse.body.file.resource).to.be.ok();
     expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
   });
@@ -424,7 +424,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse.body.file);
     let fileFindResponse = await getFile(serverToken, fileUploadResponse.body.file.id, 200);
     expect(fileFindResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
     expect(fileFindResponse.body.file.resource).to.be.ok();
@@ -440,7 +440,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse.body.file);
     let fileFindResponse = await getFile(userToken, fileUploadResponse.body.file.id, 401);
     expect(fileFindResponse.body.code).to.be(401);
     expect(fileFindResponse.body.message).to.be('Unauthorized');
@@ -455,7 +455,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    let filePostResponse = await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
     let updatedFile = filePostResponse.body.file;
     updatedFile.filename = 'newfilename';
     let fileUpdateResponse = await updateFile(serverToken, filePostResponse.body.file.id, updatedFile, 200);
@@ -474,7 +474,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    let filePostResponse = await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
     let updatedFile = filePostResponse.body.file;
     updatedFile.filename = 'newfilename';
     let fileUpdateResponse = await updateFile(userToken, filePostResponse.body.file.id, updatedFile, 401);
@@ -491,7 +491,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    let filePostResponse = await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
     await deleteFile(serverToken, filePostResponse.body.file.id);
   });
 
@@ -504,7 +504,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    let filePostResponse = await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
     await deleteFile(serverToken, filePostResponse.body.file.id);
     let fileFindResponse = await getFile(serverToken, filePostResponse.body.file.id, 404);
     expect(fileFindResponse.body.code).to.be(404);
@@ -533,7 +533,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    let filePostResponse = await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
     expect(filePostResponse.body.file.resource).to.be.ok();
     expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
   });
@@ -547,7 +547,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse.body.file);
     let fileFindResponse = await getFile(serverToken, fileUploadResponse.body.file.id, 200);
     expect(fileFindResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
     expect(fileFindResponse.body.file.resource).to.be.ok();
@@ -563,7 +563,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse.body.file);
     let fileFindResponse = await getFile(userToken, fileUploadResponse.body.file.id, 401);
     expect(fileFindResponse.body.code).to.be(401);
     expect(fileFindResponse.body.message).to.be('Unauthorized');
@@ -578,7 +578,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    let filePostResponse = await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
     let updatedFile = filePostResponse.body.file;
     updatedFile.filename = 'newfilename';
     let fileUpdateResponse = await updateFile(serverToken, filePostResponse.body.file.id, updatedFile, 200);
@@ -597,7 +597,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    let filePostResponse = await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
     let updatedFile = filePostResponse.body.file;
     updatedFile.filename = 'newfilename';
     let fileUpdateResponse = await updateFile(userToken, filePostResponse.body.file.id, updatedFile, 401);
@@ -614,7 +614,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    let filePostResponse = await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
     await deleteFile(serverToken, filePostResponse.body.file.id);
   });
 
@@ -627,7 +627,7 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    let filePostResponse = await setFileOwnership(serverToken,fileUploadResponse.body.file);
+    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
     await deleteFile(serverToken, filePostResponse.body.file.id);
     let fileFindResponse = await getFile(serverToken, filePostResponse.body.file.id, 404);
     expect(fileFindResponse.body.code).to.be(404);
@@ -643,9 +643,9 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse1 = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken,fileUploadResponse1.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse1.body.file);
     let fileUploadResponse2 = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken,fileUploadResponse2.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse2.body.file);
     let fileFindResponse = await getFiles(serverToken, 200);
     expect(fileFindResponse.body.files).to.be.an.array;
     expect(fileFindResponse.body.files.length).to.be(2);
@@ -665,9 +665,9 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse1 = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken,fileUploadResponse1.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse1.body.file);
     let fileUploadResponse2 = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken,fileUploadResponse2.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse2.body.file);
     await deleteFile(serverToken, fileUploadResponse1.body.file.id);
     let fileFindResponse = await getFiles(serverToken, 200);
     expect(fileFindResponse.body.files).to.be.an.array;
@@ -685,9 +685,9 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse1 = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken,fileUploadResponse1.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse1.body.file);
     let fileUploadResponse2 = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken,fileUploadResponse2.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse2.body.file);
     await deleteFile(serverToken, fileUploadResponse2.body.file.id);
     let fileFindResponse = await getFiles(serverToken, 200);
     expect(fileFindResponse.body.files).to.be.an.array;
@@ -786,7 +786,7 @@ describe.skip('Integration Tests', () =>{
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverId = serverCreationResponse.body.server.server.id;
     await deleteServer(adminUserToken, serverId);
-    let serverFindResponse = await getServer(adminUserToken, serverId, 404)
+    let serverFindResponse = await getServer(adminUserToken, serverId, 404);
     expect(serverFindResponse.body.code).to.be(404);
     expect(serverFindResponse.body.message).to.be('Server does not exist');
   });
@@ -800,9 +800,9 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse1 = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken,fileUploadResponse1.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse1.body.file);
     let fileUploadResponse2 = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken,fileUploadResponse2.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse2.body.file);
     let serverId = serverCreationResponse.body.server.server.id;
     await deleteServer(adminUserToken, serverId);
     let fileFindResponse = await getFiles(serverToken, 401);
@@ -819,9 +819,9 @@ describe.skip('Integration Tests', () =>{
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse1 = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken,fileUploadResponse1.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse1.body.file);
     let fileUploadResponse2 = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken,fileUploadResponse2.body.file);
+    await setFileOwnership(serverToken, fileUploadResponse2.body.file);
     let serverId = serverCreationResponse.body.server.server.id;
     await deleteServer(adminUserToken, serverId);
     let serverFindResponse = await getAllServers(adminUserToken, 200);

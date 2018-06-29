@@ -45,7 +45,7 @@ function GoogleUploadService(logger) {
     return getFileModel(gcsFilename);
   };
 
-  this.updateRemoteFilename = async(oldFilename, newFilename) => {
+  this.updateRemoteFilename = async (oldFilename, newFilename) => {
     let bucket = storage.bucket(bucketName);
     try {
       let file = await bucket.file(oldFilename);
