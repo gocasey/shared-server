@@ -8,7 +8,7 @@
   },
   "scripts": {
     "lint": "eslint src test",
-    "test": "NODE_ENV=test mocha --recursive --exit --timeout 15000",
+    "test": "NODE_ENV=test mocha --recursive --exit --timeout 60000",
     "test_db_init": "NODE_ENV=test node ./config/db_creation.js",
     "test_db_cleanup": "NODE_ENV=test node ./config/db_cleanup.js",
     "prod_db_init": "NODE_ENV=production node ./config/db_creation.js",

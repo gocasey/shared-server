@@ -179,7 +179,7 @@ function ServerModel(logger, postgrePool) {
   this.delete = async (serverId) => {
     let dbServer = await findByServerIdReturnAllParams(serverId);
     if (dbServer) {
-      return executeLogicDelete(serverId);
+      return await executeLogicDelete(serverId);
     } else {
       _logger.error('Delete cannot be completed, server with id: \'%s\' does not exist', serverId);
       throw new Error('Server does not exist');

@@ -1,21 +1,21 @@
 const pg = require('pg');
 const config = require('config');
 
-const client = new pg.Client({
+const pool = new pg.Pool({
   connectionString: config.DATABASE_URL,
 });
 
 const cleanupQuery = `TRUNCATE servers, users, files, servers_tokens, users_tokens, users_ownership;`
 
 async function cleanupTables() {
-  await client.connect();
+  const client = await pool.connect();
   try {
     await client.query(cleanupQuery);
   }
   catch(err){
     console.error(err);
   }
-  await client.end();
+  client.release();
 }
 
 module.exports = cleanupTables;

@@ -97,14 +97,14 @@ function ServerController(logger, postgrePool) {
       _logger.error('An error occurred while deleting files owned by server with id: %s', req.params.serverId);
       return next(err);
     }
-    filesFound.map(async (serverFile) => {
+    await Promise.all(filesFound.map(async (serverFile) => {
       try {
         await _fileService.deleteFile(serverFile.id);
       } catch (err) {
         _logger.error('An error occurred while deleting file with id: %s', serverFile.id);
         _logger.debug('Error occurred deleting file: %s', err);
       }
-    });
+    }));
     return next();
   };
 

@@ -44,6 +44,33 @@ function GoogleUploadService(logger) {
     _logger.info('File with name: \'%s\' was uploaded successfully to bucket: \'%s\'', gcsFilename, bucketName);
     return getFileModel(gcsFilename);
   };
+
+  this.updateRemoteFilename = async(oldFilename, newFilename) => {
+    let bucket = storage.bucket(bucketName);
+    try {
+      let file = await bucket.file(oldFilename);
+      await file.move(newFilename);
+    } catch (err) {
+      _logger.error('Error renaming file with name: \'%s\' to new name :\'%s\' in bucket: \'%s\'', oldFilename, newFilename, bucketName);
+      _logger.debug('Remote file update error: %j', err);
+      throw err;
+    }
+    _logger.info('File with name: \'%s\' was successfully renamed to: \'%s\' in bucket: \'%s\'', oldFilename, newFilename, bucketName);
+    return getFileModel(newFilename);
+  };
+
+  this.deleteRemoteFile = async (gcsFilename) => {
+    let bucket = storage.bucket(bucketName);
+    try {
+      let file = await bucket.file(gcsFilename);
+      await file.delete();
+    } catch (err) {
+      _logger.error('Error deleting file with name: \'%s\' in bucket: \'%s\'', gcsFilename, bucketName);
+      throw err;
+    }
+    _logger.info('File with name: \'%s\' was deleted successfully in bucket: \'%s\'', gcsFilename, bucketName);
+    return;
+  };
 }
 
 module.exports = GoogleUploadService;

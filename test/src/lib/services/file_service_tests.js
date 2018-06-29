@@ -23,6 +23,7 @@ const mockFs = {
 
 const mockGoogleUploadService = {
   uploadFromLocal: sinon.stub(),
+  updateRemoteFilename: sinon.stub(),
 };
 
 function setupFileService() {
@@ -52,13 +53,16 @@ describe('FileService Tests', () => {
         id: 1,
         _rev: 'rev',
         filename: 'newFileName',
-        resource: 'newRemoteFileUri',
+        resource: 'oldRemoteFileUri',
         size: 789,
       };
     }
 
     describe('update success', () => {
       before(() => {
+        mockFileModel.findByFileId.resolves({ id: 1, filename: 'oldFileName', _rev: 'oldRev', updatedTime: '2018-04-09',
+          createdTime: '2018-04-09', resource: 'oldRemoteFileUri', size: 789 });
+        mockGoogleUploadService.updateRemoteFilename.resolves({ resource: 'newRemoteFileUri'});
         mockFileModel.update.resolves({ id: 1, filename: 'newFileName', _rev: 'newRev', updatedTime: '2018-04-09',
           createdTime: '2018-04-09', resource: 'newRemoteFileUri', size: 789 });
       });

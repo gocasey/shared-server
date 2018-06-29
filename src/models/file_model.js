@@ -130,22 +130,23 @@ function FileModel(logger, postgrePool) {
   };
 
   async function executeLogicDelete(fileId) {
-    let query = 'UPDATE files SET is_active=FALSE WHERE file_id=$1;';
+    let query = 'UPDATE files SET is_active=FALSE WHERE file_id=$1 RETURNING *;';
     let values = [fileId];
+    let response;
     try {
-      await executeQuery(query, values);
+      response = await executeQuery(query, values);
     } catch (err) {
       _logger.error('Error executing logic delete for file id:\'%s\'', fileId);
       throw err;
     }
     _logger.info('Logic delete for file id: \'%s\' executed successfully', fileId);
-    return;
+    return getBusinessFile(response.rows[0]);
   };
 
   this.delete = async (fileId) => {
     let dbFile = await findByFileIdReturnAllParams(fileId);
     if (dbFile) {
-      return executeLogicDelete(fileId);
+      return await executeLogicDelete(fileId);
     } else {
       _logger.error('Delete cannot be completed, file with id: \'%s\' does not exist', fileId);
       throw new Error('File does not exist');
