@@ -57,7 +57,8 @@ function StatsController(logger, postgrePool) {
         singleServerStats = await getSingleServerStats(server, statsApiEndpoint);
       } catch (err) {
         _logger.error('Error returning stats from the app server: %j', err);
-        singleServerStats.stats = [];
+        singleServerStatsResponse.stats = [];
+        return singleServerStatsResponse;
       }
       singleServerStatsResponse.stats = singleServerStats.stats;
       return singleServerStatsResponse;

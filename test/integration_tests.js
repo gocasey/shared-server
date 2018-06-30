@@ -711,6 +711,18 @@ describe('Integration Tests', () =>{
     expect(userStatsResponse.body.servers_stats[0].active_users).to.be('1');
   });
 
+  it('retrieve user stats with admin user token with bad url', async () => {
+    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUserToken = adminUserCreationResponse.body.user.token.token;
+    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'http://hola.com');
+    let serverToken = serverCreationResponse.body.server.token.token;
+    await createApplicationUser(serverToken, 'appUser', 'pass', 'appServer');
+    await createApplicationUserToken(serverToken, 'appUser', 'pass');
+    let userStatsResponse = await getUserStats(adminUserToken);
+    expect(userStatsResponse.body.servers_stats).to.be.an.array;
+    expect(userStatsResponse.body.servers_stats).to.not.be.empty;
+  });
+
   it('retrieve user stats with admin user token after server delete', async () => {
     let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
@@ -735,6 +747,17 @@ describe('Integration Tests', () =>{
     expect(storiesStatsResponse.body.servers_stats).to.not.be.empty;
   });
 
+  it('retrieve stories stats with admin user token with bad url', async () => {
+    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUserToken = adminUserCreationResponse.body.user.token.token;
+    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'http://hola.com');
+    let serverToken = serverCreationResponse.body.server.token.token;
+    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
+    let storiesStatsResponse = await getStoriesStats(adminUserToken);
+    expect(storiesStatsResponse.body.servers_stats).to.be.an.array;
+    expect(storiesStatsResponse.body.servers_stats).to.not.be.empty;
+  });
+
   it('retrieve stories stats with admin user token after server delete', async () => {
     let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
@@ -752,6 +775,17 @@ describe('Integration Tests', () =>{
     let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverToken = serverCreationResponse.body.server.token.token;
+    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
+    let requestsStatsResponse = await getRequestsStats(adminUserToken);
+    expect(requestsStatsResponse.body.servers_stats).to.be.an.array;
+    expect(requestsStatsResponse.body.servers_stats).to.not.be.empty;
+  });
+
+  it('retrieve requests stats with admin user token with bad url', async () => {
+    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUserToken = adminUserCreationResponse.body.user.token.token;
+    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'http://hola.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
     let requestsStatsResponse = await getRequestsStats(adminUserToken);
