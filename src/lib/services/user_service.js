@@ -27,7 +27,6 @@ function UserService(logger, postgrePool) {
     let userData = {
       username: body.username,
       password: hash(body.password),
-      applicationOwner: body.applicationOwner,
     };
     let err;
     try {
@@ -45,12 +44,58 @@ function UserService(logger, postgrePool) {
       }
       if (userFind) {
         _logger.error('There is already a user with username: \'%s\'', userData.username);
-        throw new BaseHttpError('Username already exists', 400);
+        throw new BaseHttpError('Username already exists', 409);
       } else {
-        // check that applicationOwner does not actually exist
-        _logger.error('Application owner: \'%s\' does not exist', userData.applicationOwner);
-        throw new BaseHttpError('Application owner does not exist', 400);
+        _logger.debug('Unknown error on user creation. User: \'%j\'', userData);
+        throw new BaseHttpError('User creation error', 500);
       }
+    }
+  };
+
+  this.findUser = async (userId) => {
+    let user;
+    try {
+      user = await _userModel.findByUserId(userId);
+    } catch (findErr) {
+      _logger.error('An error happened while looking for the user with id: \'%s\'', userId);
+      throw new BaseHttpError('User find error', 500);
+    }
+    if (user) {
+      return user;
+    } else {
+      _logger.error('The user with id: \'%s\' was not found', userId);
+      throw new BaseHttpError('User does not exist', 404);
+    }
+  };
+
+  this.updateLastConnection = async (user) => {
+    try {
+      return await _userModel.updateLastConnection(user);
+    } catch (updateErr) {
+      _logger.error('An error happened while updating the user with id: \'%s\'', user.user_id);
+      if (updateErr.message == 'User does not exist') {
+        throw new BaseHttpError(updateErr.message, 404);
+      } else if (updateErr.message == 'Integrity check error') {
+        throw new BaseHttpError(updateErr.message, 409);
+      } else throw new BaseHttpError('User update error', 500);
+    }
+  };
+
+  this.getTotalUsersCountByServer = async () => {
+    try {
+      return await _userModel.getTotalUsersCountByServer();
+    } catch (countError) {
+      _logger.error('There was an error retrieving the total users count by server');
+      throw new BaseHttpError('Stats error', 500);
+    }
+  };
+
+  this.getActiveUsersCountByServer = async () => {
+    try {
+      return await _userModel.getActiveUsersCountByServer();
+    } catch (countError) {
+      _logger.error('There was an error retrieving the active users count by server');
+      throw new BaseHttpError('Stats error', 500);
     }
   };
 }

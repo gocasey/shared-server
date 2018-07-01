@@ -3,42 +3,51 @@ const jwt = require('jsonwebtoken');
 function TokenGenerationService(logger) {
   let _logger = logger;
 
-  this.generateToken = async (owner) => {
-    // replace hardcoded secret with private key
-    try {
-      let token = await jwt.sign({
-        data: {
-          id: owner.id,
-          name: owner.name,
-        },
-      }, 'secret', { expiresIn: '1h' } );
-      _logger.info('Token was created successfully for owner name: \'%s\'', owner.name);
-      let tokenData = jwt.decode(token);
-      return { token: token, expiresAt: tokenData.exp };
-    } catch (err) {
-      _logger.error('Token generation for owner name \'%s\' failed', owner.name);
-      throw err;
-    }
+  this.decodeToken = (token) => {
+    let tokenData = jwt.decode(token);
+    return { token: token, expiresAt: tokenData.exp };
   };
 
-  function isValidOwner(data, owner) {
-    return data && (data.id == owner.id) && (data.name == owner.name);
-  }
-
-  this.validateToken = async (token, owner) => {
+  this.generateToken = async (data, expiration) => {
     // replace hardcoded secret with private key
-    let decoded;
+    let token;
     try {
-      decoded = await jwt.verify(token, 'secret');
+      if (expiration) {
+        token = await jwt.sign({ data: data }, 'secret', { expiresIn: expiration });
+      } else {
+        token = await jwt.sign({ data: data }, 'secret');
+      }
+    } catch (err) {
+      _logger.error('Token generation failed');
+      throw err;
+    }
+    _logger.info('Token created successfully');
+    return this.decodeToken(token);
+  };
+
+  async function decodeToken(token) {
+    // replace hardcoded secret with private key
+    try {
+      let decoded = await jwt.verify(token, 'secret');
+      return decoded;
     } catch (err) {
       _logger.error('Token could not be validated due to a failure: %s', err.message);
       throw err;
     }
-    if (isValidOwner(decoded.data, owner)) {
-      _logger.info('Token was validated successfully for owner name: \'%s\'', owner.name);
+  }
+
+  this.decodeTokenData = async (token) => {
+    let decoded = await decodeToken(token);
+    return decoded.data;
+  };
+
+  this.validateToken = async (token, validateFunction) => {
+    let decoded = await decodeToken(token);
+    if (validateFunction(decoded.data)) {
+      _logger.info('Token was validated successfully');
       return { token: token, expiresAt: decoded.exp };
     } else {
-      _logger.error('Token could not be validated for owner name: \'%s\'', owner.name);
+      _logger.error('Token could not be validated');
       throw new Error('Token validation failed');
     }
   };

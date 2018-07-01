@@ -6,7 +6,7 @@ function IntegrityValidator(logger) {
   function hashOptions() {
     return {
       algorithm: 'md5', encoding: 'base64', excludeKeys: function(key) {
-        if (key === '_rev') return true;
+        if (key === '_rev' || key === 'last_connection') return true;
         return false;
       },
     };

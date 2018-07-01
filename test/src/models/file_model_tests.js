@@ -10,8 +10,15 @@ const mockLogger = {
   debug: sinon.stub(),
 };
 
-const mockPool = {
+const mockClient = {
   query: sinon.stub(),
+  release: sinon.stub(),
+};
+
+const mockPool = {
+  connect: () => {
+    return mockClient;
+    },
 };
 
 const mockIntegrityValidator = {
@@ -19,6 +26,7 @@ const mockIntegrityValidator = {
 };
 
 function createFileModel() {
+  mockClient.release.returns();
   mockIntegrityValidator.createHash.returns('newRev');
   let mocks = { '../../src/utils/integrity_validator.js': function() {
       return mockIntegrityValidator;
@@ -35,7 +43,7 @@ describe('FileModel Tests', () => {
     mockLogger.error.resetHistory();
     mockLogger.warn.resetHistory();
     mockLogger.debug.resetHistory();
-    mockPool.query.resetHistory();
+    mockClient.query.resetHistory();
   });
 
   describe('#findByFileId', () => {
@@ -53,19 +61,19 @@ describe('FileModel Tests', () => {
 
     describe('file found', () => {
       before(() => {
-        mockPool.query.resolves({ rows: [dbFileFound] });
+        mockClient.query.resolves({ rows: [dbFileFound] });
       });
 
       it('returns file', async () => {
         let file = await fileModel.findByFileId(idToLookFor);
         expect(file).to.be.ok();
-        expect(file.file_id).to.be(123);
-        expect(file.file_name).to.be('name');
+        expect(file.id).to.be(123);
+        expect(file.filename).to.be('name');
         expect(file._rev).to.be('rev');
         expect(file.size).to.be(7890);
         expect(file.resource).to.be('remoteFileUri');
-        expect(file.updated_time).to.be('2018-04-09');
-        expect(file.created_time).to.be('2018-04-09');
+        expect(file.updatedTime).to.be('2018-04-09');
+        expect(file.createdTime).to.be('2018-04-09');
       });
 
       it('logs success', async () => {
@@ -78,7 +86,7 @@ describe('FileModel Tests', () => {
 
     describe('file not found', () => {
       before(() => {
-        mockPool.query.resolves({ rows: [] });
+        mockClient.query.resolves({ rows: [] });
       });
 
       it('returns null', async () => {
@@ -96,7 +104,7 @@ describe('FileModel Tests', () => {
 
     describe('db error', () => {
       before(() => {
-        mockPool.query.rejects(new Error('DB error'));
+        mockClient.query.rejects(new Error('DB error'));
       });
 
       it('returns error', async () => {
@@ -125,11 +133,12 @@ describe('FileModel Tests', () => {
 
   describe('#update', () => {
     let mockFile = {
-      file_id: 123,
-      file_name: 'name',
+      id: 123,
+      filename: 'name',
       _rev: 'oldRev',
       size: 1234,
       resource: 'newRemoteFileUri',
+      owner: 'serverId',
     };
 
     let dbFileFound = {
@@ -138,6 +147,7 @@ describe('FileModel Tests', () => {
       _rev: 'oldRev',
       size: 7890,
       resource: 'oldRemoteFileUri',
+      owner: 'serverId',
     };
 
     let dbFileFoundModified = {
@@ -146,6 +156,7 @@ describe('FileModel Tests', () => {
       _rev: 'anotherRev',
       size: 3456,
       resource: 'anotherRemoteFileUri',
+      owner: 'serverId',
     };
 
     let dbFileUpdated = {
@@ -154,49 +165,50 @@ describe('FileModel Tests', () => {
       _rev: 'newRev',
       size: 1234,
       resource: 'newRemoteFileUri',
+      owner: 'serverId',
     };
 
     describe('file found', () => {
       describe('file not modified', () => {
         before(() => {
-          mockPool.query.onFirstCall().resolves({ rows: [dbFileFound] });
+          mockClient.query.onFirstCall().resolves({ rows: [dbFileFound] });
         });
 
         describe('update success', () => {
           before(() => {
-            mockPool.query.onSecondCall().resolves({ rows: [dbFileUpdated] });
+            mockClient.query.onSecondCall().resolves({ rows: [dbFileUpdated] });
           });
 
           it('passes correct values to find query', async () => {
             await fileModel.update(mockFile);
-            expect(mockPool.query.getCall(0).args[1]).to.eql([123]);
+            expect(mockClient.query.getCall(0).args[1]).to.eql([123]);
           });
 
           it('passes correct values to update query', async () => {
             await fileModel.update(mockFile);
-            expect(mockPool.query.calledTwice);
-            expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name', 1234, 'newRemoteFileUri', 123]);
+            expect(mockClient.query.calledTwice);
+            expect(mockClient.query.getCall(1).args[1]).to.eql(['newRev', 'name', 1234, 'newRemoteFileUri', 'serverId', 123]);
           });
 
           it('returns updated file', async () => {
             let file = await fileModel.update(mockFile);
-            expect(file.file_id).to.be(123);
-            expect(file.file_name).to.be('name');
+            expect(file.id).to.be(123);
+            expect(file.filename).to.be('name');
             expect(file._rev).to.be('newRev');
           });
         });
 
         describe('db error on update', () => {
           before(() => {
-            mockPool.query.onSecondCall().rejects(new Error('DB error on update'));
+            mockClient.query.onSecondCall().rejects(new Error('DB error on update'));
           });
 
           it('passes correct values to update query', async () => {
             try {
               await fileModel.update(mockFile);
             } catch (err) {}
-            expect(mockPool.query.calledTwice);
-            expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 'name', 1234, 'newRemoteFileUri', 123]);
+            expect(mockClient.query.calledTwice);
+            expect(mockClient.query.getCall(1).args[1]).to.eql(['newRev', 'name', 1234, 'newRemoteFileUri', 'serverId', 123]);
           });
 
           it('returns error', async () => {
@@ -214,15 +226,15 @@ describe('FileModel Tests', () => {
 
       describe('file modified', () => {
         before(() => {
-          mockPool.query.onFirstCall().resolves({ rows: [dbFileFoundModified] });
+          mockClient.query.onFirstCall().resolves({ rows: [dbFileFoundModified] });
         });
 
         it('passes correct values to find query', async () => {
           try {
             await fileModel.update(mockFile);
           } catch (err) { }
-          expect(mockPool.query.calledOnce);
-          expect(mockPool.query.getCall(0).args[1]).to.eql([123]);
+          expect(mockClient.query.calledOnce);
+          expect(mockClient.query.getCall(0).args[1]).to.eql([123]);
         });
 
         it('returns error', async () => {
@@ -240,15 +252,15 @@ describe('FileModel Tests', () => {
 
     describe('file not found', () => {
       before(() => {
-        mockPool.query.onFirstCall().resolves({ rows: [] });
+        mockClient.query.onFirstCall().resolves({ rows: [] });
       });
 
       it('passes correct values to find query', async () => {
         try {
           await fileModel.update(mockFile);
         } catch (err) {}
-        expect(mockPool.query.calledOnce);
-        expect(mockPool.query.getCall(0).args[1]).to.eql([123]);
+        expect(mockClient.query.calledOnce);
+        expect(mockClient.query.getCall(0).args[1]).to.eql([123]);
       });
 
       it('returns error', async () => {
@@ -265,15 +277,15 @@ describe('FileModel Tests', () => {
 
     describe('db failure on find', () => {
       before(() => {
-        mockPool.query.onFirstCall().rejects(new Error('db failure on find'));
+        mockClient.query.onFirstCall().rejects(new Error('db failure on find'));
       });
 
       it('passes correct values to find query', async () => {
         try {
           await fileModel.update(mockFile);
         } catch (err) {}
-        expect(mockPool.query.calledOnce);
-        expect(mockPool.query.getCall(0).args[1]).to.eql([123]);
+        expect(mockClient.query.calledOnce);
+        expect(mockClient.query.getCall(0).args[1]).to.eql([123]);
       });
 
       it('returns error', async () => {
@@ -317,48 +329,48 @@ describe('FileModel Tests', () => {
 
     describe('insert success', () => {
       before(() => {
-        mockPool.query.onFirstCall().resolves({ rows: [mockDbFile] });
+        mockClient.query.onFirstCall().resolves({ rows: [mockDbFile] });
       });
 
       describe('update success', () => {
         before(() => {
-          mockPool.query.onSecondCall().resolves({ rows: [mockDbFileUpdated] });
+          mockClient.query.onSecondCall().resolves({ rows: [mockDbFileUpdated] });
         });
 
         it('passes correct values to insert query', async () => {
           await fileModel.create(mockFile);
-          expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'remoteFileUri', 7890]);
+          expect(mockClient.query.getCall(0).args[1]).to.eql(['name', 'remoteFileUri', 7890]);
         });
 
         it('passes correct values to update query', async () => {
           await fileModel.create(mockFile);
-          expect(mockPool.query.calledTwice);
-          expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 123]);
+          expect(mockClient.query.calledTwice);
+          expect(mockClient.query.getCall(1).args[1]).to.eql(['newRev', 123]);
         });
 
         it('returns updated file', async () => {
           let file = await fileModel.create(mockFile);
-          expect(file.file_id).to.be(123);
-          expect(file.file_name).to.be('name');
+          expect(file.id).to.be(123);
+          expect(file.filename).to.be('name');
           expect(file._rev).to.be('newRev');
           expect(file.size).to.be(7890);
           expect(file.resource).to.be('remoteFileUri');
-          expect(file.updated_time).to.be('2018-04-09');
-          expect(file.created_time).to.be('2018-04-09');
+          expect(file.updatedTime).to.be('2018-04-09');
+          expect(file.createdTime).to.be('2018-04-09');
         });
       });
 
       describe('db error on update', () => {
         before(() => {
-          mockPool.query.onSecondCall().rejects(new Error('DB error'));
+          mockClient.query.onSecondCall().rejects(new Error('DB error'));
         });
 
         it('passes correct values to update query', async () => {
           try {
             await fileModel.create(mockFile);
           } catch (err) { }
-          expect(mockPool.query.calledTwice);
-          expect(mockPool.query.getCall(1).args[1]).to.eql(['newRev', 123]);
+          expect(mockClient.query.calledTwice);
+          expect(mockClient.query.getCall(1).args[1]).to.eql(['newRev', 123]);
         });
 
         it('returns error', async () => {
@@ -376,15 +388,15 @@ describe('FileModel Tests', () => {
 
     describe('insert failure', () => {
       before(() => {
-        mockPool.query.onFirstCall().rejects(new Error('db error on insert'));
+        mockClient.query.onFirstCall().rejects(new Error('db error on insert'));
       });
 
       it('passes correct values to insert query', async () => {
         try {
           await fileModel.create(mockFile);
         } catch (err) {}
-        expect(mockPool.query.calledOnce);
-        expect(mockPool.query.getCall(0).args[1]).to.eql(['name', 'remoteFileUri', 7890]);
+        expect(mockClient.query.calledOnce);
+        expect(mockClient.query.getCall(0).args[1]).to.eql(['name', 'remoteFileUri', 7890]);
       });
 
       it('returns error', async () => {

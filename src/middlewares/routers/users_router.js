@@ -1,29 +1,72 @@
 const ApplicationUserRegistrationSchemaValidator = require('../schema_validators/application_user_registration_schema_validator.js');
-const BusinessUserCredentialsSchemaValidator = require('../schema_validators/business_user_credentials_schema_validator.js');
+const ApplicationUserCredentialsSchemaValidator = require('../schema_validators/application_user_credentials_schema_validator.js');
+const ApplicationUserTokenSchemaValidator = require('../schema_validators/application_user_token_schema_validator.js');
+const ServerTokenAuthenticator = require('../../middlewares/authenticators/server_token_authenticator.js');
+const ApplicationUserTokenAuthenticator = require('../../middlewares/authenticators/application_user_token_authenticator.js');
 const PasswordAuthenticator = require('../authenticators/password_authenticator.js');
 const UserController = require('../../controllers/user_controller.js');
-const TokenResponseBuilder = require('../response_builders/token_response_builder.js');
-const UserRegistrationResponseBuilder = require('../response_builders/user_registration_response_builder.js');
+const ServerController = require('../../controllers/server_controller.js');
+const TokenCreateResponseBuilder = require('../response_builders/token_create_response_builder.js');
+const TokenFindResponseBuilder = require('../response_builders/token_find_response_builder.js');
+const ApplicationUserResponseBuilder = require('../response_builders/application_user_response_builder.js');
+const AdminUserResponseBuilder = require('../response_builders/admin_user_response_builder.js');
 
 function UsersRouter(app, logger, postgrePool) {
-  let _businessUserCredentialsSchemaValidator = new BusinessUserCredentialsSchemaValidator(logger);
+  let _applicationUserCredentialsSchemaValidator = new ApplicationUserCredentialsSchemaValidator(logger);
   let _applicationUserRegistrationSchemaValidator = new ApplicationUserRegistrationSchemaValidator(logger);
+  let _applicationUserTokenSchemaValidator = new ApplicationUserTokenSchemaValidator(logger);
+  let _serverTokenAuthenticator = new ServerTokenAuthenticator(logger, postgrePool);
+  let _applicationUserTokenAuthenticator = new ApplicationUserTokenAuthenticator(logger, postgrePool);
   let _passwordAuthenticator = new PasswordAuthenticator(logger, postgrePool);
   let _userController = new UserController(logger, postgrePool);
-  let _tokenResponseBuilder = new TokenResponseBuilder(logger);
-  let _userRegistrationResponseBuilder = new UserRegistrationResponseBuilder(logger);
+  let _serverController = new ServerController(logger, postgrePool);
+  let _tokenCreateResponseBuilder = new TokenCreateResponseBuilder(logger);
+  let _tokenFindResponseBuilder = new TokenFindResponseBuilder(logger);
+  let _applicationUserResponseBuilder = new ApplicationUserResponseBuilder(logger);
+  let _adminUserResponseBuilder = new AdminUserResponseBuilder(logger);
 
   app.post('/api/token',
-    _businessUserCredentialsSchemaValidator.validateRequest,
+    _applicationUserCredentialsSchemaValidator.validateRequest,
+    _serverTokenAuthenticator.authenticateFromHeader,
+    _serverController.updateLastConnection,
     _passwordAuthenticator.authenticate,
-    _userController.generateToken,
-    _tokenResponseBuilder.buildResponse
+    _userController.generateTokenForApplicationUser,
+    _userController.updateLastConnection,
+    _tokenCreateResponseBuilder.buildResponse
+  );
+
+  app.post('/api/admin_token',
+    _applicationUserCredentialsSchemaValidator.validateRequest,
+    _passwordAuthenticator.authenticate,
+    _userController.generateTokenForAdminUser,
+    _userController.updateLastConnection,
+    _tokenCreateResponseBuilder.buildResponse
+  );
+
+  app.post('/api/token_check',
+    _applicationUserTokenSchemaValidator.validateRequest,
+    _serverTokenAuthenticator.authenticateFromHeader,
+    _serverController.updateLastConnection,
+    _applicationUserTokenAuthenticator.authenticateFromBody,
+    _userController.updateLastConnection,
+    _tokenFindResponseBuilder.buildResponse
   );
 
   app.post('/api/user',
     _applicationUserRegistrationSchemaValidator.validateRequest,
+    _serverTokenAuthenticator.authenticateFromHeader,
+    _serverController.updateLastConnection,
+    _serverController.checkApplicationOwner,
     _userController.createUser,
-    _userRegistrationResponseBuilder.buildResponse
+    _userController.setOwnership,
+    _applicationUserResponseBuilder.buildResponse
+  );
+
+  app.post('/api/admin_user',
+    _userController.createUser,
+    _userController.generateTokenForAdminUser,
+    _userController.updateLastConnection,
+    _adminUserResponseBuilder.buildResponse
   );
 }
 

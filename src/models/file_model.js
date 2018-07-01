@@ -7,18 +7,20 @@ function FileModel(logger, postgrePool) {
 
   function getBusinessFile(dbFile) {
     return {
-      file_id: dbFile.file_id,
-      file_name: dbFile.file_name,
+      id: dbFile.file_id,
+      filename: dbFile.file_name,
       _rev: dbFile._rev,
       size: dbFile.size,
-      updated_time: dbFile.updated_time,
-      created_time: dbFile.created_time,
+      updatedTime: dbFile.updated_time,
+      createdTime: dbFile.created_time,
       resource: dbFile.resource,
+      owner: dbFile.owner,
     };
   };
 
   async function findByFileIdReturnAllParams(fileId) {
-    let query = 'SELECT file_id, file_name, _rev FROM files WHERE file_id = $1;';
+    let query = 'SELECT file_id, file_name, _rev, size, resource, updated_time, created_time, owner FROM files ' +
+      'WHERE file_id = $1 AND is_active=TRUE;';
     let values = [fileId];
     let response;
     try {
@@ -35,6 +37,28 @@ function FileModel(logger, postgrePool) {
       return response.rows[0];
     }
   }
+
+  this.findByServerId = async (serverId) => {
+    let query = 'SELECT file_id, file_name, _rev, size, resource, updated_time, created_time, owner FROM files ' +
+      'WHERE owner = $1 AND is_active=TRUE;';
+    let values = [serverId];
+    let response;
+    try {
+      response = await executeQuery(query, values);
+    } catch (err) {
+      _logger.error('Error looking for files for server_id:\'%s\' in the database', serverId);
+      throw err;
+    }
+    if (response.rows.length == 0) {
+      _logger.info('No files found for server_id:\'%s\'', serverId);
+      return [];
+    } else {
+      _logger.info('Files found for server_id:\'%s\' %j', serverId, response.rows);
+      return response.rows.map( (file) => {
+        return getBusinessFile(file);
+      } );
+    }
+  };
 
   this.findByFileId = async (fileId) => {
     let dbFile = await findByFileIdReturnAllParams(fileId);
@@ -55,7 +79,6 @@ function FileModel(logger, postgrePool) {
     return getBusinessFile(response.rows[0]);
   };
 
-
   this.create = async (file) => {
     let query = 'INSERT INTO files(file_name, resource, size) VALUES ($1, $2, $3) RETURNING *;';
     let values = [file.file_name, file.resource, file.size];
@@ -75,44 +98,72 @@ function FileModel(logger, postgrePool) {
 
   async function executeUpdate(file) {
     let currentRev = integrityValidator.createHash(file);
-    let query = 'UPDATE files SET _rev=$1, file_name=$2, size=$3, resource=$4 WHERE file_id=$5 RETURNING *;';
-    let values = [currentRev, file.file_name, file.size, file.resource, file.file_id];
+    let query = 'UPDATE files SET _rev=$1, file_name=$2, size=$3, resource=$4, owner=$5 ' +
+      'WHERE file_id=$6 AND is_active=TRUE RETURNING *;';
+    let values = [currentRev, file.filename, file.size, file.resource, file.owner, file.id];
     let response;
     try {
       response = await executeQuery(query, values);
     } catch (err) {
-      _logger.error('Error updating file with name:\'%s\' to database', file.file_id);
+      _logger.error('Error updating file with name:\'%s\' to database', file.id);
       throw err;
     }
-    _logger.info('File with id: \'%s\' updated successfully', file.file_id);
+    _logger.info('File with id: \'%s\' updated successfully', file.id);
     _logger.debug('File updated in db: %j', response.rows[0]);
     return getBusinessFile(response.rows[0]);
   };
 
   this.update = async (file) => {
-    let dbFile = await findByFileIdReturnAllParams(file.file_id);
+    let dbFile = await findByFileIdReturnAllParams(file.id);
     if (dbFile) {
       if (dbFile._rev === file._rev) {
-        _logger.info('The integrity check for file with id: \'%s\' was successful. Proceeding with update.', file.file_id);
+        _logger.info('The integrity check for file with id: \'%s\' was successful. Proceeding with update.', file.id);
         return await executeUpdate(file);
       } else {
-        _logger.error('The integrity check for file with id: \'%s\' failed. Aborting update.', file.file_id);
+        _logger.error('The integrity check for file with id: \'%s\' failed. Aborting update.', file.id);
         throw new Error('Error updating');
       }
     } else {
-      _logger.error('Update cannot be completed, file with id: \'%s\' does not exist', file.file_id);
+      _logger.error('Update cannot be completed, file with id: \'%s\' does not exist', file.id);
+      throw new Error('File does not exist');
+    }
+  };
+
+  async function executeLogicDelete(fileId) {
+    let query = 'UPDATE files SET is_active=FALSE WHERE file_id=$1 RETURNING *;';
+    let values = [fileId];
+    let response;
+    try {
+      response = await executeQuery(query, values);
+    } catch (err) {
+      _logger.error('Error executing logic delete for file id:\'%s\'', fileId);
+      throw err;
+    }
+    _logger.info('Logic delete for file id: \'%s\' executed successfully', fileId);
+    return getBusinessFile(response.rows[0]);
+  };
+
+  this.delete = async (fileId) => {
+    let dbFile = await findByFileIdReturnAllParams(fileId);
+    if (dbFile) {
+      return await executeLogicDelete(fileId);
+    } else {
+      _logger.error('Delete cannot be completed, file with id: \'%s\' does not exist', fileId);
       throw new Error('File does not exist');
     }
   };
 
   async function executeQuery(query, values) {
+    const client = await _postgrePool.connect();
     try {
-      let response = await _postgrePool.query(query, values);
+      let response = await client.query(query, values);
       _logger.debug('Postgre response: %j', response);
       return response;
     } catch (err) {
       _logger.error('DB error: %j', err.message);
       throw err;
+    } finally {
+      client.release();
     }
   }
 }
