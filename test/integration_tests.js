@@ -430,6 +430,29 @@ describe('Integration Tests', () =>{
     expect(tokenCheckResponse.body.message).to.be('Unauthorized');
   });
 
+  it('file upload with server token using empty path', async () => {
+    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUserToken = adminUserCreationResponse.body.user.token.token;
+    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverToken = serverCreationResponse.body.server.token.token;
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', '', 400);
+    expect(fileUploadResponse.body.code).to.be(400);
+    expect(fileUploadResponse.body.message).to.be('The request is invalid');
+  });
+
+  it('file upload with server token using wrong params', async () => {
+    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUserToken = adminUserCreationResponse.body.user.token.token;
+    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverToken = serverCreationResponse.body.server.token.token;
+    let authHeader = util.format('Bearer %s', serverToken);
+    await request.post('/api/files/upload_multipart')
+      .set('Authorization', authHeader)
+      .field('filename', 'upload.mp4')
+      .attach('newfile', 'test/files/video.mp4')
+      .expect(400);
+  });
+
   it('video upload with server token', async () => {
     let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;

@@ -30,17 +30,22 @@ function FileController(logger, postgrePool) {
         let error = new BaseHttpError('The request is invalid', 400);
         return next(error);
       } else {
-        _logger.info('The request was validated successfully');
-        _logger.debug('Request received: %j', req.file);
-        let fileUploaded;
-        try {
-          fileUploaded = await _fileService.loadFileAndUpload(req.file.path, res.serverAuthenticated.id);
-        } catch (err) {
-          _logger.error('An error occurred while creating the file');
-          return next(err);
+        if (req.file) {
+          _logger.info('The request was validated successfully');
+          _logger.debug('Request received: %j', req.file);
+          let fileUploaded;
+          try {
+            fileUploaded = await _fileService.loadFileAndUpload(req.file.path, res.serverAuthenticated.id);
+          } catch (err) {
+            _logger.error('An error occurred while creating the file');
+            return next(err);
+          }
+          res.file = fileUploaded;
+          return next();
+        } else {
+          let error = new BaseHttpError('The request is invalid', 400);
+          return next(error);
         }
-        res.file = fileUploaded;
-        return next();
       }
     });
   };
