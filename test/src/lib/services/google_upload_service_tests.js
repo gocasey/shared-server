@@ -42,8 +42,6 @@ describe('GoogleUploadService Tests', () => {
     mockGoogleBucket.upload.resetHistory();
     mockGoogleBucket.upload.resetBehavior();
 
-    process.env.GOOGLE_CLOUD_PROJECT_ID = 'projectId';
-    process.env.GOOGLE_CLOUD_BUCKET_NAME = 'bucketName';
     mockGoogleStorageConstructor.returns(mockGoogleStorage);
     mockGoogleStorage.bucket.returns(mockGoogleBucket);
   });
@@ -67,7 +65,7 @@ describe('GoogleUploadService Tests', () => {
       it('passes correct google storage config', async () => {
         let googleUploadService = setupGoogleUploadService();
         await googleUploadService.uploadFromLocal(mockFilePath);
-        expect(mockGoogleStorageConstructor.getCall(0).args[0]).to.be.eql({ projectId: 'projectId', keyFilename: 'google-cloud-key.json' });
+        expect(mockGoogleStorageConstructor.getCall(0).args[0]).to.be.eql({ projectId: 'taller2-2018-1-grupo2', keyFilename: 'google-cloud-key.json' });
       });
 
       it('calls google storage for bucket', async () => {
@@ -79,7 +77,7 @@ describe('GoogleUploadService Tests', () => {
       it('passes correct google bucket name', async () => {
         let googleUploadService = setupGoogleUploadService();
         await googleUploadService.uploadFromLocal(mockFilePath);
-        expect(mockGoogleStorage.bucket.getCall(0).args[0]).to.be('bucketName');
+        expect(mockGoogleStorage.bucket.getCall(0).args[0]).to.be('staging.taller2-2018-1-grupo2.appspot.com');
       });
 
       it('calls google bucket for upload', async () => {
@@ -92,7 +90,7 @@ describe('GoogleUploadService Tests', () => {
         let googleUploadService = setupGoogleUploadService();
         await googleUploadService.uploadFromLocal(mockFilePath);
         expect(mockGoogleBucket.upload.getCall(0).args[0]).to.be(mockFilePath);
-        expect(mockGoogleBucket.upload.getCall(0).args[1]).to.be.eql({ public: true, destination: '0file.txt' });
+        expect(mockGoogleBucket.upload.getCall(0).args[1]).to.be.eql({ public: true, destination: 'path/to/file.txt' });
       });
 
       it('does not throw error', async () => {
@@ -109,8 +107,8 @@ describe('GoogleUploadService Tests', () => {
       it('returns uploaded file', async () => {
         let googleUploadService = setupGoogleUploadService();
         let uploadedFile = await googleUploadService.uploadFromLocal(mockFilePath);
-        expect(uploadedFile.file_name).to.be('0file.txt');
-        expect(uploadedFile.resource).to.be('https://storage.googleapis.com/bucketName/0file.txt');
+        expect(uploadedFile.file_name).to.be('file.txt');
+        expect(uploadedFile.resource).to.be('https://storage.googleapis.com/staging.taller2-2018-1-grupo2.appspot.com/path/to/file.txt');
       });
     });
 
@@ -132,7 +130,7 @@ describe('GoogleUploadService Tests', () => {
         try {
           await googleUploadService.uploadFromLocal(mockFilePath);
         } catch (err) {}
-        expect(mockGoogleStorageConstructor.getCall(0).args[0]).to.be.eql({ projectId: 'projectId', keyFilename: 'google-cloud-key.json' });
+        expect(mockGoogleStorageConstructor.getCall(0).args[0]).to.be.eql({ projectId: 'taller2-2018-1-grupo2', keyFilename: 'google-cloud-key.json' });
       });
 
       it('calls google storage for bucket', async () => {
@@ -148,7 +146,7 @@ describe('GoogleUploadService Tests', () => {
         try {
           await googleUploadService.uploadFromLocal(mockFilePath);
         } catch (err) {}
-        expect(mockGoogleStorage.bucket.getCall(0).args[0]).to.be('bucketName');
+        expect(mockGoogleStorage.bucket.getCall(0).args[0]).to.be('staging.taller2-2018-1-grupo2.appspot.com');
       });
 
       it('calls google bucket for upload', async () => {
@@ -165,7 +163,7 @@ describe('GoogleUploadService Tests', () => {
           await googleUploadService.uploadFromLocal(mockFilePath);
         } catch (err) {}
         expect(mockGoogleBucket.upload.getCall(0).args[0]).to.be(mockFilePath);
-        expect(mockGoogleBucket.upload.getCall(0).args[1]).to.be.eql({ public: true, destination: '0file.txt' });
+        expect(mockGoogleBucket.upload.getCall(0).args[1]).to.be.eql({ public: true, destination: 'path/to/file.txt' });
       });
 
       it('throws error', async () => {

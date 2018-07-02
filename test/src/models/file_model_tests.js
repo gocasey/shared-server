@@ -306,6 +306,7 @@ describe('FileModel Tests', () => {
       file_name: 'name',
       size: 7890,
       resource: 'remoteFileUri',
+      owner: 456,
     };
 
     let mockDbFile = {
@@ -315,6 +316,7 @@ describe('FileModel Tests', () => {
       resource: 'remoteFileUri',
       updated_time: '2018-04-09',
       created_time: '2018-04-09',
+      owner: 456,
     };
 
     let mockDbFileUpdated = {
@@ -325,6 +327,7 @@ describe('FileModel Tests', () => {
       resource: 'remoteFileUri',
       updated_time: '2018-04-09',
       created_time: '2018-04-09',
+      owner: 456,
     };
 
     describe('insert success', () => {
@@ -339,7 +342,7 @@ describe('FileModel Tests', () => {
 
         it('passes correct values to insert query', async () => {
           await fileModel.create(mockFile);
-          expect(mockClient.query.getCall(0).args[1]).to.eql(['name', 'remoteFileUri', 7890]);
+          expect(mockClient.query.getCall(0).args[1]).to.eql(['name', 'remoteFileUri', 7890, 456]);
         });
 
         it('passes correct values to update query', async () => {
@@ -396,7 +399,7 @@ describe('FileModel Tests', () => {
           await fileModel.create(mockFile);
         } catch (err) {}
         expect(mockClient.query.calledOnce);
-        expect(mockClient.query.getCall(0).args[1]).to.eql(['name', 'remoteFileUri', 7890]);
+        expect(mockClient.query.getCall(0).args[1]).to.eql(['name', 'remoteFileUri', 7890, 456]);
       });
 
       it('returns error', async () => {

@@ -1,4 +1,5 @@
-const fs = require('fs');
+const fs = require('fs-extra');
+const path = require('path');
 const multer = require('multer');
 const config = require('config');
 const FileService = require('../lib/services/file_service.js');
@@ -8,12 +9,15 @@ function FileController(logger, postgrePool) {
   let _logger = logger;
   let _fileService = new FileService(logger, postgrePool);
 
+  async function getServerDirectory(serverOwnerId) {
+    let filesDirectory = config.FILES_DIRECTORY;
+    let serverFilesDirectory = path.join(filesDirectory, serverOwnerId);
+    await fs.ensureDir(serverFilesDirectory);
+    return serverFilesDirectory;
+  }
+
   this.createFileFromMultipart = async (req, res, next) => {
-    let filesDirectory = config.TEMP_FILES_DIRECTORY;
-    if (!fs.existsSync(filesDirectory)) {
-      fs.mkdirSync('temp');
-      fs.mkdirSync(filesDirectory);
-    }
+    let filesDirectory = await getServerDirectory(res.serverAuthenticated.id.toString());
     let storageOpts = multer.diskStorage({
       destination: (req, file, cb) => cb(null, filesDirectory),
       filename: (req, file, cb) => cb(null, Date.now() + file.originalname),
@@ -30,7 +34,7 @@ function FileController(logger, postgrePool) {
         _logger.debug('Request received: %j', req.file);
         let fileUploaded;
         try {
-          fileUploaded = await _fileService.loadFileAndUpload(req.file.path);
+          fileUploaded = await _fileService.loadFileAndUpload(req.file.path, res.serverAuthenticated.id);
         } catch (err) {
           _logger.error('An error occurred while creating the file');
           return next(err);
@@ -97,18 +101,6 @@ function FileController(logger, postgrePool) {
     }
     res.files = filesFound;
     return next();
-  };
-
-  this.assignOwnership = async (req, res, next) => {
-    let fileDataToUpdate = {
-      id: req.body.id,
-      filename: req.body.filename,
-      _rev: req.body._rev,
-      size: req.body.size,
-      resource: req.body.resource,
-      owner: res.serverAuthenticated.id,
-    };
-    return await updateFile(res, next, fileDataToUpdate);
   };
 
   this.checkOwnership = async (req, res, next) => {

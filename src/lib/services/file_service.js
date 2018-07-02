@@ -1,5 +1,6 @@
-const fs = require('fs');
-const util = require('util');
+const fs = require('fs-extra');
+const path = require('path');
+const config = require('config');
 const BaseHttpError = require('../../errors/base_http_error.js');
 const FileModel = require('../../models/file_model.js');
 const GoogleUploadService = require('./google_upload_service.js');
@@ -10,26 +11,30 @@ function FileService(logger, postgrePool) {
   let _fileModel = new FileModel(logger, postgrePool);
 
   async function getFileSize(fileName) {
-    let fileStatsAsync = util.promisify(fs.stat);
-    let fileStats = await fileStatsAsync(fileName);
+    let fileStats = await fs.stat(fileName);
     return fileStats.size;
   }
 
   async function createRemoteFile(localFilepath) {
+    let filepath = localFilepath;
+    if (path.isAbsolute(localFilepath)) {
+      filepath = path.relative('.', localFilepath);
+    }
     let uploadedFile;
     try {
-      uploadedFile = await _google.uploadFromLocal(localFilepath);
+      uploadedFile = await _google.uploadFromLocal(filepath);
     } catch (err) {
-      _logger.error('An error occurred while uploading the file: %s', localFilepath);
+      _logger.error('An error occurred while uploading the file: %s', filepath);
       throw err;
     }
-    uploadedFile.size = await getFileSize(localFilepath);
+    uploadedFile.size = await getFileSize(filepath);
     return uploadedFile;
   };
 
-  this.loadFileAndUpload = async (filePath) => {
+  this.loadFileAndUpload = async (filePath, serverOwner) => {
     try {
       let uploadedFile = await createRemoteFile(filePath);
+      uploadedFile.owner = serverOwner;
       let savedFile = await _fileModel.create(uploadedFile);
       return savedFile;
     } catch (err) {
@@ -38,13 +43,28 @@ function FileService(logger, postgrePool) {
     }
   };
 
+  async function getServerDirectory(serverOwnerId) {
+    let filesDirectory = config.FILES_DIRECTORY;
+    let serverFilesDirectory = path.join(filesDirectory, serverOwnerId);
+    await fs.ensureDir(serverFilesDirectory);
+    return serverFilesDirectory;
+  }
+
+  async function updateLocalFile(oldFilename, newFilename, serverOwnerId) {
+    let serverFilesDirectory = await getServerDirectory(serverOwnerId);
+    let oldFilePath = path.join(serverFilesDirectory, oldFilename);
+    let newFilePath = path.join(serverFilesDirectory, newFilename);
+    await fs.rename(oldFilePath, newFilePath);
+  }
+
   this.updateFile = async (fileData) => {
     let fileToUpdate = await _fileModel.findByFileId(fileData.id);
     if (fileToUpdate) {
       if (fileToUpdate.filename !== fileData.filename) {
+        await updateLocalFile(fileToUpdate.filename, fileData.filename, fileData.owner.toString());
         let remoteFile;
         try {
-          remoteFile = await _google.updateRemoteFilename(fileToUpdate.filename, fileData.filename);
+          remoteFile = await _google.updateRemoteFilename(fileToUpdate.filename, fileData.filename, fileData.owner.toString());
         } catch (err) {
           throw new BaseHttpError('Remote file update error', 500);
         }
@@ -63,6 +83,12 @@ function FileService(logger, postgrePool) {
     } else throw new BaseHttpError('File does not exist', 404);
   };
 
+  async function deleteLocalFile(filename, serverOwnerId) {
+    let serverFilesDirectory = await getServerDirectory(serverOwnerId);
+    let filePathToDelete = path.join(serverFilesDirectory, filename);
+    await fs.remove(filePathToDelete);
+  }
+
   this.deleteFile = async (fileId) => {
     let deletedFile;
     try {
@@ -74,10 +100,11 @@ function FileService(logger, postgrePool) {
       } else throw new BaseHttpError('File delete error', 500);
     }
     try {
-      return await _google.deleteRemoteFile(deletedFile.filename);
+      await _google.deleteRemoteFile(deletedFile.filename, deletedFile.owner.toString());
     } catch (err) {
       throw new BaseHttpError('Remote file delete error', 500);
     }
+    return await deleteLocalFile(deletedFile.filename, deletedFile.owner.toString());
   };
 
   this.findFile = async (fileId) => {

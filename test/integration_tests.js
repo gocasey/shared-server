@@ -1,9 +1,14 @@
 const util = require('util');
+const path = require('path');
 const supertest = require('supertest');
 const expect = require('expect.js');
 const proxyquire = require('proxyquire');
 const sinon = require('sinon');
+const config = require('config');
+const fs = require('fs-extra');
+const requestLib = require('request-promise-native');
 const dbCleanup = require('../config/db_cleanup.js');
+const GoogleUploadService = require('../src/lib/services/google_upload_service.js');
 let request;
 
 describe('Integration Tests', () =>{
@@ -14,6 +19,8 @@ describe('Integration Tests', () =>{
     info: sinon.stub(),
   };
 
+  let _googleUploadService;
+
   before(async () => {
     let mocks = {
       './utils/logger.js': function() {
@@ -22,10 +29,14 @@ describe('Integration Tests', () =>{
     };
     let mockApp = proxyquire('../src/app.js', mocks);
     request = supertest(mockApp.listen());
+    _googleUploadService = new GoogleUploadService(mockLogger);
   });
 
   beforeEach(async () => {
     await dbCleanup();
+    let localFilesDirectory = config.FILES_DIRECTORY;
+    await fs.remove(localFilesDirectory);
+    await _googleUploadService.deleteBucketContent();
   });
 
   async function createAdminUser(username, pass) {
@@ -40,14 +51,6 @@ describe('Integration Tests', () =>{
       .send({ username: username, password: pass })
       .expect(201);
     return adminTokenCreationResponse;
-  }
-
-  async function getUserStats(authToken, statusCode) {
-    let authHeader = util.format('Bearer %s', authToken);
-    let userStatsResponse = await request.get('/api/stats/users')
-      .set('Authorization', authHeader)
-      .expect(statusCode);
-    return userStatsResponse;
   }
 
   async function createServer(authToken, name, url) {
@@ -139,13 +142,13 @@ describe('Integration Tests', () =>{
     return tokenCheckResponse;
   }
 
-  async function uploadFile(authToken, filename, filepath) {
+  async function uploadFile(authToken, filename, filepath, statusCode) {
     let authHeader = util.format('Bearer %s', authToken);
     let fileUploadResponse = await request.post('/api/files/upload_multipart')
       .set('Authorization', authHeader)
       .field('filename', filename)
       .attach('file', filepath)
-      .expect(201);
+      .expect(statusCode);
     return fileUploadResponse;
   }
 
@@ -156,15 +159,6 @@ describe('Integration Tests', () =>{
       .set('Authorization', authHeader)
       .expect(statusCode);
     return fileFindResponse;
-  }
-
-  async function setFileOwnership(authToken, fileData) {
-    let authHeader = util.format('Bearer %s', authToken);
-    let filePostResponse = await request.post('/api/files')
-      .set('Authorization', authHeader)
-      .send(fileData)
-      .expect(200);
-    return filePostResponse;
   }
 
   async function updateFile(authToken, fileId, updatedFile, statusCode) {
@@ -209,6 +203,22 @@ describe('Integration Tests', () =>{
     return requestsStatsResponse;
   }
 
+  async function getStatusCodeFromResourceUrl(resourceUrl) {
+    let resourceResponse;
+    try {
+      resourceResponse = await requestLib.get({ url: resourceUrl, timeout: 5000, resolveWithFullResponse: true });
+    } catch (err) {
+      return err.statusCode;
+    }
+    return resourceResponse.statusCode;
+  }
+
+  async function checkLocalFileExists(serverId, filename) {
+    let serverIdStr = serverId.toString();
+    let filepath = path.join(config.FILES_DIRECTORY, serverIdStr, filename);
+    return await fs.exists(filepath);
+  }
+
   it('create admin user success', async () => {
     let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
     expect(adminUserCreationResponse.body.user.user.username).to.be('adminuser');
@@ -228,6 +238,8 @@ describe('Integration Tests', () =>{
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     expect(serverCreationResponse.body.server.server.name).to.be('appServer');
     expect(serverCreationResponse.body.server.server.url).to.be('https://app-server-stories.herokuapp.com');
+    expect(serverCreationResponse.body.server.server.lastConnection).to.be.empty;
+    expect(serverCreationResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
     expect(serverCreationResponse.body.server.token).to.be.ok();
   });
 
@@ -298,7 +310,7 @@ describe('Integration Tests', () =>{
     expect(serverFindResponse.body.message).to.be('Unauthorized');
   });
 
-  it('update server with admin user token', async () => {
+  it('update server url with admin user token', async () => {
     let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
@@ -308,6 +320,21 @@ describe('Integration Tests', () =>{
     let serverUpdateResponse = await updateServer(adminUserToken, serverId, updatedServer, 200);
     expect(serverUpdateResponse.body.server.server.name).to.be('appServer');
     expect(serverUpdateResponse.body.server.server.url).to.be('newUrl');
+    expect(serverUpdateResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
+    expect(serverUpdateResponse.body.server.server.lastConnection).to.be.empty();
+    expect(serverUpdateResponse.body.server.token).to.be.ok();
+  });
+
+  it('update server name with admin user token', async () => {
+    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUserToken = adminUserCreationResponse.body.user.token.token;
+    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverId = serverCreationResponse.body.server.server.id;
+    let updatedServer = serverCreationResponse.body.server.server;
+    updatedServer.name = 'newAppServer';
+    let serverUpdateResponse = await updateServer(adminUserToken, serverId, updatedServer, 200);
+    expect(serverUpdateResponse.body.server.server.name).to.be('newAppServer');
+    expect(serverUpdateResponse.body.server.server.url).to.be('https://app-server-stories.herokuapp.com');
     expect(serverUpdateResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
     expect(serverUpdateResponse.body.server.server.lastConnection).to.be.empty();
     expect(serverUpdateResponse.body.server.token).to.be.ok();
@@ -327,6 +354,21 @@ describe('Integration Tests', () =>{
     let serverUpdateResponse = await updateServer(userToken, serverId, updatedServer, 401);
     expect(serverUpdateResponse.body.code).to.be(401);
     expect(serverUpdateResponse.body.message).to.be('Unauthorized');
+  });
+
+  it('update server token with admin user token', async () => {
+    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUserToken = adminUserCreationResponse.body.user.token.token;
+    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let oldServerToken = serverCreationResponse.body.server.token.token;
+    let serverId = serverCreationResponse.body.server.server.id;
+    let updatedServer = serverCreationResponse.body.server.server;
+    let serverUpdateResponse = await updateServerToken(adminUserToken, serverId, updatedServer, 200);
+    expect(serverUpdateResponse.body.server.server.name).to.be('appServer');
+    expect(serverUpdateResponse.body.server.server.url).to.be('https://app-server-stories.herokuapp.com');
+    expect(serverUpdateResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
+    expect(serverUpdateResponse.body.server.server.lastConnection).to.be.empty();
+    expect(serverUpdateResponse.body.server.token.token).to.be(oldServerToken);
   });
 
   it('update server token with application user token', async () => {
@@ -388,6 +430,18 @@ describe('Integration Tests', () =>{
     expect(tokenCheckResponse.body.message).to.be('Unauthorized');
   });
 
+  it('video upload with server token', async () => {
+    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUserToken = adminUserCreationResponse.body.user.token.token;
+    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverToken = serverCreationResponse.body.server.token.token;
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
+    let resourceStatusCode = await getStatusCodeFromResourceUrl(fileUploadResponse.body.file.resource);
+    expect(resourceStatusCode).to.be(200);
+    expect(fileUploadResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse.body.file.filename));
+  });
+
   it('video upload with application user token', async () => {
     let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
@@ -396,23 +450,9 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    expect(fileUploadResponse.body.file.resource).to.be.ok();
-    expect(fileUploadResponse.body.file.owner).to.be.empty;
-  });
-
-  it('set video ownership with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
-    let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
-    let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
-    expect(filePostResponse.body.file.resource).to.be.ok();
-    expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+    let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4', 401);
+    expect(fileUploadResponse.body.code).to.be(401);
+    expect(fileUploadResponse.body.message).to.be('Unauthorized');
   });
 
   it('retrieve video with server token', async () => {
@@ -420,14 +460,11 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken, fileUploadResponse.body.file);
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     let fileFindResponse = await getFile(serverToken, fileUploadResponse.body.file.id, 200);
+    let resourceStatusCode = await getStatusCodeFromResourceUrl(fileFindResponse.body.file.resource);
+    expect(resourceStatusCode).to.be(200);
     expect(fileFindResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
-    expect(fileFindResponse.body.file.resource).to.be.ok();
     expect(fileFindResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
   });
 
@@ -439,8 +476,7 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken, fileUploadResponse.body.file);
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     let fileFindResponse = await getFile(userToken, fileUploadResponse.body.file.id, 401);
     expect(fileFindResponse.body.code).to.be(401);
     expect(fileFindResponse.body.message).to.be('Unauthorized');
@@ -451,18 +487,17 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
-    let updatedFile = filePostResponse.body.file;
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
+    let updatedFile = Object.assign({}, fileUploadResponse.body.file);
     updatedFile.filename = 'newfilename';
-    let fileUpdateResponse = await updateFile(serverToken, filePostResponse.body.file.id, updatedFile, 200);
+    let fileUpdateResponse = await updateFile(serverToken, fileUploadResponse.body.file.id, updatedFile, 200);
+    let resourceStatusCode = await getStatusCodeFromResourceUrl(fileUpdateResponse.body.file.resource);
+    expect(resourceStatusCode).to.be(200);
     expect(fileUpdateResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
-    expect(fileUpdateResponse.body.file.resource).to.be.ok();
     expect(fileUpdateResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
     expect(fileUpdateResponse.body.file.filename).to.be('newfilename');
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUpdateResponse.body.file.filename));
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse.body.file.filename)).to.be(false);
   });
 
   it('update video with application user token', async () => {
@@ -473,11 +508,10 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
-    let updatedFile = filePostResponse.body.file;
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
+    let updatedFile = fileUploadResponse.body.file;
     updatedFile.filename = 'newfilename';
-    let fileUpdateResponse = await updateFile(userToken, filePostResponse.body.file.id, updatedFile, 401);
+    let fileUpdateResponse = await updateFile(userToken, fileUploadResponse.body.file.id, updatedFile, 401);
     expect(fileUpdateResponse.body.code).to.be(401);
     expect(fileUpdateResponse.body.message).to.be('Unauthorized');
   });
@@ -487,12 +521,11 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
-    await deleteFile(serverToken, filePostResponse.body.file.id);
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
+    await deleteFile(serverToken, fileUploadResponse.body.file.id);
+    let resourceStatusCode = await getStatusCodeFromResourceUrl(fileUploadResponse.body.file.resource);
+    expect(resourceStatusCode).to.be(404);
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse.body.file.filename)).to.be(false);
   });
 
   it('retrieve deleted video with server token', async () => {
@@ -500,13 +533,9 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
-    await deleteFile(serverToken, filePostResponse.body.file.id);
-    let fileFindResponse = await getFile(serverToken, filePostResponse.body.file.id, 404);
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
+    await deleteFile(serverToken, fileUploadResponse.body.file.id);
+    let fileFindResponse = await getFile(serverToken, fileUploadResponse.body.file.id, 404);
     expect(fileFindResponse.body.code).to.be(404);
     expect(fileFindResponse.body.message).to.be('File does not exist');
   });
@@ -516,26 +545,11 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    expect(fileUploadResponse.body.file.resource).to.be.ok();
-    expect(fileUploadResponse.body.file.owner).to.be.empty;
-  });
-
-  it('set image ownership with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
-    let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
-    let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
-    expect(filePostResponse.body.file.resource).to.be.ok();
-    expect(filePostResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
+    let resourceStatusCode = await getStatusCodeFromResourceUrl(fileUploadResponse.body.file.resource);
+    expect(resourceStatusCode).to.be(200);
+    expect(fileUploadResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse.body.file.filename));
   });
 
   it('retrieve image with server token', async () => {
@@ -543,14 +557,11 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken, fileUploadResponse.body.file);
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     let fileFindResponse = await getFile(serverToken, fileUploadResponse.body.file.id, 200);
+    let resourceStatusCode = await getStatusCodeFromResourceUrl(fileFindResponse.body.file.resource);
+    expect(resourceStatusCode).to.be(200);
     expect(fileFindResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
-    expect(fileFindResponse.body.file.resource).to.be.ok();
     expect(fileFindResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
   });
 
@@ -562,8 +573,7 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken, fileUploadResponse.body.file);
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     let fileFindResponse = await getFile(userToken, fileUploadResponse.body.file.id, 401);
     expect(fileFindResponse.body.code).to.be(401);
     expect(fileFindResponse.body.message).to.be('Unauthorized');
@@ -574,18 +584,17 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
-    let updatedFile = filePostResponse.body.file;
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
+    let updatedFile = Object.assign({}, fileUploadResponse.body.file);
     updatedFile.filename = 'newfilename';
-    let fileUpdateResponse = await updateFile(serverToken, filePostResponse.body.file.id, updatedFile, 200);
+    let fileUpdateResponse = await updateFile(serverToken, fileUploadResponse.body.file.id, updatedFile, 200);
+    let resourceStatusCode = await getStatusCodeFromResourceUrl(fileUpdateResponse.body.file.resource);
+    expect(resourceStatusCode).to.be(200);
     expect(fileUpdateResponse.body.file.id).to.be(fileUploadResponse.body.file.id);
-    expect(fileUpdateResponse.body.file.resource).to.be.ok();
     expect(fileUpdateResponse.body.file.owner).to.be(serverCreationResponse.body.server.server.id);
     expect(fileUpdateResponse.body.file.filename).to.be('newfilename');
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUpdateResponse.body.file.filename));
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse.body.file.filename)).to.be(false);
   });
 
   it('update image with application user token', async () => {
@@ -596,11 +605,10 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
     let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
-    let updatedFile = filePostResponse.body.file;
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
+    let updatedFile = fileUploadResponse.body.file;
     updatedFile.filename = 'newfilename';
-    let fileUpdateResponse = await updateFile(userToken, filePostResponse.body.file.id, updatedFile, 401);
+    let fileUpdateResponse = await updateFile(userToken, fileUploadResponse.body.file.id, updatedFile, 401);
     expect(fileUpdateResponse.body.code).to.be(401);
     expect(fileUpdateResponse.body.message).to.be('Unauthorized');
   });
@@ -610,12 +618,11 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
-    await deleteFile(serverToken, filePostResponse.body.file.id);
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
+    await deleteFile(serverToken, fileUploadResponse.body.file.id);
+    let resourceStatusCode = await getStatusCodeFromResourceUrl(fileUploadResponse.body.file.resource);
+    expect(resourceStatusCode).to.be(404);
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse.body.file.filename)).to.be(false);
   });
 
   it('retrieve deleted image with server token', async () => {
@@ -623,13 +630,9 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    let filePostResponse = await setFileOwnership(serverToken, fileUploadResponse.body.file);
-    await deleteFile(serverToken, filePostResponse.body.file.id);
-    let fileFindResponse = await getFile(serverToken, filePostResponse.body.file.id, 404);
+    let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
+    await deleteFile(serverToken, fileUploadResponse.body.file.id);
+    let fileFindResponse = await getFile(serverToken, fileUploadResponse.body.file.id, 404);
     expect(fileFindResponse.body.code).to.be(404);
     expect(fileFindResponse.body.message).to.be('File does not exist');
   });
@@ -639,20 +642,19 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse1 = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken, fileUploadResponse1.body.file);
-    let fileUploadResponse2 = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken, fileUploadResponse2.body.file);
+    let fileUploadResponse1 = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
+    let fileUploadResponse2 = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     let fileFindResponse = await getFiles(serverToken, 200);
     expect(fileFindResponse.body.files).to.be.an.array;
     expect(fileFindResponse.body.files.length).to.be(2);
-    expect(fileFindResponse.body.files[0].resource).to.be.ok();
     expect(fileFindResponse.body.files[0].owner).to.be(serverCreationResponse.body.server.server.id);
-    expect(fileFindResponse.body.files[1].resource).to.be.ok();
+    let resourceStatusCode1 = await getStatusCodeFromResourceUrl(fileFindResponse.body.files[0].resource);
+    expect(resourceStatusCode1).to.be(200);
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse1.body.file.filename));
     expect(fileFindResponse.body.files[1].owner).to.be(serverCreationResponse.body.server.server.id);
+    let resourceStatusCode2 = await getStatusCodeFromResourceUrl(fileFindResponse.body.files[1].resource);
+    expect(resourceStatusCode2).to.be(200);
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse2.body.file.filename));
   });
 
 
@@ -661,19 +663,17 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse1 = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken, fileUploadResponse1.body.file);
-    let fileUploadResponse2 = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken, fileUploadResponse2.body.file);
+    let fileUploadResponse1 = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
+    let fileUploadResponse2 = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     await deleteFile(serverToken, fileUploadResponse1.body.file.id);
     let fileFindResponse = await getFiles(serverToken, 200);
     expect(fileFindResponse.body.files).to.be.an.array;
     expect(fileFindResponse.body.files.length).to.be(1);
-    expect(fileFindResponse.body.files[0].resource).to.be.ok();
     expect(fileFindResponse.body.files[0].owner).to.be(serverCreationResponse.body.server.server.id);
+    let resourceStatusCode = await getStatusCodeFromResourceUrl(fileFindResponse.body.files[0].resource);
+    expect(resourceStatusCode).to.be(200);
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse1.body.file.filename)).to.be(false);
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse2.body.file.filename));
   });
 
   it('retrieve all files with server token after video delete', async () => {
@@ -681,19 +681,17 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse1 = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken, fileUploadResponse1.body.file);
-    let fileUploadResponse2 = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken, fileUploadResponse2.body.file);
+    let fileUploadResponse1 = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
+    let fileUploadResponse2 = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     await deleteFile(serverToken, fileUploadResponse2.body.file.id);
     let fileFindResponse = await getFiles(serverToken, 200);
     expect(fileFindResponse.body.files).to.be.an.array;
     expect(fileFindResponse.body.files.length).to.be(1);
-    expect(fileFindResponse.body.files[0].resource).to.be.ok();
     expect(fileFindResponse.body.files[0].owner).to.be(serverCreationResponse.body.server.server.id);
+    let resourceStatusCode = await getStatusCodeFromResourceUrl(fileFindResponse.body.files[0].resource);
+    expect(resourceStatusCode).to.be(200);
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse1.body.file.filename));
+    expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse2.body.file.filename)).to.be(false);
   });
 
   it('retrieve user stats with admin user token', async () => {
@@ -720,7 +718,10 @@ describe('Integration Tests', () =>{
     await createApplicationUserToken(serverToken, 'appUser', 'pass');
     let userStatsResponse = await getUserStats(adminUserToken);
     expect(userStatsResponse.body.servers_stats).to.be.an.array;
-    expect(userStatsResponse.body.servers_stats).to.not.be.empty;
+    expect(userStatsResponse.body.servers_stats.length).to.be(1);
+    expect(userStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
+    expect(userStatsResponse.body.servers_stats[0].total_users).to.be('1');
+    expect(userStatsResponse.body.servers_stats[0].active_users).to.be('1');
   });
 
   it('retrieve user stats with admin user token after server delete', async () => {
@@ -744,7 +745,9 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
     let storiesStatsResponse = await getStoriesStats(adminUserToken);
     expect(storiesStatsResponse.body.servers_stats).to.be.an.array;
-    expect(storiesStatsResponse.body.servers_stats).to.not.be.empty;
+    expect(storiesStatsResponse.body.servers_stats.length).to.be(1);
+    expect(storiesStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
+    expect(storiesStatsResponse.body.servers_stats[0].stats).to.be.an.array;
   });
 
   it('retrieve stories stats with admin user token with bad url', async () => {
@@ -755,7 +758,10 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
     let storiesStatsResponse = await getStoriesStats(adminUserToken);
     expect(storiesStatsResponse.body.servers_stats).to.be.an.array;
-    expect(storiesStatsResponse.body.servers_stats).to.not.be.empty;
+    expect(storiesStatsResponse.body.servers_stats.length).to.be(1);
+    expect(storiesStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
+    expect(storiesStatsResponse.body.servers_stats[0].stats).to.be.an.array;
+    expect(storiesStatsResponse.body.servers_stats[0].stats).to.be.empty;
   });
 
   it('retrieve stories stats with admin user token after server delete', async () => {
@@ -779,7 +785,9 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
     let requestsStatsResponse = await getRequestsStats(adminUserToken);
     expect(requestsStatsResponse.body.servers_stats).to.be.an.array;
-    expect(requestsStatsResponse.body.servers_stats).to.not.be.empty;
+    expect(requestsStatsResponse.body.servers_stats.length).to.be(1);
+    expect(requestsStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
+    expect(requestsStatsResponse.body.servers_stats[0].stats).to.be.an.array;
   });
 
   it('retrieve requests stats with admin user token with bad url', async () => {
@@ -790,7 +798,10 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
     let requestsStatsResponse = await getRequestsStats(adminUserToken);
     expect(requestsStatsResponse.body.servers_stats).to.be.an.array;
-    expect(requestsStatsResponse.body.servers_stats).to.not.be.empty;
+    expect(requestsStatsResponse.body.servers_stats.length).to.be(1);
+    expect(requestsStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
+    expect(requestsStatsResponse.body.servers_stats[0].stats).to.be.an.array;
+    expect(requestsStatsResponse.body.servers_stats[0].stats).to.be.empty;
   });
 
   it('retrieve requests stats with admin user token after server delete', async () => {
@@ -830,13 +841,8 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse1 = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken, fileUploadResponse1.body.file);
-    let fileUploadResponse2 = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken, fileUploadResponse2.body.file);
+    await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
+    await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     let serverId = serverCreationResponse.body.server.server.id;
     await deleteServer(adminUserToken, serverId);
     let fileFindResponse = await getFiles(serverToken, 401);
@@ -849,13 +855,8 @@ describe('Integration Tests', () =>{
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
     let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
-    let userToken = userTokenCreationResponse.body.token.token;
-    let fileUploadResponse1 = await uploadFile(userToken, 'upload.jpg', 'test/files/image.jpg');
-    await setFileOwnership(serverToken, fileUploadResponse1.body.file);
-    let fileUploadResponse2 = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4');
-    await setFileOwnership(serverToken, fileUploadResponse2.body.file);
+    await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
+    await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     let serverId = serverCreationResponse.body.server.server.id;
     await deleteServer(adminUserToken, serverId);
     let serverFindResponse = await getAllServers(adminUserToken, 200);

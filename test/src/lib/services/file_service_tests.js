@@ -16,9 +16,10 @@ const mockFileModel = {
 };
 
 const mockFs = {
-  existsSync: sinon.stub(),
-  writeFile: sinon.stub(),
   stat: sinon.stub(),
+  ensureDir: sinon.stub(),
+  rename: sinon.stub(),
+  remove: sinon.stub(),
 };
 
 const mockGoogleUploadService = {
@@ -31,7 +32,7 @@ function setupFileService() {
     '../../models/file_model.js': function() {
       return mockFileModel;
     },
-    'fs': mockFs,
+    'fs-extra': mockFs,
     './google_upload_service.js': function() {
       return mockGoogleUploadService;
     },
@@ -55,16 +56,17 @@ describe('FileService Tests', () => {
         filename: 'newFileName',
         resource: 'oldRemoteFileUri',
         size: 789,
+        owner: 456,
       };
     }
 
     describe('update success', () => {
       before(() => {
         mockFileModel.findByFileId.resolves({ id: 1, filename: 'oldFileName', _rev: 'oldRev', updatedTime: '2018-04-09',
-          createdTime: '2018-04-09', resource: 'oldRemoteFileUri', size: 789 });
+          createdTime: '2018-04-09', resource: 'oldRemoteFileUri', size: 789, owner: 456 });
         mockGoogleUploadService.updateRemoteFilename.resolves({ resource: 'newRemoteFileUri' });
         mockFileModel.update.resolves({ id: 1, filename: 'newFileName', _rev: 'newRev', updatedTime: '2018-04-09',
-          createdTime: '2018-04-09', resource: 'newRemoteFileUri', size: 789 });
+          createdTime: '2018-04-09', resource: 'newRemoteFileUri', size: 789, owner: 456 });
       });
 
       it('returns file', async () => {

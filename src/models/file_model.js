@@ -80,8 +80,8 @@ function FileModel(logger, postgrePool) {
   };
 
   this.create = async (file) => {
-    let query = 'INSERT INTO files(file_name, resource, size) VALUES ($1, $2, $3) RETURNING *;';
-    let values = [file.file_name, file.resource, file.size];
+    let query = 'INSERT INTO files(file_name, resource, size, owner) VALUES ($1, $2, $3, $4) RETURNING *;';
+    let values = [file.file_name, file.resource, file.size, file.owner];
     let response;
     try {
       response = await executeQuery(query, values);
