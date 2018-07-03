@@ -12,7 +12,8 @@ stages:
 - lint
 - test
 - coverage
-- deploy
+- deploy_staging
+- deploy_production
 jobs:
   include:
   - stage: lint
@@ -23,7 +24,18 @@ jobs:
     script:
     - npm run coverage
     - npm run coveralls
-  - stage: deploy
+  - stage: deploy_staging
+    script: ignore
+    deploy:
+    - provider: heroku
+      app: shared-server-stories-staging
+      skip_cleanup: true
+      api_key:
+        secure: dY0BtBaLxOsBdGVdQLXIakfS6a/h4Na53wkB/6LbF/VJolhy+A8vK0SFw32lQ19K49Xz8Dj3PHULOMbQMDk6ExSEG0m4kkVscUXRjNcC8skyH8DdpZV4zN1KwdUupWvUULSI1Jw5pJr6HcBqV1CYfKa6ZANhbBqjKdldcwHqZNWk3bCe18qubC09Ljrpd6wvck2gczjXG9rjWlFWCYr7LpnjSHWbDZacs0xHwTdc7GukiewkpeGTcWb196u/BHXe5NwO1EiR5nmenddpy1FQf8X7O/MxrkRa5I61dMbiK4YpeeEnVtQZf8fgkynbaGfYpzHQIgoR4YTmRp6rSXNlyQ0htNpOpwOWgUaVXv9lfDzBEJxY+EH1307+WzQPzwob7arud9A68fpHETM5vdBxQQDkF234ExFnXfGhSsdkeiurM0cKLoJIkvj390CbzTmFyO1qChWbSdMTj6NGiP5r54yxMCWba7XKf2QezY3x9cs/bzmL2wjqJaYjrbm+2n0SI5GaBd1In7jx9pQxLVc74iDD17Oi0qexqEaCob0UVvdAovVNtf8FAaq7q1Kqn0gDYg52Fl840dC+D9IYGlxRN8mcx8g7q1dEV5q0CsWLajVKuzNHxx7xBL/FqqJte0KMuWtrn88ddXKsS3XE0tj9hkAhpJlvjpgsoJhrXetVSMI=
+      on:
+        branch: master
+        repo: taller2-2018-1-grupo2/shared-server
+  - stage: deploy_production
     script: ignore
     deploy:
     - provider: heroku
