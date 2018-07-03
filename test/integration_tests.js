@@ -523,6 +523,23 @@ describe('Integration Tests', () =>{
     expect(await checkLocalFileExists(serverCreationResponse.body.server.server.id, fileUploadResponse.body.file.filename)).to.be(false);
   });
 
+  it('update file with already existent filename', async () => {
+    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUserToken = adminUserCreationResponse.body.user.token.token;
+    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverToken = serverCreationResponse.body.server.token.token;
+    let fileUploadResponse1 = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
+    let fileUploadResponse2 = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
+    let updatedFile1 = Object.assign({}, fileUploadResponse1.body.file);
+    updatedFile1.filename = 'repeatedFilename';
+    await updateFile(serverToken, fileUploadResponse1.body.file.id, updatedFile1, 200);
+    let updatedFile2 = Object.assign({}, fileUploadResponse2.body.file);
+    updatedFile2.filename = 'repeatedFilename';
+    let fileUpdateResponse = await updateFile(serverToken, fileUploadResponse2.body.file.id, updatedFile2, 500);
+    expect(fileUpdateResponse.body.code).to.be(500);
+    expect(fileUpdateResponse.body.message).to.be('Filename already in use');
+  });
+
   it('update video with application user token', async () => {
     let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;

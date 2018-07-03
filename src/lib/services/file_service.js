@@ -54,7 +54,12 @@ function FileService(logger, postgrePool) {
     let serverFilesDirectory = await getServerDirectory(serverOwnerId);
     let oldFilePath = path.join(serverFilesDirectory, oldFilename);
     let newFilePath = path.join(serverFilesDirectory, newFilename);
-    await fs.rename(oldFilePath, newFilePath);
+    let filenameAlreadyUsed = await fs.exists(newFilePath);
+    if (! filenameAlreadyUsed) {
+      await fs.rename(oldFilePath, newFilePath);
+    } else {
+      throw new BaseHttpError('Filename already in use', 500);
+    }
   }
 
   this.updateFile = async (fileData) => {
