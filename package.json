@@ -14,7 +14,7 @@
     "prod_db_init": "NODE_ENV=production node ./config/db_creation.js",
     "coverage": "nyc npm test",
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
-    "start": "NODE_ENV=production node ./src/app.js",
+    "start": "node ./src/app.js",
     "debug": "NODE_ENV=test node ./src/app.js"
   },
   "dependencies": {
