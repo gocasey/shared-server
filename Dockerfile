@@ -1,5 +1,7 @@
 FROM node:carbon
 
+ENV NODE_ENV=test
+
 # Create app directory
 WORKDIR /usr/src/app
 
