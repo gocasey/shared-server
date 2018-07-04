@@ -6,6 +6,7 @@ const proxyquire = require('proxyquire');
 const sinon = require('sinon');
 const config = require('config');
 const fs = require('fs-extra');
+const uuid = require('uuid/v4');
 const requestLib = require('request-promise-native');
 const dbCleanup = require('../config/db_cleanup.js');
 const GoogleUploadService = require('../src/lib/services/google_upload_service.js');
@@ -220,23 +221,27 @@ describe('Integration Tests', () =>{
   }
 
   it('create admin user success', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
-    expect(adminUserCreationResponse.body.user.user.username).to.be('adminuser');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
+    expect(adminUserCreationResponse.body.user.user.username).to.be(adminUsername);
     expect(adminUserCreationResponse.body.user.token).to.be.ok();
   });
 
   it('retrieve admin user token', async () => {
-    await createAdminUser('adminuser', 'pass');
-    let adminTokenCreationResponse = await getAdminUserToken('adminuser', 'pass');
+    let adminUsername = uuid();
+    await createAdminUser(adminUsername, 'pass');
+    let adminTokenCreationResponse = await getAdminUserToken(adminUsername, 'pass');
     expect(adminTokenCreationResponse.body.token.expiresAt).to.be.ok();
     expect(adminTokenCreationResponse.body.token.token).to.be.ok();
   });
 
   it('create server with admin user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
-    expect(serverCreationResponse.body.server.server.name).to.be('appServer');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
+    expect(serverCreationResponse.body.server.server.name).to.be(serverName);
     expect(serverCreationResponse.body.server.server.url).to.be('https://app-server-stories.herokuapp.com');
     expect(serverCreationResponse.body.server.server.lastConnection).to.be.empty;
     expect(serverCreationResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
@@ -244,12 +249,14 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve single server with admin user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverId = serverCreationResponse.body.server.server.id;
     let serverFindResponse = await getServer(adminUserToken, serverId, 200);
-    expect(serverFindResponse.body.server.server.name).to.be('appServer');
+    expect(serverFindResponse.body.server.server.name).to.be(serverName);
     expect(serverFindResponse.body.server.server.url).to.be('https://app-server-stories.herokuapp.com');
     expect(serverFindResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
     expect(serverFindResponse.body.server.server.lastConnection).to.be.empty();
@@ -257,14 +264,17 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve single server with admin user token after token usage', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
     let serverId = serverCreationResponse.body.server.server.id;
     let serverFindResponse = await getServer(adminUserToken, serverId, 200);
-    expect(serverFindResponse.body.server.server.name).to.be('appServer');
+    expect(serverFindResponse.body.server.server.name).to.be(serverName);
     expect(serverFindResponse.body.server.server.url).to.be('https://app-server-stories.herokuapp.com');
     expect(serverFindResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
     expect(serverFindResponse.body.server.server.lastConnection).to.not.be.empty();
@@ -272,12 +282,15 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve single server with application user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    let userTokenCreationResponse = await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let serverFindResponse = await getServer(userToken, serverCreationResponse.body.server.server.id, 401);
     expect(serverFindResponse.body.code).to.be(401);
@@ -285,25 +298,30 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve all servers with admin user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverFindResponse = await getAllServers(adminUserToken, 200);
     expect(serverFindResponse.body.servers).to.be.an.array;
     expect(serverFindResponse.body.servers.length).to.be(1);
     expect(serverFindResponse.body.servers[0].lastConnection).to.be.empty();
-    expect(serverFindResponse.body.servers[0].name).to.be('appServer');
+    expect(serverFindResponse.body.servers[0].name).to.be(serverName);
     expect(serverFindResponse.body.servers[0].url).to.be('https://app-server-stories.herokuapp.com');
     expect(serverFindResponse.body.servers[0].createdBy).to.be(adminUserCreationResponse.body.user.user.id);
   });
 
   it('retrieve all servers with application user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    let userTokenCreationResponse = await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let serverFindResponse = await getAllServers(userToken, 401);
     expect(serverFindResponse.body.code).to.be(401);
@@ -311,14 +329,16 @@ describe('Integration Tests', () =>{
   });
 
   it('update server url with admin user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverId = serverCreationResponse.body.server.server.id;
     let updatedServer = serverCreationResponse.body.server.server;
     updatedServer.url = 'newUrl';
     let serverUpdateResponse = await updateServer(adminUserToken, serverId, updatedServer, 200);
-    expect(serverUpdateResponse.body.server.server.name).to.be('appServer');
+    expect(serverUpdateResponse.body.server.server.name).to.be(serverName);
     expect(serverUpdateResponse.body.server.server.url).to.be('newUrl');
     expect(serverUpdateResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
     expect(serverUpdateResponse.body.server.server.lastConnection).to.be.empty();
@@ -326,9 +346,11 @@ describe('Integration Tests', () =>{
   });
 
   it('update server name with admin user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverId = serverCreationResponse.body.server.server.id;
     let updatedServer = serverCreationResponse.body.server.server;
     updatedServer.name = 'newAppServer';
@@ -341,12 +363,15 @@ describe('Integration Tests', () =>{
   });
 
   it('update server with application user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    let userTokenCreationResponse = await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let serverId = serverCreationResponse.body.server.server.id;
     let updatedServer = serverCreationResponse.body.server.server;
@@ -357,14 +382,16 @@ describe('Integration Tests', () =>{
   });
 
   it('update server token with admin user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let oldServerToken = serverCreationResponse.body.server.token.token;
     let serverId = serverCreationResponse.body.server.server.id;
     let updatedServer = serverCreationResponse.body.server.server;
     let serverUpdateResponse = await updateServerToken(adminUserToken, serverId, updatedServer, 200);
-    expect(serverUpdateResponse.body.server.server.name).to.be('appServer');
+    expect(serverUpdateResponse.body.server.server.name).to.be(serverName);
     expect(serverUpdateResponse.body.server.server.url).to.be('https://app-server-stories.herokuapp.com');
     expect(serverUpdateResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
     expect(serverUpdateResponse.body.server.server.lastConnection).to.be.empty();
@@ -372,12 +399,15 @@ describe('Integration Tests', () =>{
   });
 
   it('update server token with application user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    let userTokenCreationResponse = await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let serverId = serverCreationResponse.body.server.server.id;
     let updatedServer = serverCreationResponse.body.server.server;
@@ -388,42 +418,53 @@ describe('Integration Tests', () =>{
   });
 
   it('create application user with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    let userCreationResponse = await createApplicationUser(serverToken, 'appUser', 'pass', 'appServer');
-    expect(userCreationResponse.body.user.username).to.be('appUser');
-    expect(userCreationResponse.body.user.applicationOwner).to.be('appServer');
+    let applicationUsername = uuid();
+    let userCreationResponse = await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    expect(userCreationResponse.body.user.username).to.be(applicationUsername);
+    expect(userCreationResponse.body.user.applicationOwner).to.be(serverName);
   });
 
   it('create application user token with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    let userTokenCreationResponse = await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     expect(userTokenCreationResponse.body.token.expiresAt).to.be.ok();
     expect(userTokenCreationResponse.body.token.token).to.be.ok();
   });
 
   it('token check with application user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    let userTokenCreationResponse = await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let tokenCheckResponse = await validateUserToken(serverToken, userTokenCreationResponse.body.token.token, 200);
     expect(tokenCheckResponse.body.token.expiresAt).to.be.ok();
     expect(tokenCheckResponse.body.token.token).to.be.ok();
   });
 
   it('token check with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let tokenCheckResponse = await validateUserToken(serverToken, serverToken, 401);
     expect(tokenCheckResponse.body.code).to.be(401);
@@ -431,9 +472,11 @@ describe('Integration Tests', () =>{
   });
 
   it('file upload with server token using empty path', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', '', 400);
     expect(fileUploadResponse.body.code).to.be(400);
@@ -441,9 +484,11 @@ describe('Integration Tests', () =>{
   });
 
   it('file upload with server token using wrong params', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let authHeader = util.format('Bearer %s', serverToken);
     await request.post('/api/files/upload_multipart')
@@ -454,9 +499,11 @@ describe('Integration Tests', () =>{
   });
 
   it('video upload with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     let resourceStatusCode = await getStatusCodeFromResourceUrl(fileUploadResponse.body.file.resource);
@@ -466,12 +513,15 @@ describe('Integration Tests', () =>{
   });
 
   it('video upload with application user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    let userTokenCreationResponse = await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(userToken, 'upload.mp4', 'test/files/video.mp4', 401);
     expect(fileUploadResponse.body.code).to.be(401);
@@ -479,9 +529,11 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve video with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     let fileFindResponse = await getFile(serverToken, fileUploadResponse.body.file.id, 200);
@@ -492,12 +544,15 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve video with application user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    let userTokenCreationResponse = await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     let fileFindResponse = await getFile(userToken, fileUploadResponse.body.file.id, 401);
@@ -506,9 +561,11 @@ describe('Integration Tests', () =>{
   });
 
   it('update video with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     let updatedFile = Object.assign({}, fileUploadResponse.body.file);
@@ -524,9 +581,11 @@ describe('Integration Tests', () =>{
   });
 
   it('update file with already existent filename', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse1 = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     let fileUploadResponse2 = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
@@ -536,17 +595,20 @@ describe('Integration Tests', () =>{
     let updatedFile2 = Object.assign({}, fileUploadResponse2.body.file);
     updatedFile2.filename = 'repeatedFilename';
     let fileUpdateResponse = await updateFile(serverToken, fileUploadResponse2.body.file.id, updatedFile2, 500);
-    expect(fileUpdateResponse.body.code).to.be(500);
+    expect(fileUpdateResponse.body.code).to.be(409);
     expect(fileUpdateResponse.body.message).to.be('Filename already in use');
   });
 
   it('update video with application user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    let userTokenCreationResponse = await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     let updatedFile = fileUploadResponse.body.file;
@@ -557,9 +619,11 @@ describe('Integration Tests', () =>{
   });
 
   it('delete video with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     await deleteFile(serverToken, fileUploadResponse.body.file.id);
@@ -569,9 +633,11 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve deleted video with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
     await deleteFile(serverToken, fileUploadResponse.body.file.id);
@@ -581,9 +647,11 @@ describe('Integration Tests', () =>{
   });
 
   it('image upload with application user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     let resourceStatusCode = await getStatusCodeFromResourceUrl(fileUploadResponse.body.file.resource);
@@ -593,9 +661,11 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve image with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     let fileFindResponse = await getFile(serverToken, fileUploadResponse.body.file.id, 200);
@@ -606,12 +676,15 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve image with application user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    let userTokenCreationResponse = await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     let fileFindResponse = await getFile(userToken, fileUploadResponse.body.file.id, 401);
@@ -620,9 +693,11 @@ describe('Integration Tests', () =>{
   });
 
   it('update image with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     let updatedFile = Object.assign({}, fileUploadResponse.body.file);
@@ -638,12 +713,15 @@ describe('Integration Tests', () =>{
   });
 
   it('update image with application user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
-    let userTokenCreationResponse = await createApplicationUserToken(serverToken, 'appuser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    let userTokenCreationResponse = await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userToken = userTokenCreationResponse.body.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     let updatedFile = fileUploadResponse.body.file;
@@ -654,9 +732,11 @@ describe('Integration Tests', () =>{
   });
 
   it('delete image with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     await deleteFile(serverToken, fileUploadResponse.body.file.id);
@@ -666,9 +746,11 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve deleted image with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     await deleteFile(serverToken, fileUploadResponse.body.file.id);
@@ -678,9 +760,11 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve all files with server token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse1 = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     let fileUploadResponse2 = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
@@ -699,9 +783,11 @@ describe('Integration Tests', () =>{
 
 
   it('retrieve all files with server token after image delete', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse1 = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     let fileUploadResponse2 = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
@@ -717,9 +803,11 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve all files with server token after video delete', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     let fileUploadResponse1 = await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     let fileUploadResponse2 = await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
@@ -735,11 +823,13 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve user stats with admin user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appUser', 'pass', 'appServer');
+    await createApplicationUser(serverToken, 'appUser', 'pass', serverName);
     await createApplicationUserToken(serverToken, 'appUser', 'pass');
     let userStatsResponse = await getUserStats(adminUserToken);
     expect(userStatsResponse.body.servers_stats).to.be.an.array;
@@ -750,12 +840,15 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve user stats with admin user token with bad url', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'http://hola.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'http://hola.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appUser', 'pass', 'appServer');
-    await createApplicationUserToken(serverToken, 'appUser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userStatsResponse = await getUserStats(adminUserToken);
     expect(userStatsResponse.body.servers_stats).to.be.an.array;
     expect(userStatsResponse.body.servers_stats.length).to.be(1);
@@ -765,11 +858,13 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve user stats with admin user token after server delete', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
+    await createApplicationUser(serverToken, 'appuser', 'pass', serverName);
     let serverId = serverCreationResponse.body.server.server.id;
     await deleteServer(adminUserToken, serverId);
     let userStatsResponse = await getUserStats(adminUserToken);
@@ -778,11 +873,13 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve stories stats with admin user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
+    await createApplicationUser(serverToken, 'appuser', 'pass', serverName);
     let storiesStatsResponse = await getStoriesStats(adminUserToken);
     expect(storiesStatsResponse.body.servers_stats).to.be.an.array;
     expect(storiesStatsResponse.body.servers_stats.length).to.be(1);
@@ -791,11 +888,14 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve stories stats with admin user token with bad url', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'http://hola.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'http://hola.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
     let storiesStatsResponse = await getStoriesStats(adminUserToken);
     expect(storiesStatsResponse.body.servers_stats).to.be.an.array;
     expect(storiesStatsResponse.body.servers_stats.length).to.be(1);
@@ -805,11 +905,14 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve stories stats with admin user token after server delete', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
     let serverId = serverCreationResponse.body.server.server.id;
     await deleteServer(adminUserToken, serverId);
     let storiesStatsResponse = await getStoriesStats(adminUserToken);
@@ -818,11 +921,14 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve requests stats with admin user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
     let requestsStatsResponse = await getRequestsStats(adminUserToken);
     expect(requestsStatsResponse.body.servers_stats).to.be.an.array;
     expect(requestsStatsResponse.body.servers_stats.length).to.be(1);
@@ -831,11 +937,14 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve requests stats with admin user token with bad url', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'http://hola.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'http://hola.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
     let requestsStatsResponse = await getRequestsStats(adminUserToken);
     expect(requestsStatsResponse.body.servers_stats).to.be.an.array;
     expect(requestsStatsResponse.body.servers_stats.length).to.be(1);
@@ -845,11 +954,14 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve requests stats with admin user token after server delete', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', 'appServer');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
     let serverId = serverCreationResponse.body.server.server.id;
     await deleteServer(adminUserToken, serverId);
     let requestsStatsResponse = await getRequestsStats(adminUserToken);
@@ -858,17 +970,21 @@ describe('Integration Tests', () =>{
   });
 
   it('delete server with admin user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com'); ;
     let serverId = serverCreationResponse.body.server.server.id;
     await deleteServer(adminUserToken, serverId);
   });
 
   it('retrieve deleted server with admin user token', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverId = serverCreationResponse.body.server.server.id;
     await deleteServer(adminUserToken, serverId);
     let serverFindResponse = await getServer(adminUserToken, serverId, 404);
@@ -877,9 +993,11 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve all files with server token after server delete', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);
@@ -891,9 +1009,11 @@ describe('Integration Tests', () =>{
   });
 
   it('retrieve all servers with admin user token after server delete', async () => {
-    let adminUserCreationResponse = await createAdminUser('adminuser', 'pass');
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
     let adminUserToken = adminUserCreationResponse.body.user.token.token;
-    let serverCreationResponse = await createServer(adminUserToken, 'appServer', 'https://app-server-stories.herokuapp.com');
+    let serverName = uuid();
+    let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
     await uploadFile(serverToken, 'upload.jpg', 'test/files/image.jpg', 201);
     await uploadFile(serverToken, 'upload.mp4', 'test/files/video.mp4', 201);

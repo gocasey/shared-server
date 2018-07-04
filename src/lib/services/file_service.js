@@ -58,7 +58,7 @@ function FileService(logger, postgrePool) {
     if (! filenameAlreadyUsed) {
       await fs.rename(oldFilePath, newFilePath);
     } else {
-      throw new BaseHttpError('Filename already in use', 500);
+      throw new BaseHttpError('Filename already in use', 409);
     }
   }
 
