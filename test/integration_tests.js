@@ -363,6 +363,22 @@ describe('Integration Tests', () =>{
     expect(serverUpdateResponse.body.server.token).to.be.ok();
   });
 
+  it('update server name with admin user token using existing server name', async () => {
+    let adminUsername = uuid();
+    let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');
+    let adminUserToken = adminUserCreationResponse.body.user.token.token;
+    let serverName1 = uuid();
+    let serverName2 = uuid();
+    let serverCreationResponse1 = await createServer(adminUserToken, serverName1, 'https://app-server-stories.herokuapp.com');
+    await createServer(adminUserToken, serverName2, 'https://app-server-stories.herokuapp.com');
+    let serverId = serverCreationResponse1.body.server.server.id;
+    let updatedServer = serverCreationResponse1.body.server.server;
+    updatedServer.name = serverName2;
+    let serverUpdateResponse = await updateServer(adminUserToken, serverId, updatedServer, 409);
+    expect(serverUpdateResponse.body.code).to.be(409);
+    expect(serverUpdateResponse.body.message).to.be('Server name already in use');
+  });
+
   it('update server with application user token', async () => {
     let adminUsername = uuid();
     let adminUserCreationResponse = await createAdminUser(adminUsername, 'pass');

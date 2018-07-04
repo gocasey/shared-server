@@ -77,6 +77,8 @@ function ServerService(logger, postgrePool) {
         throw new BaseHttpError(updateErr.message, 404);
       } else if (updateErr.message == 'Integrity check error') {
         throw new BaseHttpError(updateErr.message, 409);
+      } else if (updateErr.message == 'duplicate key value violates unique constraint "servers_server_name_key"') {
+        throw new BaseHttpError('Server name already in use', 409);
       } else throw new BaseHttpError('Server update error', 500);
     }
   };
