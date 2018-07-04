@@ -6,15 +6,26 @@ El Shared Server se desarrolló en Node 8, utilizando Express como librería par
 
 Se eligió Node 8 con la finalidad de tener a disposición la herramienta **async/await** para el manejo del asincronismo.
 
+Utiliza además el servicio de Google Cloud Storage para el almacenamiento de archivos multimedia en la nube.
+
+## Ambientes
+
+El Shared Server se encuentra disponible en dos ambientes:
+* Staging: utilizado para correr las pruebas de integración
+* Producción: utilizado para el ambiente productivo
+
+A su vez existen base de datos de staging y producción, como asi también buckets de Google Cloud Storage en sus versiones de staging y producción.
+
 ## Arquitectura
 
 ### General
 
 Se desarrollaron routers específicos para cada uno de los dominios específicos de la aplicación.
 
-* Users
-* Servers
-* Files
+* Usuarios
+* Servidores
+* Archivos
+* Estadísticas
 
 Aprovechando la utilización de Express, la funcionalidad de cada router se dividió en middlewares, de forma tal de poder reutilizar la funcionalidad de un middleware en diferentes endpoints.
 
@@ -33,7 +44,7 @@ Si el request posee algun tipo de error, se pasa inmediatamente al middleware de
 Si el request fue validado correctamente, el control pasa al middleware de autenticación. Existen dos tipos de middleware de autenticación:
 
 * Token: utilizado en la mayoria de los endpoints. Valida que exista un token valido en el Authorization header. El token puede pertenecer a:
-    * Server
+    * Servidor
     * Usuario administrador
 * Password: utilizado únicamente en los endpoints de solicitud de tokens. Valida que el password enviado en el request sea el mismo con el cual se registró el usuario.
 
@@ -82,4 +93,21 @@ El shared server puede manejar tres tipos distintos de tokens:
     * Se utilizan para autenticar en aquellos endpoints habilitados para servidores.
     * Se deben incluir en el Authorization header con el formato _Bearer < token >_
     * No expiran
+
+## Estrategia de testing
+
+El testing del Shared Server se realizó utilizando el framework Mocha.
+
+### Pruebas unitarias
+
+Se desarrollaron pruebas unitarias para la funcionalidad principal del shared server. En todo caso donde un módulo tuviese alguna dependencia externa, se utilizaron las librerías sinon y proxyquire para trabajar con mocks de los servicios en cuestión.
+
+### Pruebas de integración
+
+Para completar y cumplir con el coverage previsto se realizaron pruebas de integración del Shared Server como un todo, es decir, sin utilizar mocks de ningún servicio.
+
+Estos tests utilizan la base de datos de staging, con el objetivo de no contaminar con datos de prueba a la base de datos productiva.
+
+Como existen servicios externos que tambien dependen de esta base de datos, por ejemplo, los tests de integración que existen en el App Server, no se realiza ningún tipo de limpieza luego de su ejecución.
+Teniendo esto cuenta, cada test se desarrolló de forma tal de que pueda ejecutarse independientemente del estado de la base de datos, por ejemplo, generando valores aleatorios para nombres de usuario y servidores.
 
