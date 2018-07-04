@@ -8,8 +8,8 @@ const config = require('config');
 const fs = require('fs-extra');
 const uuid = require('uuid/v4');
 const requestLib = require('request-promise-native');
-const dbCleanup = require('../config/db_cleanup.js');
-const GoogleUploadService = require('../src/lib/services/google_upload_service.js');
+// const dbCleanup = require('../config/db_cleanup.js');
+// const GoogleUploadService = require('../src/lib/services/google_upload_service.js');
 let request;
 
 describe('Integration Tests', () =>{
@@ -20,7 +20,7 @@ describe('Integration Tests', () =>{
     info: sinon.stub(),
   };
 
-  let _googleUploadService;
+  // let _googleUploadService = new GoogleUploadService(mockLogger);
 
   before(async () => {
     let mocks = {
@@ -30,14 +30,13 @@ describe('Integration Tests', () =>{
     };
     let mockApp = proxyquire('../src/app.js', mocks);
     request = supertest(mockApp.listen());
-    _googleUploadService = new GoogleUploadService(mockLogger);
   });
 
   beforeEach(async () => {
-    await dbCleanup();
+    /* await dbCleanup();
     let localFilesDirectory = config.FILES_DIRECTORY;
     await fs.remove(localFilesDirectory);
-    await _googleUploadService.deleteBucketContent();
+    await _googleUploadService.deleteBucketContent();*/
   });
 
   async function createAdminUser(username, pass) {
@@ -305,11 +304,12 @@ describe('Integration Tests', () =>{
     await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverFindResponse = await getAllServers(adminUserToken, 200);
     expect(serverFindResponse.body.servers).to.be.an.array;
-    expect(serverFindResponse.body.servers.length).to.be(1);
-    expect(serverFindResponse.body.servers[0].lastConnection).to.be.empty();
-    expect(serverFindResponse.body.servers[0].name).to.be(serverName);
-    expect(serverFindResponse.body.servers[0].url).to.be('https://app-server-stories.herokuapp.com');
-    expect(serverFindResponse.body.servers[0].createdBy).to.be(adminUserCreationResponse.body.user.user.id);
+    let serverFound = serverFindResponse.body.servers.find( (server) => {
+      return server.name == serverName;
+    });
+    expect(serverFound.lastConnection).to.be.empty();
+    expect(serverFound.url).to.be('https://app-server-stories.herokuapp.com');
+    expect(serverFound.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
   });
 
   it('retrieve all servers with application user token', async () => {
@@ -353,9 +353,10 @@ describe('Integration Tests', () =>{
     let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverId = serverCreationResponse.body.server.server.id;
     let updatedServer = serverCreationResponse.body.server.server;
-    updatedServer.name = 'newAppServer';
+    let newServerName = uuid();
+    updatedServer.name = newServerName;
     let serverUpdateResponse = await updateServer(adminUserToken, serverId, updatedServer, 200);
-    expect(serverUpdateResponse.body.server.server.name).to.be('newAppServer');
+    expect(serverUpdateResponse.body.server.server.name).to.be(newServerName);
     expect(serverUpdateResponse.body.server.server.url).to.be('https://app-server-stories.herokuapp.com');
     expect(serverUpdateResponse.body.server.server.createdBy).to.be(adminUserCreationResponse.body.user.user.id);
     expect(serverUpdateResponse.body.server.server.lastConnection).to.be.empty();
@@ -829,14 +830,16 @@ describe('Integration Tests', () =>{
     let serverName = uuid();
     let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appUser', 'pass', serverName);
-    await createApplicationUserToken(serverToken, 'appUser', 'pass');
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
+    await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userStatsResponse = await getUserStats(adminUserToken);
     expect(userStatsResponse.body.servers_stats).to.be.an.array;
-    expect(userStatsResponse.body.servers_stats.length).to.be(1);
-    expect(userStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
-    expect(userStatsResponse.body.servers_stats[0].total_users).to.be('1');
-    expect(userStatsResponse.body.servers_stats[0].active_users).to.be('1');
+    let userStatsFound = userStatsResponse.body.servers_stats.find( (userStats) => {
+      return userStats.id == serverCreationResponse.body.server.server.id;
+    });
+    expect(userStatsFound.total_users).to.be('1');
+    expect(userStatsFound.active_users).to.be('1');
   });
 
   it('retrieve user stats with admin user token with bad url', async () => {
@@ -851,10 +854,11 @@ describe('Integration Tests', () =>{
     await createApplicationUserToken(serverToken, applicationUsername, 'pass');
     let userStatsResponse = await getUserStats(adminUserToken);
     expect(userStatsResponse.body.servers_stats).to.be.an.array;
-    expect(userStatsResponse.body.servers_stats.length).to.be(1);
-    expect(userStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
-    expect(userStatsResponse.body.servers_stats[0].total_users).to.be('1');
-    expect(userStatsResponse.body.servers_stats[0].active_users).to.be('1');
+    let userStatsFound = userStatsResponse.body.servers_stats.find( (userStats) => {
+      return userStats.id == serverCreationResponse.body.server.server.id;
+    });
+    expect(userStatsFound.total_users).to.be('1');
+    expect(userStatsFound.active_users).to.be('1');
   });
 
   it('retrieve user stats with admin user token after server delete', async () => {
@@ -864,7 +868,8 @@ describe('Integration Tests', () =>{
     let serverName = uuid();
     let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', serverName);
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
     let serverId = serverCreationResponse.body.server.server.id;
     await deleteServer(adminUserToken, serverId);
     let userStatsResponse = await getUserStats(adminUserToken);
@@ -879,12 +884,14 @@ describe('Integration Tests', () =>{
     let serverName = uuid();
     let serverCreationResponse = await createServer(adminUserToken, serverName, 'https://app-server-stories.herokuapp.com');
     let serverToken = serverCreationResponse.body.server.token.token;
-    await createApplicationUser(serverToken, 'appuser', 'pass', serverName);
+    let applicationUsername = uuid();
+    await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
     let storiesStatsResponse = await getStoriesStats(adminUserToken);
     expect(storiesStatsResponse.body.servers_stats).to.be.an.array;
-    expect(storiesStatsResponse.body.servers_stats.length).to.be(1);
-    expect(storiesStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
-    expect(storiesStatsResponse.body.servers_stats[0].stats).to.be.an.array;
+    let storiesStatsFound = storiesStatsResponse.body.servers_stats.find( (storiesStats) => {
+      return storiesStats.id == serverCreationResponse.body.server.server.id;
+    });
+    expect(storiesStatsFound.stats).to.be.an.array;
   });
 
   it('retrieve stories stats with admin user token with bad url', async () => {
@@ -898,10 +905,11 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
     let storiesStatsResponse = await getStoriesStats(adminUserToken);
     expect(storiesStatsResponse.body.servers_stats).to.be.an.array;
-    expect(storiesStatsResponse.body.servers_stats.length).to.be(1);
-    expect(storiesStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
-    expect(storiesStatsResponse.body.servers_stats[0].stats).to.be.an.array;
-    expect(storiesStatsResponse.body.servers_stats[0].stats).to.be.empty;
+    let storiesStatsFound = storiesStatsResponse.body.servers_stats.find( (storiesStats) => {
+      return storiesStats.id == serverCreationResponse.body.server.server.id;
+    });
+    expect(storiesStatsFound.stats).to.be.an.array;
+    expect(storiesStatsFound.stats).to.be.empty;
   });
 
   it('retrieve stories stats with admin user token after server delete', async () => {
@@ -931,9 +939,10 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
     let requestsStatsResponse = await getRequestsStats(adminUserToken);
     expect(requestsStatsResponse.body.servers_stats).to.be.an.array;
-    expect(requestsStatsResponse.body.servers_stats.length).to.be(1);
-    expect(requestsStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
-    expect(requestsStatsResponse.body.servers_stats[0].stats).to.be.an.array;
+    let requestsStatsFound = requestsStatsResponse.body.servers_stats.find( (requestsStats) => {
+      return requestsStats.id == serverCreationResponse.body.server.server.id;
+    });
+    expect(requestsStatsFound.stats).to.be.an.array;
   });
 
   it('retrieve requests stats with admin user token with bad url', async () => {
@@ -947,10 +956,10 @@ describe('Integration Tests', () =>{
     await createApplicationUser(serverToken, applicationUsername, 'pass', serverName);
     let requestsStatsResponse = await getRequestsStats(adminUserToken);
     expect(requestsStatsResponse.body.servers_stats).to.be.an.array;
-    expect(requestsStatsResponse.body.servers_stats.length).to.be(1);
-    expect(requestsStatsResponse.body.servers_stats[0].id).to.be(serverCreationResponse.body.server.server.id);
-    expect(requestsStatsResponse.body.servers_stats[0].stats).to.be.an.array;
-    expect(requestsStatsResponse.body.servers_stats[0].stats).to.be.empty;
+    let requestsStatsFound = requestsStatsResponse.body.servers_stats.find( (requestsStats) => {
+      return requestsStats.id == serverCreationResponse.body.server.server.id;
+    });
+    expect(requestsStatsFound.stats).to.be.an.array;
   });
 
   it('retrieve requests stats with admin user token after server delete', async () => {
