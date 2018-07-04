@@ -61,10 +61,6 @@ paths:
           description: "Incumplimiento de precondiciones (parámetros faltantes) o validación fallida"
           schema: 
             $ref: "#/definitions/Error"
-        401:
-          description: Unauthorized
-          schema:
-              $ref: '#/definitions/Error'
         500: 
           description: "Unexpected error"
           schema: 
@@ -560,16 +556,101 @@ paths:
           description: "Unexpected error"
           schema: 
             $ref: "#/definitions/Error"        
-            
+  /stats/users:
+    get:
+      tags:
+        - stats
+      security:
+        - AdminUserToken: []
+      description: |
+          Devuelve estadísticas acerca de los usuarios (totales y activos) por servidor
+      responses:
+        200:
+          description: "Estadísticas de los usuarios"
+          schema:
+            properties:
+              metadata:
+                $ref: "#/definitions/CollectionMetadata"
+              servers_stats:
+                items:
+                  $ref: '#/definitions/ServerUserStats'
+        401:
+          description: Unauthorized
+          schema:
+              $ref: '#/definitions/Error'
+        500:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      summary: "Estadísticas de usuarios"
+  /stats/stories:
+    get:
+      tags:
+        - stats
+      security:
+        - AdminUserToken: []
+      description: |
+          Devuelve estadísticas acerca de los historias por servidor
+      responses:
+        200:
+          description: "Estadísticas de los historias"
+          schema:
+            properties:
+              metadata:
+                $ref: "#/definitions/CollectionMetadata"
+              servers_stats:
+                items:
+                  $ref: '#/definitions/ServerStoriesStats'
+        401:
+          description: Unauthorized
+          schema:
+              $ref: '#/definitions/Error'
+        500:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      summary: "Estadísticas de historias"
+  /stats/requests:
+    get:
+      parameters:
+        - in: query
+          name: minutes
+          required: false
+          type: integer
+          description: Determina la cantidad de minutos a utilizar en el cálculo de las estadísticas.
+      tags:
+        - stats
+      security:
+        - AdminUserToken: []
+      description: |
+          Devuelve estadísticas acerca de los requests por servidor
+      responses:
+        200:
+          description: "Estadísticas de los requests"
+          schema:
+            properties:
+              metadata:
+                $ref: "#/definitions/CollectionMetadata"
+              servers_stats:
+                items:
+                  $ref: '#/definitions/ServerRequestsStats'
+        401:
+          description: Unauthorized
+          schema:
+              $ref: '#/definitions/Error'
+        500:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      summary: "Estadísticas de requests"
 definitions:
   Version:
     type: string
     description: Versión de la api
   Id:
-    type: string
+    type: integer
     description: |
-      Se guarda como un string, pero podría ser un número
-      es dependiente de la implementación.
+      Es un número dependiente de la implementación.
   Timestamp:
     type: number
     description: |
@@ -623,6 +704,43 @@ definitions:
         description: Nombre del application server
       lastConnection:
         $ref: '#/definitions/Timestamp'
+      url:
+        type: string
+        description: url absoluta para acceder al servidor
+  ServerUserStats:
+    properties:
+      id:
+        $ref: '#/definitions/Id'
+      total_users:
+        type: integer
+        description: conteo de usuarios registrados por servidor
+      active_users:
+        type: integer
+        description: conteo de usuarios activos por servidor
+  ServerStoriesStats:
+    properties:
+      id:
+        $ref: '#/definitions/Id'
+      stats:
+        items:
+          properties:
+            request:
+              type: string
+              description: Endpoint que representa el servicio solicitado al servidor (subida de historia)
+            timestamp:
+              $ref: '#/definitions/Timestamp'
+  ServerRequestsStats:
+      properties:
+        id:
+          $ref: '#/definitions/Id'
+        stats:
+          items:
+            properties:
+              request:
+                type: string
+                description: Endpoint que representa el servicio solicitado al servidor
+              timestamp:
+                $ref: '#/definitions/Timestamp'
   BusinessUserCredentials:
     properties:
       username:
