@@ -594,7 +594,7 @@ describe('Integration Tests', () =>{
     await updateFile(serverToken, fileUploadResponse1.body.file.id, updatedFile1, 200);
     let updatedFile2 = Object.assign({}, fileUploadResponse2.body.file);
     updatedFile2.filename = 'repeatedFilename';
-    let fileUpdateResponse = await updateFile(serverToken, fileUploadResponse2.body.file.id, updatedFile2, 500);
+    let fileUpdateResponse = await updateFile(serverToken, fileUploadResponse2.body.file.id, updatedFile2, 409);
     expect(fileUpdateResponse.body.code).to.be(409);
     expect(fileUpdateResponse.body.message).to.be('Filename already in use');
   });
