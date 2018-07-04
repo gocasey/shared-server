@@ -65,7 +65,7 @@ En el caso de que algún middleware devuelva algún error, el control pasa inmed
 
 La base de datos se diseñó en Postgre SQL. Se utilizó la librería 'pg' para el manejo de la misma en Node 8. Asimismo, se implementaron scripts para permitir fácilmente la regeneración y la limpieza de la base de datos.
 
-'Esquema de BD'
+![Diagrama de base de datos](/images/shared-server-database.png)
 
 ### Manejo de tokens
 
