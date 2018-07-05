@@ -16,6 +16,8 @@ El Shared Server se encuentra disponible en dos ambientes:
 
 A su vez existen base de datos de staging y producción, como asi también buckets de Google Cloud Storage en sus versiones de staging y producción.
 
+Cada ambiente posee un archivo de configuración específico que se encuentra dentro de la carpeta config.
+
 ## Arquitectura
 
 ### General
@@ -84,11 +86,11 @@ El shared server puede manejar tres tipos distintos de tokens:
 * Tokens de usuarios:
     * No se utilizan para autenticación en los endpoints.
     * Se incluyen solamente en el body del request del endpoint 'token-check' para validar si el token es correcto.
-    * Expiran luego de una hora de su creación.
+    * Expiran luego de 1 hora de su creación.
 * Tokens de usuarios administradores:
     * Se utilizan para autenticar en aquellos endpoints habilitados para usuarios administradores.
     * Se deben incluir en el Authorization header con el formato _Bearer < token >_
-    * No expiran
+    * Expiran luego de 12 horas de su creación.
 * Tokens de servidores:
     * Se utilizan para autenticar en aquellos endpoints habilitados para servidores.
     * Se deben incluir en el Authorization header con el formato _Bearer < token >_
