@@ -63,6 +63,7 @@ Si el request fue validado correctamente y el usuario se autenticó correctament
 * Validación de tokens para usuarios
 * Validación de servidor autorizado para ver archivo
 * Actualización de última fecha de conexión para usuarios y servidores
+* Estadísticas de los servidores sobre usuarios, historias y requests
 
 Si por algún motivo, el servicio solicitado no puede terminar su ejecución, se pasa al middleware de manejo de errores con el error correspondiente.
 
@@ -79,6 +80,8 @@ En el caso de que algún middleware devuelva algún error, el control pasa inmed
 La base de datos se diseñó en Postgre SQL. Se utilizó la librería 'pg' para el manejo de la misma en Node 8. Asimismo, se implementaron scripts para permitir fácilmente la regeneración y la limpieza de la base de datos.
 
 ![Diagrama de base de datos](./images/shared-server-database.png)
+
+Por simplicidad los usuarios de aplicación y los usuarios administradores se guardan en la misma tabla. Dada la potencial baja cantidad de usuarios administradores, se decidió que era innecesario crear una nueva tabla para tal fin. Por lo tanto, lo que diferencia a un usuario administrador de un usuario de aplicación es el token que se le asigna, el cual tiene distintos permisos asignados segun el tipo de usuario.
 
 ### Manejo de tokens
 
